@@ -1288,11 +1288,13 @@ I1214 15:36:04.390760  111782 clusterloader.go:184] ----------------------------
 
 ## 4 总结
 
-1. perf-test clusterloader2工具主要提供了性能压测。并提供了指标
-2. clusterloader2没有详细的使用说明文档，也没有社区。所遇到问题一般只能依靠自己解决。
-3. 由于上面第2点，所遇问题较多（问题 >5个），一般多涉及测试工具环境配置参数，另外clusterloader2对一些参数使用的是硬编码方式，导致无法直接使用原有工具，只能修改源码进行测试适配。
-4. 测试使用clusterloader2，需要详细了解其设计方案，才能运行测试用例
-5. 进行集群测试，需要了解集群测试指标定义，再编写测试配置
+1. perf-test clusterloader2工具主要提供了性能压测，可配置性好，方便编写测试用例，并且统计了相应的性能指标
+2. clusterloader2内置实现了k8s指标采集处理和指标门限定义，参考文档：[Kubernetes scalability and performance SLIs/SLOs](https://github.com/kubernetes/community/blob/master/sig-scalability/slos/slos.md)
+3. clusterloader2没有详细的使用说明文档，目前来看不是可以拿来直接运行使用。所遇到问题一般只能依靠自己解决。
+4. 由于上面第3点，所遇问题较多，一般多涉及测试工具环境配置参数，另外clusterloader2对一些参数使用的是硬编码方式，导致无法直接使用原有工具，只能修改源码进行测试适配。
+5. 测试使用clusterloader2，需要详细了解其设计方案，才能运行测试用例
+6. 进行集群测试，需要了解集群测试指标定义，再编写测试配置
+
 
 
 
@@ -1313,6 +1315,60 @@ kubectl get ns |grep test- |awk '{print $1}' |xargs kubectl delete ns
 2. hollow-node 桩节点清理
 
 
+#### K8S的SLI (服务等级指标) 和 SLO (服务等级目标) 
+
+Kubernetes 社区提供了 SLI (服务等级指标) 和 SLO (服务等级目标) 系统性能测试、分析文档 [Kubernetes scalability and performance SLIs/SLOs](https://github.com/kubernetes/community/blob/master/sig-scalability/slos/slos.md)。模拟出一个 K8s cluster（Kubemark cluster），不受资源限制。cluster 中 master 是真实的机器，所有的 nodes 是 Hollow nodes。Hollow nodes 不会调用Docker，测试一套 K8s API 调用的完整流程，不会真正创建 pod。
+
+ 
+
+社区开发了 perf-test/clusterloader2，可配置性好，并且统计了相应的性能指标
+
+kubemark 不调用 CRI 接口之外，其它行为和 kubelet 基本一致
+
+
+### Etcd监控指标
+参考: https://github.com/coreos/etcd/blob/master/Documentation/metrics.md
+
+#### 领导者相关
+
+etcd_server_has_leader etcd是否有leader
+etcd_server_leader_changes_seen_total etcd的leader变换次数
+etcd_debugging_mvcc_db_total_size_in_bytes 数据库的大小
+process_resident_memory_bytes 进程驻留内存
+
+#### 网络相关
+
+grpc_server_started_total grpc(高性能、开源的通用RPC(远程过程调用)框架)服务器启动总数
+etcd_network_client_grpc_received_bytes_total 接收到grpc客户端的字节总数
+etcd_network_client_grpc_sent_bytes_total 发送给grpc客户端的字节总数
+etcd_network_peer_received_bytes_total etcd网络对等方接收的字节总数(对等网络，即对等计算机网络，是一种在对等者（Peer）之间分配任务和工作负载的分布式应用架构，是对等计算模型在应用层形成的一种组网或网络形式)
+etcd_network_peer_sent_bytes_total etcd网络对等方发送的字节总数
+
+#### 提案相关
+
+etcd_server_proposals_failed_total 目前正在处理的提案(提交会议讨论决定的建议。)数量
+etcd_server_proposals_pending 失败提案总数
+etcd_server_proposals_committed_total 已落实共识提案的总数。
+etcd_server_proposals_applied_total 已应用的共识提案总数。
+
+
+#### 这些指标描述了磁盘操作的状态。
+
+etcd_disk_backend_commit_duration_seconds_sum etcd磁盘后端提交持续时间秒数总和
+etcd_disk_backend_commit_duration_seconds_bucket etcd磁盘后端提交持续时间
+
+#### 快照
+
+etcd_debugging_snap_save_total_duration_seconds_sum etcd快照保存用时
+
+#### 文件
+
+process_open_fds{service="etcd-k8s"} 打开文件描述符的数量
+process_max_fds{service="etcd-k8s"} 打开文件描述符的最大数量
+etcd_disk_wal_fsync_duration_seconds_sum Wal(预写日志系统)调用的fsync(将文件数据同步到硬盘)的延迟分布
+etcd_disk_wal_fsync_duration_seconds_bucket 后端调用的提交的延迟分布
+
+
 
 
 
@@ -1325,4 +1381,6 @@ kubectl get ns |grep test- |awk '{print $1}' |xargs kubectl delete ns
 * [clusterloader2的漫漫踩坑路：最详细解析与使用指南](https://www.colabug.com/2020/0428/7329883/)
 
 * [clusterloader2设计说明：Cluster loader vision](https://github.com/kubernetes/perf-tests/blob/master/clusterloader2/docs/design.md)
+* [etcd指标监控，参考文章](https://sysdig.com/blog/monitor-etcd/)
+
 
