@@ -6,6 +6,7 @@
     height: .5rem;
 }
 
+
 /* 首页头部 */
 .home-profile {
     background: white;
@@ -47,7 +48,7 @@
 
 /* 文章正文 */
 .page.single {
-    width: 51.5%;
+    /*width: 51.5%;*/
 	padding-left: 2rem;
 	padding-right: 2rem;
     background: white;
