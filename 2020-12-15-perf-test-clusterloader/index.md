@@ -7,7 +7,25 @@
 
 <img src="/images/k8s/featured-image.jpg">
 
-## 1 clusterloader准备
+## 1 K8S的性能指标：SLIs/SLOs
+
+K8S的SLI (服务等级指标) 和 SLO (服务等级目标)：
+Kubernetes 社区提供的K8S系统性能测试指标定义。
+
+社区参考文档：[Kubernetes scalability and performance SLIs/SLOs](https://github.com/kubernetes/community/blob/master/sig-scalability/slos/slos.md)
+
+目前社区提供的`官方正式`的性能指标有3个，如下表：
+
+| Status | SLI | SLO |
+| ------ | ----------- | ----------- |
+| Official | Latency of mutating API calls for single objects for every (resource, verb) pair, measured as 99th percentile over last 5 minutes | In default Kubernetes installation, for every (resource, verb) pair, excluding virtual and aggregated resources and Custom Resource Definitions, 99th percentile per cluster-day1 <= 1s |
+| Official | Latency of non-streaming read-only API calls for every (resource, scope pair, measured as 99th percentile over last 5 minutes | In default Kubernetes installation, for every (resource, scope) pair, excluding virtual and aggregated resources and Custom Resource Definitions, 99th percentile per cluster-day1 (a) <= 1s if scope=resource (b) <= 5s if scope=namespace (c) <= 30s if scope=cluster |
+| Official | Startup latency of schedulable stateless pods, excluding time to pull images and run init containers, measured from pod creation timestamp to when all its containers are reported as started and observed via watch, measured as 99th percentile over last 5 minutes | In default Kubernetes installation, 99th percentile per cluster-day1 <= 5s |
+
+
+
+
+## 2 clusterloader准备
 
 1. 从github上拉取[perf-test项目](https://github.com/kubernetes/perf-tests)，其中包含clusterloader2。perf-tests位置为：$GOPATH/src/k8s.io/perf-tests
     - 需要选择与测试k8s集群匹配的版本，这里选择了1.14版本
@@ -22,7 +40,7 @@ go build -o clusterloader './cmd/'
 
 
 
-## 2 clusterloader测试
+## 3 clusterloader测试
 
 ### 1. 运行命令
 
@@ -398,19 +416,74 @@ spec:
 clusterloader2/cmd/clusterloader.go
 ```golang
 void main(){
-  for _, clusterLoaderConfig.TestConfigPath = range testConfigPaths {
-    test.RunTest(f, prometheusFramework, &clusterLoaderConfig)
+
+    // 构造clusterLoaderConfig
+
+    // 构造framework，即各种k8s client
+    f, err := framework.NewFramework(
+        &clusterLoaderConfig.ClusterConfig,
+        getClientsNumber(clusterLoaderConfig.ClusterConfig.Nodes),
+    )
+    // 遍历测试配置文件（可多个），按配置用例运行测试
+    for _, clusterLoaderConfig.TestConfigPath = range testConfigPaths {
+        test.RunTest(f, prometheusFramework, &clusterLoaderConfig)
     }
 }
 ```
 
-RunTest 又调用了 ExecuteTest，示例代码如下：
 
+```go
+// RunTest runs test based on provided test configuration.
+func RunTest(clusterFramework, prometheusFramework *framework.Framework, clusterLoaderConfig *config.ClusterLoaderConfig) *errors.ErrorList {
+
+    // simpleContext上下文信息
+    ctx := CreateContext(clusterLoaderConfig, clusterFramework, prometheusFramework, state.NewState())
+    testConfigFilename := filepath.Base(clusterLoaderConfig.TestConfigPath)
+    // 按参数 设置override config 和 nodes参数
+    mapping, errList := config.GetMapping(clusterLoaderConfig)
+    if errList != nil {
+        return errList
+    }
+    // 使用emplateProvider根据mapping信息把testConfig的模板文件渲染成可用的api.Config
+    testConfig, err := ctx.GetTemplateProvider().TemplateToConfig(testConfigFilename, mapping)
+    if err != nil {
+        return errors.NewErrorList(fmt.Errorf("config reading error: %v", err))
+    }
+    return Test.ExecuteTest(ctx, testConfig)
+}
+
+// api.Config 定义
+// Config is a structure that represents configuration
+// for a single test scenario.
+type Config struct {
+    // Name of the test case.
+    Name string `json: name`
+    // AutomanagedNamespaces is a number of automanaged namespaces.
+    AutomanagedNamespaces int32 `json: automanagedNamespaces`
+    // Steps is a sequence of test steps executed in serial.
+    Steps []Step `json: steps`
+    // TuningSets is a collection of tuning sets that can be used by steps.
+    TuningSets []TuningSet `json: tuningSets`
+    // ChaosMonkey is a config for simulated component failures.
+    ChaosMonkey ChaosMonkeyConfig `json: chaosMonkey`
+}
+```
+
+
+
+RunTest 又调用了 ExecuteTest，示例代码如下：
 循环steps，按顺序执行ExecuteStep
 ```golang
 // ExecuteTest executes test based on provided configuration.
 func (ste *simpleTestExecutor) ExecuteTest(ctx Context, conf *api.Config)  {
-  // 遍历steps，分步执行
+
+    // auto set test namespace
+  ctx.GetClusterFramework().SetAutomanagedNamespacePrefix(fmt.Sprintf("test-%s", util.RandomDNS1123String(6)))
+  // clear test resource
+  defer cleanupResources(ctx)  
+  // create test namespace
+  err = ctx.GetClusterFramework().CreateAutomanagedNamespaces(int(conf.AutomanagedNamespaces))
+  // 遍历steps，分步执行，如果某step出错stepErr，则退出。
   for i := range conf.Steps {
     if stepErrList := ste.ExecuteStep(ctx, &conf.Steps[i]); !stepErrList.IsEmpty() {
       errList.Concat(stepErrList)
@@ -477,13 +550,244 @@ func (ste *simpleTestExecutor) ExecuteStep(ctx Context, step *api.Step) *errors.
 ```
 
 
+measurement Execute
+根据 methodName, identifier 创建measurementInstance。目前有17种measurementInstance。比如：apiResponsivenessMeasurement；podStartupLatencyMeasurement等等
+```go
+// Execute executes measurement based on provided identifier, methodName and params.
+func (mm *MeasurementManager) Execute(methodName string, identifier string, params map[string]interface{}) error {
+    measurementInstance, err := mm.getMeasurementInstance(methodName, identifier)
+    if err != nil {
+        return err
+    }
+    config := &MeasurementConfig{
+        ClusterFramework:    mm.clusterFramework,
+        PrometheusFramework: mm.prometheusFramework,
+        Params:              params,
+        TemplateProvider:    mm.templateProvider,
+        Identifier:          identifier,
+        CloudProvider:       mm.clusterLoaderConfig.ClusterConfig.Provider,
+    }
+    summaries, err := measurementInstance.Execute(config)
+    mm.summaries = append(mm.summaries, summaries...)
+    return err
+}
+```
+
+#### Measurement处理
+以podStartupLatencyMeasurement为例分析，action参数分为start和gather，分别表示测试启动和测试收集
+
+```go
+// Execute supports two actions:
+// - start - Starts to observe pods and pods events.
+// - gather - Gathers and prints current pod latency data.
+// Does NOT support concurrency. Multiple calls to this measurement
+// shouldn't be done within one step.
+func (p *podStartupLatencyMeasurement) Execute(config *measurement.MeasurementConfig) ([]measurement.Summary, error) {
+    action, err := util.GetString(config.Params, "action")
+    if err != nil {
+        return nil, err
+    }
+
+    switch action {
+    case "start":
+        p.namespace, err = util.GetStringOrDefault(config.Params, "namespace", metav1.NamespaceAll)
+        if err != nil {
+            return nil, err
+        }
+        p.labelSelector, err = util.GetStringOrDefault(config.Params, "labelSelector", "")
+        if err != nil {
+            return nil, err
+        }
+        p.fieldSelector, err = util.GetStringOrDefault(config.Params, "fieldSelector", "")
+        if err != nil {
+            return nil, err
+        }
+        p.threshold, err = util.GetDurationOrDefault(config.Params, "threshold", defaultPodStartupLatencyThreshold)
+        if err != nil {
+            return nil, err
+        }
+        return nil, p.start(config.ClusterFramework.GetClientSets().GetClient())
+    case "gather":
+        return p.gather(config.ClusterFramework.GetClientSets().GetClient(), config.Identifier)
+    default:
+        return nil, fmt.Errorf("unknown action %v", action)
+    }
+
+}
+// 测试启动
+func (p *podStartupLatencyMeasurement) start(c clientset.Interface) error {
+    if p.isRunning {
+        klog.Infof("%s: pod startup latancy measurement already running", p)
+        return nil
+    }
+    p.selectorsString = measurementutil.CreateSelectorsString(p.namespace, p.labelSelector, p.fieldSelector)
+    klog.Infof("%s: starting pod startup latency measurement...", p)
+    p.isRunning = true
+    p.stopCh = make(chan struct{})
+    p.informer = informer.NewInformer(
+        c,
+        "pods",
+        p.namespace,
+        p.fieldSelector,
+        p.labelSelector,
+        // 使用checkPod回调处理，一旦pod状态为running，则更新测试工具保存的pod的start时间
+        p.checkPod,
+    )
+    // 启动了监听该范围内的pod资源
+    go p.informer.Run(p.stopCh)
+    timeoutCh := make(chan struct{})
+    timeoutTimer := time.AfterFunc(informerSyncTimeout, func() {
+        close(timeoutCh)
+    })
+    defer timeoutTimer.Stop()
+    if !cache.WaitForCacheSync(timeoutCh, p.informer.HasSynced) {
+        return fmt.Errorf("timed out waiting for caches to sync")
+    }
+    return nil
+}
+
+
+// 测试收集
+func (p *podStartupLatencyMeasurement) gather(c clientset.Interface, identifier string) ([]measurement.Summary, error) {
+    klog.Infof("%s: gathering pod startup latency measurement...", p)
+    // 检查podStartupLatencyMeasurement 是否已启动
+    if !p.isRunning {
+        return nil, fmt.Errorf("metric %s has not been started", podStartupLatencyMeasurementName)
+    }
+
+    scheduleLag := make([]measurementutil.LatencyData, 0)
+    startupLag := make([]measurementutil.LatencyData, 0)
+    watchLag := make([]measurementutil.LatencyData, 0)
+    schedToWatchLag := make([]measurementutil.LatencyData, 0)
+    e2eLag := make([]measurementutil.LatencyData, 0)
+
+    p.stop()
+    // 通过schedEvents方式获取调度器事件的create时间
+    if err := p.gatherScheduleTimes(c); err != nil {
+        return nil, err
+    }
+    // 遍历pod-createTime map，按pod生命周期逻辑，进行条件检查
+    for key, create := range p.createTimes {
+        sched, hasSched := p.scheduleTimes[key]
+        if !hasSched {
+            klog.Infof("%s: failed to find schedule time for %v", p, key)
+        }
+        run, ok := p.runTimes[key]
+        if !ok {
+            klog.Infof("%s: failed to find run time for %v", p, key)
+            continue
+        }
+        watch, ok := p.watchTimes[key]
+        if !ok {
+            klog.Infof("%s: failed to find watch time for %v", p, key)
+            continue
+        }
+        node, ok := p.nodeNames[key]
+        if !ok {
+            klog.Infof("%s: failed to find node for %v", p, key)
+            continue
+        }
+        // 计算各种延时，重要。。。
+        if hasSched {
+            scheduleLag = append(scheduleLag, podLatencyData{Name: key, Node: node, Latency: sched.Time.Sub(create.Time)})
+            startupLag = append(startupLag, podLatencyData{Name: key, Node: node, Latency: run.Time.Sub(sched.Time)})
+            schedToWatchLag = append(schedToWatchLag, podLatencyData{Name: key, Node: node, Latency: watch.Time.Sub(sched.Time)})
+        }
+        watchLag = append(watchLag, podLatencyData{Name: key, Node: node, Latency: watch.Time.Sub(run.Time)})
+        e2eLag = append(e2eLag, podLatencyData{Name: key, Node: node, Latency: watch.Time.Sub(create.Time)})
+    }
+    // 把各个pod的各延时指标值进行排序，排序目的是为了方便进行数据统计
+    sort.Sort(measurementutil.LatencySlice(scheduleLag))
+    sort.Sort(measurementutil.LatencySlice(startupLag))
+    sort.Sort(measurementutil.LatencySlice(watchLag))
+    sort.Sort(measurementutil.LatencySlice(schedToWatchLag))
+    sort.Sort(measurementutil.LatencySlice(e2eLag))
+
+    p.printLatencies(scheduleLag, "worst create-to-schedule latencies")
+    p.printLatencies(startupLag, "worst schedule-to-run latencies")
+    p.printLatencies(watchLag, "worst run-to-watch latencies")
+    p.printLatencies(schedToWatchLag, "worst schedule-to-watch latencies")
+    p.printLatencies(e2eLag, "worst e2e latencies")
+
+    podStartupLatency := &podStartupLatency{
+        CreateToScheduleLatency: measurementutil.ExtractLatencyMetrics(scheduleLag),
+        ScheduleToRunLatency:    measurementutil.ExtractLatencyMetrics(startupLag),
+        RunToWatchLatency:       measurementutil.ExtractLatencyMetrics(watchLag),
+        ScheduleToWatchLatency:  measurementutil.ExtractLatencyMetrics(schedToWatchLag),
+        E2ELatency:              measurementutil.ExtractLatencyMetrics(e2eLag),
+    }
+    // 成功率
+    var err error
+    if successRatio := float32(len(e2eLag)) / float32(len(p.createTimes)); successRatio < successfulStartupRatioThreshold {
+        err = fmt.Errorf("only %v%% of all pods were scheduled successfully", successRatio*100)
+        klog.Errorf("%s: %v", p, err)
+    }
+    // 设置阈值，这里各百分位数使用的都是相同阈值
+    podStartupLatencyThreshold := &measurementutil.LatencyMetric{
+        Perc50: p.threshold,
+        Perc90: p.threshold,
+        Perc99: p.threshold,
+    }
+    // 进行延时指标验证，判断是否满足slos，不满足则输出错误信息
+    if slosErr := podStartupLatency.E2ELatency.VerifyThreshold(podStartupLatencyThreshold); slosErr != nil {
+        err = errors.NewMetricViolationError("pod startup", slosErr.Error())
+        klog.Errorf("%s: %v", p, err)
+    }
+
+    content, jsonErr := util.PrettyPrintJSON(podStartupLatencyToPerfData(podStartupLatency))
+    if err != nil {
+        return nil, jsonErr
+    }
+    summary := measurement.CreateSummary(fmt.Sprintf("%s_%s", podStartupLatencyMeasurementName, identifier), "json", content)
+    return []measurement.Summary{summary}, err
+}
+
+
+// VerifyThreshold verifies latency metric against given percentile thresholds.
+func (metric *LatencyMetric) VerifyThreshold(threshold *LatencyMetric) error {
+    if metric.Perc50 > threshold.Perc50 {
+        return fmt.Errorf("too high latency 50th percentile: %v", metric.Perc50)
+    }
+    if metric.Perc90 > threshold.Perc90 {
+        return fmt.Errorf("too high latency 90th percentile: %v", metric.Perc90)
+    }
+    if metric.Perc99 > threshold.Perc99 {
+        return fmt.Errorf("too high latency 99th percentile: %v", metric.Perc99)
+    }
+    return nil
+}
+
+```
+
+
+#### Phases处理
+Phases处理，实际上就是对配置中的ObjectBundle进行处理, ste.ExecuteObject
+
+```go
+// ExecutePhase executes single test phase based on provided phase configuration.
+func (ste *simpleTestExecutor) ExecutePhase(ctx Context, phase *api.Phase) *errors.ErrorList {
+    // TODO: add tuning set
+    errList := errors.NewErrorList()
+    nsList := createNamespacesList(ctx, phase.NamespaceRange)
+    tuningSet, err := ctx.GetTuningSetFactory().CreateTuningSet(phase.TuningSet)
+
+    instances, exists := ctx.GetState().GetNamespacesState().Get(nsName, id)
+    // // ExecuteObject executes single test object operation based on provided object configuration.
+    ste.ExecuteObject(ctx, &phase.ObjectBundle[j], nsName, replicaIndex, XXX)
+
+    tuningSet.Execute(actions)
+    
+}
+```
+
+
 ### 4. 部署测试
 
 #### .1 k8s-2节点环境
 在本地虚拟机2节点的测试环境中，需要修改测试配置文件和pod部署脚本。
 测试配置文件主要修改参数有
 
-1. NODES，测试工具会抓取实际环境中的节点数，进行设置
+1. Nodes，属于配置文件上下文参数，如果不指定，测试工具会抓取实际环境中的可用的节点数，进行设置
 2. NODES_PER_NAMESPACE， 每个ns下的nodes数。**这里需注意: NODES > NODES_PER_NAMESPACE**
 2. PODS_PER_NODE，每个节点下的pod数
 3. MIN_LATENCY_PODS这个数值会跟 PODS_PER_NODE比较 选取最大的，作为LATENCY测试的参数。因为LATENCY测试一般使用较多pod
@@ -964,11 +1268,171 @@ total 260K
 #### .2 kubemark节点环境
 
 
+kubemark + clusterloader2方式测试
+
+测试环境：总节点数8个：本地虚拟机2节点 + 6个kubemark节点
+虚拟机内存大小为2G
+
+1. 启动kubemark节点
+```shell
+[root@node1 wangb]# kubectl get no
+NAME            STATUS   ROLES         AGE     VERSION
+hollow-node-0   Ready    <none>        9s      v0.0.0-master+4d3c9e0c
+hollow-node-1   Ready    <none>        9s      v0.0.0-master+4d3c9e0c
+hollow-node-2   Ready    <none>        9s      v0.0.0-master+4d3c9e0c
+hollow-node-3   Ready    <none>        9s      v0.0.0-master+4d3c9e0c
+hollow-node-4   Ready    <none>        9s      v0.0.0-master+4d3c9e0c
+hollow-node-5   Ready    <none>        9s      v0.0.0-master+4d3c9e0c
+node1           Ready    master,node   7d22h   v1.14.8
+node2           Ready    node          7d22h   v1.14.8
+
+```
+
+
+2. clusterloader test config.yaml
+
+##### node-pod状态
+
+在node上运行的pod
+```shell
+test-l3zhzg-2   saturation-rc-0-gmx45             1/1     Running             0          2m19s   10.152.121.76     hollow-node-1   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-grbkl             1/1     Running             0          2m19s   10.233.90.157     node1           <none>           <none>
+test-l3zhzg-2   saturation-rc-0-jtw77             1/1     Running             0          2m17s   10.233.96.78      node2           <none>           <none>
+test-l3zhzg-2   saturation-rc-0-krzkt             1/1     Running             0          2m19s   10.88.194.43      hollow-node-0   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-kskvv             1/1     Running             0          2m16s   10.177.65.132     hollow-node-4   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-l4zbp             1/1     Running             0          2m19s   10.16.150.60      hollow-node-0   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-l89cz             1/1     Running             0          2m13s   10.118.8.133      hollow-node-1   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-lp8tp             1/1     Running             0          2m19s   10.220.39.235     hollow-node-3   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-ls9zw             1/1     Running             0          2m19s   10.15.197.103     hollow-node-2   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-m64hg             1/1     Running             0          2m14s   10.172.167.195    hollow-node-2   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-m7qct             1/1     Running             0          2m17s   10.41.26.226      hollow-node-4   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-mct9d             1/1     Running             0          2m18s   10.126.207.219    hollow-node-4   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-ml2fw             1/1     Running             0          2m13s   10.245.91.90      hollow-node-2   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-mndt2             1/1     Running             0          2m19s   10.177.227.228    hollow-node-3   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-n6tzb             1/1     Running             0          2m13s   10.76.229.141     hollow-node-3   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-nfq2d             1/1     Running             0          2m19s   10.172.121.37     hollow-node-4   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-nn4wn             1/1     Running             0          2m18s   10.22.201.220     hollow-node-0   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-nvpz7             1/1     Running             0          2m16s   10.3.93.180       hollow-node-5   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-pfw58             1/1     Running             0          2m16s   10.144.139.248    hollow-node-1   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-pqbd6             1/1     Running             0          2m17s   10.207.147.215    hollow-node-0   <none>           <none>
+test-l3zhzg-2   saturation-rc-0-q9x97             1/1     Running             0          2m14s   10.233.90.149     node1           <none>           <none>
+test-l3zhzg-2   saturation-rc-0-qslqs             1/1     Running             0
+```
+
+
+
+```shell
+I1215 13:59:14.776944   27607 wait_for_controlled_pods.go:249] WaitForControlledPodsRunning: 2/2 ReplicationControllers are running with all pods
+I1215 13:59:14.777038   27607 pod_startup_latency.go:163] PodStartupLatency: labelSelector(group = saturation): gathering pod startup latency measurement...
+I1215 13:59:14.795377   27607 pod_startup_latency.go:312] PodStartupLatency: labelSelector(group = saturation): 40 worst create-to-schedule latencies: [{test-bijvxv-1/saturation-rc-0-gktmn hollow-node-1 0s} {test-bijvxv-1/saturation-rc-0-gv9qb hollow-node-2 0s} {test-bijvxv-1/saturation-rc-0-n4cm5 hollow-node-4 0s} {test-bijvxv-2/saturation-rc-0-bn9z4 hollow-node-4 0s} {test-bijvxv-2/saturation-rc-0-srlf6 hollow-node-0 0s} {test-bijvxv-2/saturation-rc-0-btbng hollow-node-1 0s} {test-bijvxv-1/saturation-rc-0-kkcr7 hollow-node-5 0s} {test-bijvxv-2/saturation-rc-0-dctpp hollow-node-0 0s} {test-bijvxv-1/saturation-rc-0-5m8b2 hollow-node-1 0s} {test-bijvxv-1/saturation-rc-0-fpg6d hollow-node-2 0s} {test-bijvxv-1/saturation-rc-0-tjkvs hollow-node-4 0s} {test-bijvxv-2/saturation-rc-0-z6vtd hollow-node-2 0s} {test-bijvxv-2/saturation-rc-0-hrpwd hollow-node-3 0s} {test-bijvxv-2/saturation-rc-0-hzvk9 hollow-node-1 0s} {test-bijvxv-1/saturation-rc-0-x9b4c hollow-node-0 0s} {test-bijvxv-2/saturation-rc-0-4cqkz hollow-node-0 0s} {test-bijvxv-2/saturation-rc-0-4nppr node2 0s} {test-bijvxv-1/saturation-rc-0-rz69k hollow-node-2 0s} {test-bijvxv-2/saturation-rc-0-btsq4 hollow-node-3 0s} {test-bijvxv-1/saturation-rc-0-ll8sk hollow-node-3 0s} {test-bijvxv-1/saturation-rc-0-zjs57 hollow-node-1 0s} {test-bijvxv-1/saturation-rc-0-dq7x4 hollow-node-5 0s} {test-bijvxv-2/saturation-rc-0-fgxjz hollow-node-4 0s} {test-bijvxv-1/saturation-rc-0-g2bcp node1 0s} {test-bijvxv-2/saturation-rc-0-qp9pg hollow-node-3 0s} {test-bijvxv-1/saturation-rc-0-bdqzd hollow-node-5 0s} {test-bijvxv-1/saturation-rc-0-j5s2q hollow-node-4 0s} {test-bijvxv-2/saturation-rc-0-cp2wn node1 0s} {test-bijvxv-2/saturation-rc-0-2z8ct node1 0s} {test-bijvxv-2/saturation-rc-0-q6hd5 hollow-node-1 0s} {test-bijvxv-2/saturation-rc-0-68wwc hollow-node-5 0s} {test-bijvxv-2/saturation-rc-0-5t2wb hollow-node-4 0s} {test-bijvxv-1/saturation-rc-0-lt8ws hollow-node-0 0s} {test-bijvxv-1/saturation-rc-0-dwqz4 hollow-node-3 0s} {test-bijvxv-1/saturation-rc-0-vj68z node2 0s} {test-bijvxv-2/saturation-rc-0-96l5s hollow-node-5 0s} {test-bijvxv-1/saturation-rc-0-v7jq6 hollow-node-3 0s} {test-bijvxv-2/saturation-rc-0-8g4hx hollow-node-5 0s} {test-bijvxv-2/saturation-rc-0-hj7c7 hollow-node-2 0s} {test-bijvxv-1/saturation-rc-0-gx72w hollow-node-0 0s}]
+I1215 13:59:14.795463   27607 pod_startup_latency.go:313] PodStartupLatency: labelSelector(group = saturation): perc50: 0s, perc90: 0s, perc99: 0s; threshold: 3m2s
+
+```
 
 
 
 
-## 3 问题
+##### 测试1
+- NODES_PER_NAMESPACE 4
+- PODS_PER_NODE 5
+- MIN_LATENCY_PODS 20
+
+首先能够看到hollow-node和真实node上(共8个节点)都运行了pod
+
+
+
+```shell
+I1215 14:05:35.050407   35029 wait_for_controlled_pods.go:249] WaitForControlledPodsRunning: 0/0 ReplicationControllers are running with all pods
+I1215 14:05:35.050777   35029 simple_test_executor.go:128] Step "Deleting saturation pods" ended
+I1215 14:05:35.159705   35029 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:pods Subresource: Verb:POST Scope:namespace Latency:{Perc50:2.613ms Perc90:11.315ms Perc99:52.045ms} Count:180}; threshold: 1s
+I1215 14:05:35.159757   35029 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:pods Subresource: Verb:DELETE Scope:namespace Latency:{Perc50:5.669ms Perc90:15.912ms Perc99:36.005ms} Count:360}; threshold: 1s
+I1215 14:05:35.159762   35029 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:pods Subresource:binding Verb:POST Scope:namespace Latency:{Perc50:2.547ms Perc90:14.111ms Perc99:26.474ms} Count:180}; threshold: 1s
+I1215 14:05:35.159767   35029 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:nodes Subresource:status Verb:PATCH Scope:cluster Latency:{Perc50:8.703ms Perc90:20.129ms Perc99:23.056ms} Count:14}; threshold: 1s
+I1215 14:05:35.159772   35029 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:pods Subresource:status Verb:PATCH Scope:namespace Latency:{Perc50:2.698ms Perc90:7.41ms Perc99:19.599ms} Count:905}; threshold: 1s
+I1215 14:05:35.470022   35029 resource_usage.go:124] ResourceUsageSummary: gathering resource usage...
+I1215 14:05:35.470058   35029 container_resource_gatherer.go:172] Closed stop channel. Waiting for 1 workers
+I1215 14:05:35.470072   35029 resource_gather_worker.go:90] Closing worker for node1
+I1215 14:05:35.470079   35029 container_resource_gatherer.go:180] Waitgroup finished.
+I1215 14:05:35.470202   35029 system_pod_metrics.go:82] skipping collection of system pod metrics
+I1215 14:05:45.494628   35029 simple_test_executor.go:345] Resources cleanup time: 10.023988649s
+I1215 14:05:45.494661   35029 clusterloader.go:177] --------------------------------------------------------------------------------
+I1215 14:05:45.494665   35029 clusterloader.go:178] Test Finished
+I1215 14:05:45.494669   35029 clusterloader.go:179]   Test: /home/wangb/perf-test/clusterloader2/testing/density/config3.yaml
+I1215 14:05:45.494673   35029 clusterloader.go:180]   Status: Success
+I1215 14:05:45.494677   35029 clusterloader.go:184] --------------------------------------------------------------------------------
+
+
+```
+
+
+##### 测试2
+- NODES_PER_NAMESPACE 4
+- PODS_PER_NODE 20
+- MIN_LATENCY_PODS 200
+
+能够看到 apiserver的响应延时比上面的用例要大
+
+```shell
+
+I1215 14:16:30.674465   49564 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:pods Subresource: Verb:DELETE Scope:namespace Latency:{Perc50:6.124ms Perc90:17.215ms Perc99:36.206ms} Count:720}; threshold: 1s
+I1215 14:16:30.674524   49564 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:pods Subresource: Verb:POST Scope:namespace Latency:{Perc50:2.713ms Perc90:12.849ms Perc99:35.964ms} Count:360}; threshold: 1s
+I1215 14:16:30.674530   49564 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:pods Subresource:binding Verb:POST Scope:namespace Latency:{Perc50:2.481ms Perc90:11.292ms Perc99:29.995ms} Count:360}; threshold: 1s
+I1215 14:16:30.674535   49564 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:replicationcontrollers Subresource: Verb:DELETE Scope:namespace Latency:{Perc50:3.972ms Perc90:8.978ms Perc99:28.475ms} Count:202}; threshold: 1s
+I1215 14:16:30.674543   49564 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:pods Subresource:status Verb:PATCH Scope:namespace Latency:{Perc50:2.61ms Perc90:7.179ms Perc99:27.04ms} Count:1891}; threshold: 1s
+I1215 14:16:31.136547   49564 resource_usage.go:124] ResourceUsageSummary: gathering resource usage...
+I1215 14:16:31.136595   49564 container_resource_gatherer.go:172] Closed stop channel. Waiting for 1 workers
+I1215 14:16:31.136612   49564 resource_gather_worker.go:90] Closing worker for node1
+I1215 14:16:31.136619   49564 container_resource_gatherer.go:180] Waitgroup finished.
+I1215 14:16:31.136708   49564 system_pod_metrics.go:82] skipping collection of system pod metrics
+I1215 14:16:41.156280   49564 simple_test_executor.go:345] Resources cleanup time: 10.019116668s
+I1215 14:16:41.156316   49564 clusterloader.go:177] --------------------------------------------------------------------------------
+I1215 14:16:41.156321   49564 clusterloader.go:178] Test Finished
+I1215 14:16:41.156326   49564 clusterloader.go:179]   Test: /home/wangb/perf-test/clusterloader2/testing/density/config3.yaml
+I1215 14:16:41.156330   49564 clusterloader.go:180]   Status: Success
+I1215 14:16:41.156334   49564 clusterloader.go:184] --------------------------------------------------------------------------------
+
+```
+
+
+##### 测试3
+
+- NODES_PER_NAMESPACE 4
+- PODS_PER_NODE 25
+- MIN_LATENCY_PODS 200
+
+```shell
+
+I1215 16:19:38.812083   32636 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:subjectaccessreviews Subresource: Verb:POST Scope:cluster Latency:{Perc50:396µs Perc90:14.48ms Perc99:66.33ms} Count:37}; threshold: 1s
+I1215 16:19:38.812151   32636 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:nodes Subresource:status Verb:PATCH Scope:cluster Latency:{Perc50:6.048ms Perc90:32.049ms Perc99:54.374ms} Count:24}; threshold: 1s
+I1215 16:19:38.812159   32636 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:pods Subresource: Verb:POST Scope:namespace Latency:{Perc50:3.118ms Perc90:12.026ms Perc99:34.693ms} Count:400}; threshold: 1s
+I1215 16:19:38.812169   32636 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:endpoints Subresource: Verb:PUT Scope:namespace Latency:{Perc50:2.467ms Perc90:7.957ms Perc99:34.158ms} Count:166}; threshold: 1s
+I1215 16:19:38.812174   32636 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:pods Subresource: Verb:DELETE Scope:namespace Latency:{Perc50:6.106ms Perc90:13.581ms Perc99:33.557ms} Count:800}; threshold: 1s
+I1215 16:19:39.258943   32636 resource_usage.go:124] ResourceUsageSummary: gathering resource usage...
+I1215 16:19:39.258993   32636 container_resource_gatherer.go:172] Closed stop channel. Waiting for 1 workers
+I1215 16:19:39.259012   32636 resource_gather_worker.go:90] Closing worker for node1
+I1215 16:19:39.259027   32636 container_resource_gatherer.go:180] Waitgroup finished.
+I1215 16:19:39.259125   32636 system_pod_metrics.go:82] skipping collection of system pod metrics
+I1215 16:19:49.287916   32636 simple_test_executor.go:345] Resources cleanup time: 10.028043195s
+I1215 16:19:49.287943   32636 clusterloader.go:177] --------------------------------------------------------------------------------
+I1215 16:19:49.287946   32636 clusterloader.go:178] Test Finished
+I1215 16:19:49.287948   32636 clusterloader.go:179]   Test: /home/wangb/perf-test/clusterloader2/testing/density/config3.yaml
+I1215 16:19:49.287951   32636 clusterloader.go:180]   Status: Success
+I1215 16:19:49.287954   32636 clusterloader.go:184] --------------------------------------------------------------------------------
+
+```
+
+
+##### 测试4
+
+- NODES_PER_NAMESPACE 4
+- PODS_PER_NODE 30
+- MIN_LATENCY_PODS 500
+
+API访问超时，虚拟机OOM报错，无法再运行测试用例
+
+
+
+## 4 问题
 
 ### 1. 提示 Getting master name error: master node not found和 Getting master internal ip error: didn't find any InternalIP master IPs
 mastername和 internalip 参数需要配置
@@ -996,6 +1460,8 @@ I1211 11:10:31.314591  118141 clusterloader.go:169] ----------------------------
 
 ### 2.  Errors: [measurement call TestMetrics - TestMetrics error: [unexpected error (code: 0) in ssh connection to master: &errors.errorString{s:"error getting signer for provider : 'GetSigner(...) not implemented for '"}]
 
+测试配置了TestMetrics measurement，但是没有通过。
+
 ssh问题，参数不正确，还需要自定义环境变量配置KUBE_SSH_KEY_PATH=/root/.ssh/id_rsa
 
 
@@ -1017,44 +1483,14 @@ F1211 11:34:49.106925   19551 clusterloader.go:276] 1 tests have failed!
 
 
 
-### 3. 测试流程最后，TestMetrics: [text format parsing error in line 1: invalid metric name]
+### 3. 告警提示：Master node is not registered. Grabbing metrics from Scheduler, ControllerManager and ClusterAutoscaler is disabled.
 
-https://github.com/kubernetes/perf-tests/issues/875
-提的问题没有人解答
 
-先把testMetic测试项关闭，暂时规避该问题。可能跟metric服务数据采集有关。待看源码分析下。
-```shell
-I1211 11:42:36.535182   30129 resource_usage.go:124] ResourceUsageSummary: gathering resource usage...
-I1211 11:42:36.535218   30129 container_resource_gatherer.go:172] Closed stop channel. Waiting for 2 workers
-I1211 11:42:36.535233   30129 resource_gather_worker.go:90] Closing worker for node2
-I1211 11:42:36.535238   30129 resource_gather_worker.go:90] Closing worker for node1
-I1211 11:42:36.535243   30129 container_resource_gatherer.go:180] Waitgroup finished.
-I1211 11:42:36.535481   30129 system_pod_metrics.go:124] collecting system pod metrics...
-I1211 11:42:36.545375   30129 system_pod_metrics.go:228] Loaded restart count threshold overrides: map[]
-E1211 11:42:36.545827   30129 test_metrics.go:185] TestMetrics: [text format parsing error in line 1: invalid metric name]
-I1211 11:42:46.580137   30129 simple_test_executor.go:345] Resources cleanup time: 10.03225584s
-E1211 11:42:46.580213   30129 clusterloader.go:177] --------------------------------------------------------------------------------
-E1211 11:42:46.580218   30129 clusterloader.go:178] Test Finished
-E1211 11:42:46.580221   30129 clusterloader.go:179]   Test: /home/wangb/perf-test/clusterloader2/testing/density/config.yaml
-E1211 11:42:46.580225   30129 clusterloader.go:180]   Status: Fail
-E1211 11:42:46.580227   30129 clusterloader.go:182]   Errors: [measurement call TestMetrics - TestMetrics error: [text format parsing error in line 1: invalid metric name]]
-E1211 11:42:46.580229   30129 clusterloader.go:184] --------------------------------------------------------------------------------
-F1211 11:42:46.581386   30129 clusterloader.go:276] 1 tests have failed!
-```
+
+
 
 ```shell
-I1214 10:00:38.936020   40729 wait_for_pods.go:141] WaitForControlledPodsRunning: namespace(test-nmeic2-2), labelSelector(name=saturation-rc-0): Pods: 0 out of 0 created, 0 running, 0 pending scheduled, 0 not scheduled, 0 inactive, 2 terminating, 0 unknown, 0 runningButNotReady
-E1214 10:00:41.099072   40729 etcd_metrics.go:121] EtcdMetrics: failed to collect etcd database size
-I1214 10:00:43.735064   40729 wait_for_pods.go:141] WaitForControlledPodsRunning: namespace(test-nmeic2-1), labelSelector(name=saturation-rc-0): Pods: 0 out of 0 created, 0 running, 0 pending scheduled, 0 not scheduled, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady
-I1214 10:00:43.936389   40729 wait_for_pods.go:141] WaitForControlledPodsRunning: namespace(test-nmeic2-2), labelSelector(name=saturation-rc-0): Pods: 0 out of 0 created, 0 running, 0 pending scheduled, 0 not scheduled, 0 inactive, 0 terminating, 0 unknown, 0 runningButNotReady
-I1214 10:00:43.936448   40729 wait_for_controlled_pods.go:235] WaitForControlledPodsRunning: running 0, deleted 2, timeout: 0, unknown: 0
-I1214 10:00:43.936466   40729 wait_for_controlled_pods.go:249] WaitForControlledPodsRunning: 0/0 ReplicationControllers are running with all pods
-I1214 10:00:43.936484   40729 simple_test_executor.go:128] Step "Deleting saturation pods" ended
-I1214 10:00:44.007160   40729 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:tokenreviews Subresource: Verb:POST Scope:cluster Latency:{Perc50:71.004ms Perc90:71.004ms Perc99:71.004ms} Count:2}; threshold: 1s
-I1214 10:00:44.007207   40729 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:pods Subresource: Verb:DELETE Scope:namespace Latency:{Perc50:8.515ms Perc90:16.222ms Perc99:42.815ms} Count:80}; threshold: 1s
-I1214 10:00:44.007213   40729 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:pods Subresource:status Verb:PATCH Scope:namespace Latency:{Perc50:3.386ms Perc90:11.498ms Perc99:26.853ms} Count:168}; threshold: 1s
-I1214 10:00:44.007219   40729 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:pods Subresource: Verb:GET Scope:namespace Latency:{Perc50:1.55ms Perc90:5.413ms Perc99:20.363ms} Count:287}; threshold: 1s
-I1214 10:00:44.007224   40729 api_responsiveness.go:119] APIResponsiveness: Top latency metric: {Resource:namespaces Subresource: Verb:GET Scope:cluster Latency:{Perc50:1.849ms Perc90:6.457ms Perc99:16.999ms} Count:22}; threshold: 1s
+
 W1214 10:00:44.212402   40729 metrics_grabber.go:81] Master node is not registered. Grabbing metrics from Scheduler, ControllerManager and ClusterAutoscaler is disabled.
 I1214 10:00:44.268795   40729 resource_usage.go:124] ResourceUsageSummary: gathering resource usage...
 I1214 10:00:44.268822   40729 container_resource_gatherer.go:172] Closed stop channel. Waiting for 0 workers
@@ -1071,6 +1507,9 @@ E1214 10:00:54.301233   40729 clusterloader.go:184] ----------------------------
 F1214 10:00:54.305222   40729 clusterloader.go:276] 1 tests have failed!
 
 ```
+
+
+排查过程，结合分析源码：
 
 如果没有注册master节点，则测试不会统计调度器和controllers等组件信息
 分处理逻辑，发现clusterloader2对master节点的判断条件不符合测试集群环境，如下。需要修改下clusterloader2的代码
@@ -1097,12 +1536,26 @@ func IsMasterNode(nodeName string) bool {
 **修改代码：在system.IsMasterNode(node.Name) 引用处，新增条件： node.Labels["node-role.kubernetes.io/master"] == "true" ，作为master节点判断**
 
 
-### 4. EtcdMetrics信息获取不到：EtcdMetrics: failed to collect etcd database size
+### 4. EtcdMetrics信息获取不到：EtcdMetrics: failed to collect etcd database size 
+
 ```shell
 
 E1214 11:06:03.936128    2312 etcd_metrics.go:121] EtcdMetrics: failed to collect etcd database size
 
 ```
+
+
+或者上报错误：TestMetrics: [text format parsing error in line 1: invalid metric name]
+
+```shell
+E1211 11:42:36.545827   30129 test_metrics.go:185] TestMetrics: [text format parsing error in line 1: invalid metric name]
+```
+
+
+https://github.com/kubernetes/perf-tests/issues/875
+提的问题没有人解答
+
+最初先把testMetic测试项关闭，暂时规避该问题。可能跟metric服务数据采集有关。后来排查了下日志打印信息，发现有多处报错，要逐个排查。
 
 
 分析源码应该是获取不到etcd的metrics导致，修改代码如下：
@@ -1286,31 +1739,33 @@ I1214 15:36:04.390760  111782 clusterloader.go:184] ----------------------------
 ```
 
 
-## 4 总结
+## 5 总结
 
 1. perf-test clusterloader2工具主要提供了性能压测，可配置性好，方便编写测试用例，并且统计了相应的性能指标
-2. clusterloader2内置实现了k8s指标采集处理和指标门限定义，参考文档：[Kubernetes scalability and performance SLIs/SLOs](https://github.com/kubernetes/community/blob/master/sig-scalability/slos/slos.md)
+2. clusterloader2内置实现了k8s指标采集处理和指标阈值定义，参考文档：[Kubernetes scalability and performance SLIs/SLOs](https://github.com/kubernetes/community/blob/master/sig-scalability/slos/slos.md)
 3. clusterloader2没有详细的使用说明文档，目前来看不是可以拿来直接运行使用。所遇到问题一般只能依靠自己解决。
 4. 由于上面第3点，所遇问题较多，一般多涉及测试工具环境配置参数，另外clusterloader2对一些参数使用的是硬编码方式，导致无法直接使用原有工具，只能修改源码进行测试适配。
 5. 测试使用clusterloader2，需要详细了解其设计方案，才能运行测试用例
 6. 进行集群测试，需要了解集群测试指标定义，再编写测试配置
+7. 测试时需要预估下测试pod数量和内存占用情况，否则会引起OOM。
+7. **clusterloader2并不是一个拿来即用的测试工具，还需结合测试环境进行改造适配，更像是K8S内部使用的类似脚手架的东西**
 
 
 
 
-## 5 附录
+## 6 附录
 
 参考命令
 
 批量删除k8s测试命名空间及其资源，这里测试数据默认使用了test-开头的命令规则
 ```shell
-kubectl get ns |grep test- |awk '{print $1}' |xargs kubectl delete ns 
+kubectl get ns |grep test- |awk '{print $1}' |xargs kubectl delete ns --force --grace-period=0
 ```
 
 
 测试中如果出现异常，系统会残留有测试使用的资源参数，这里需要对实际情况进行调整
 
-测试完成后的测试资源清理：
+测试完成后的测试资源清理（如果测试后有测试数据资源残留的话）：
 1. 测试ns、rc、pod清理
 2. hollow-node 桩节点清理
 
