@@ -1293,7 +1293,8 @@ node2           Ready    node          7d22h   v1.14.8
 
 ##### node-pod状态
 
-在node上运行的pod
+
+* 首先能够看到hollow-node和真实node上(共8个节点)都运行了pod
 ```shell
 test-l3zhzg-2   saturation-rc-0-gmx45             1/1     Running             0          2m19s   10.152.121.76     hollow-node-1   <none>           <none>
 test-l3zhzg-2   saturation-rc-0-grbkl             1/1     Running             0          2m19s   10.233.90.157     node1           <none>           <none>
@@ -1320,7 +1321,7 @@ test-l3zhzg-2   saturation-rc-0-qslqs             1/1     Running             0
 ```
 
 
-
+* pod的调度延时
 ```shell
 I1215 13:59:14.776944   27607 wait_for_controlled_pods.go:249] WaitForControlledPodsRunning: 2/2 ReplicationControllers are running with all pods
 I1215 13:59:14.777038   27607 pod_startup_latency.go:163] PodStartupLatency: labelSelector(group = saturation): gathering pod startup latency measurement...
@@ -1336,9 +1337,6 @@ I1215 13:59:14.795463   27607 pod_startup_latency.go:313] PodStartupLatency: lab
 - NODES_PER_NAMESPACE 4
 - PODS_PER_NODE 5
 - MIN_LATENCY_PODS 20
-
-首先能够看到hollow-node和真实node上(共8个节点)都运行了pod
-
 
 
 ```shell
