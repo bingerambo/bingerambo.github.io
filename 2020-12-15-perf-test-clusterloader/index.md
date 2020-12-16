@@ -75,6 +75,8 @@ LOG_FILE='test.log'
     --alsologtostderr 2>&1 | tee $LOG_FILE
 ```
 
+运行命令可以指定nodes数量，不过这里默认使用集群全部节点。
+
 
 ### 2. 测试配置文件 test config（默认）
 
@@ -1590,7 +1592,6 @@ func (e *etcdMetricsMeasurement) getEtcdMetrics(host, provider string) ([]*model
 
 ### 5.报错找不到资源  TestMetrics: [the server could not find the requested resource (get pods kube-scheduler-192.168.182.101:10251)]
 
-分析可能是 view resource no match 查询资源版本不匹配导致？？？
 
 ```shell
 I1214 14:14:20.039016  126597 resource_usage.go:124] ResourceUsageSummary: gathering resource usage...
@@ -1611,8 +1612,8 @@ F1214 14:14:30.104658  126597 clusterloader.go:276] 1 tests have failed!
 
 ```
 
-
-分析代码如下，可能是在msternode下构造request时有问题。改用crul方式直接获取调度器metrics
+分析可能是 view resource no match 查询资源url不正确导致？
+分析代码如下，可能是在msternode下构造request时有问题，定位原因为restclient构造url有问题。改用curl方式（可本地测试通过）直接获取调度器metrics
 common/simple/scheduler_latency.go
 ```golang
 // Sends request to kube scheduler metrics
