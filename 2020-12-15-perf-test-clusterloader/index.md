@@ -1430,9 +1430,75 @@ I1215 16:19:49.287954   32636 clusterloader.go:184] ----------------------------
 
 API访问超时，虚拟机OOM报错，无法再运行测试用例
 
+## 4 对自定义调度器测试
 
 
-## 4 问题
+### 源码修改
+
+对自定义调度器kube-batch测试，pod延时的计算，原有代码使用的是k8s调度器的event，这里需要修改成kube-batch，如下
+在pod_startup_latency.go中
+```go
+func (p *podStartupLatencyMeasurement) gatherScheduleTimes(c clientset.Interface) error {
+  // custom cheduler add by wangb
+  const CustomSchedulerName = "kube-batch"
+  selector := fields.Set{
+    "involvedObject.kind": "Pod",
+    //"source":              corev1.DefaultSchedulerName,
+    "source":              CustomSchedulerName,
+  }.AsSelector().String()
+  options := metav1.ListOptions{FieldSelector: selector}
+  schedEvents, err := c.CoreV1().Events(p.namespace).List(options)
+  if err != nil {
+    return err
+  }
+  for _, event := range schedEvents.Items {
+    key := createMetaNamespaceKey(event.InvolvedObject.Namespace, event.InvolvedObject.Name)
+    if _, ok := p.createTimes[key]; ok {
+      p.scheduleTimes[key] = event.FirstTimestamp
+    }
+  }
+  return nil
+}
+```
+
+重新编译成 custom_clusterloader
+
+### 配置文件
+修改下test.config 和 rc.yaml
+- test.config 中注意pod资源使用，适当调整大些
+- rc.yaml中，要对container同时设置limts和requests
+
+### custom_clusterloader运行命令
+```shell
+# 自定义clusterloader程序：custom_clusterloader
+cd /home/wangb/perf-test/clusterloader2
+# ssh访问参数
+export KUBE_SSH_KEY_PATH=/root/.ssh/id_rsa
+# master节点信息
+MASTER_NAME=node1
+TEST_MASTER_IP=192.168.182.101
+TEST_MASTER_INTERNAL_IP=192.168.182.101
+KUBE_CONFIG=${HOME}/.kube/config
+# 测试配置文件
+TEST_CONFIG='/home/wangb/perf-test/clusterloader2/testing/density/config-batch.yaml'
+# 测试报告目录位置
+REPORT_DIR='./reports'
+# 测试日志打印文件
+LOG_FILE='test.log'
+
+
+./custom_clusterloader --kubeconfig=$KUBE_CONFIG \
+    --mastername=$TEST_MASTER_IP \
+    --masterip=$MASTER_IP \
+    --master-internal-ip=TEST_MASTER_INTERNAL_IP \
+    --testconfig=$TEST_CONFIG \
+    --report-dir=$REPORT_DIR \
+    --alsologtostderr 2>&1 | tee $LOG_FILE
+```
+
+
+
+## 5 问题
 
 ### 1. 提示 Getting master name error: master node not found和 Getting master internal ip error: didn't find any InternalIP master IPs
 mastername和 internalip 参数需要配置
@@ -1738,7 +1804,7 @@ I1214 15:36:04.390760  111782 clusterloader.go:184] ----------------------------
 ```
 
 
-## 5 总结
+## 6 总结
 
 1. perf-test clusterloader2工具主要提供了性能压测，可配置性好，方便编写测试用例，并且统计了相应的性能指标
 2. clusterloader2内置实现了k8s指标采集处理和指标阈值定义，参考文档：[Kubernetes scalability and performance SLIs/SLOs](https://github.com/kubernetes/community/blob/master/sig-scalability/slos/slos.md)
@@ -1752,7 +1818,7 @@ I1214 15:36:04.390760  111782 clusterloader.go:184] ----------------------------
 
 
 
-## 6 附录
+## 7 附录
 
 参考命令
 
