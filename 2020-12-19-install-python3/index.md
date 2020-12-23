@@ -13,10 +13,9 @@
 
 ```shell
 #! /bin/bash
-yum -y install zlib-devel bzip2-devel libffi-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel wget gcc
+yum -y install zlib-devel bzip2-devel libffi-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel wget gcc python-devel openssl sshpass
 
 wget https://www.python.org/ftp/python/3.7.1/Python-3.7.1.tgz
-
 mkdir -p /usr/local/python3
 tar -xf Python-3.7.1.tgz
 yum install libffi-devel -y
