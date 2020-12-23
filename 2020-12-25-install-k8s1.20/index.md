@@ -2,12 +2,12 @@
 
 
 
-上周末k8s刚刚发布了1.20.1版本，于是就抢鲜安装体验下。
+上周末k8s刚刚发布了1.20.1版本，抢鲜安装体验下。
+
+- 由于网络原因，访问谷歌外网不是很方便，所以本文采用国内可访问的资源进行安装，资源包括：k8s二进制文件和镜像文件
+- 安装方式采用kubespray，[项目地址](https://github.com/kubernetes-sigs/kubespray)
 
 <!--more-->
-
-- 由于网络原因，访问谷歌外网，不是很方面，所以本文采用国内可访问的资源进行安装，资源包括：k8s二进制文件和镜像文件
-- 安装脚本采用kubespray，[项目地址](https://github.com/kubernetes-sigs/kubespray)
 
 
 ## k8s版本包
@@ -1474,6 +1474,8 @@ total 267444
 - kubeadm
 - kubectl
 - kubelet
+
+
 放置到/usr/local/bin目录下。
 
 安装完成后的命令目录文件如下（其它文件是有kubspray下载完成的）：
