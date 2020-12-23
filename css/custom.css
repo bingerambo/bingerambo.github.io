@@ -56,13 +56,13 @@
 	opacity: .95;
 }
 
-@media only screen and (max-width: 1440px) {
+/*@media only screen and (max-width: 1440px) {
     .page.single {
         width: 100%;
         padding-left: 0.1rem;
         padding-right: 0.1rem;
     }
-}
+}*/
 
 @media only screen and (max-width: 1200px) {
     .page.single {
