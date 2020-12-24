@@ -15,10 +15,6 @@
 k8s社区版本发布地址如下
 
 https://storage.googleapis.com/kubernetes-release/release/
-
-
-通过 [CHANGELOG-1.20](https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.20.md)里面的指定的位置，下载指定版本 如1.12.1
-
 分别有server、node、client三种版本包二进制文件。下载方式如下：
 ```shell
 wget https://storage.googleapis.com/kubernetes-release/release/v1.20.1/kubernetes-server-linux-amd64.tar.gz
@@ -31,6 +27,12 @@ wget https://storage.googleapis.com/kubernetes-release/release/v1.20.1/kubernete
 
 
 ```
+
+上面这些地址无法直接访问。可以改由下面方式下载：
+
+
+通过 [CHANGELOG-1.20](https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.20.md)里面的指定的位置，下载指定版本 如1.12.1
+
 
 实际上，对于安装部署，只要node中的版本包即可。
 
@@ -1478,6 +1480,7 @@ total 267444
 
 放置到/usr/local/bin目录下。
 
+
 安装完成后的命令目录文件如下（其它文件是有kubspray下载完成的）：
 
 ```shell
@@ -1628,6 +1631,17 @@ echo "END downloading quay.io/images..."
 ```shell
 bash download_k8s_images.sh
 ```
+
+## 非下载方式说明
+
+如果没有file server服务。
+
+1. 需要把手动把命令目录文件拷贝到/usr/local/bin
+   - kubectl
+   - kubeadm
+   - kubelet 
+
+2. 同时把其它下载文件如网络插件cni等下载包，放到/tmp/release目录下 
 
 
 ## k8s相关镜像
