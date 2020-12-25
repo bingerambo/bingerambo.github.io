@@ -1982,9 +1982,14 @@ Dec 23 09:52:19 gpu53 kubelet: I1223 09:52:19.101556  104914 kubelet.go:1923] Sy
 ## 附录
 
 ### 命令
-* 给节点打master标签
+* 给节点node2 打master标签
 ```shell
 kubectl label node node2 node-role.kubernetes.io/master=true --overwrite
+```
+
+* 给节点gpu53 打node标签
+```shell
+kubectl label node gpu53 node-role.kubernetes.io/node=true --overwrite
 ```
 
 * 强制删除某pod
