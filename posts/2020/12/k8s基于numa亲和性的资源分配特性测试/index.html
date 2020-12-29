@@ -1,0 +1,579 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>K8S基于NUMA亲和性的资源分配特性测试 - 斌哥的小站|Binge Blog</title><meta name=Description content="K8S1.20的kubelet的cpu和topo manager功能测试"><meta property="og:title" content="K8S基于NUMA亲和性的资源分配特性测试"><meta property="og:description" content="K8S1.20的kubelet的cpu和topo manager功能测试"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2020/12/k8s%E5%9F%BA%E4%BA%8Enuma%E4%BA%B2%E5%92%8C%E6%80%A7%E7%9A%84%E8%B5%84%E6%BA%90%E5%88%86%E9%85%8D%E7%89%B9%E6%80%A7%E6%B5%8B%E8%AF%95/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2020-12-29T08:43:17+08:00"><meta property="article:modified_time" content="2020-12-29T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="K8S基于NUMA亲和性的资源分配特性测试"><meta name=twitter:description content="K8S1.20的kubelet的cpu和topo manager功能测试"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2020/12/k8s%E5%9F%BA%E4%BA%8Enuma%E4%BA%B2%E5%92%8C%E6%80%A7%E7%9A%84%E8%B5%84%E6%BA%90%E5%88%86%E9%85%8D%E7%89%B9%E6%80%A7%E6%B5%8B%E8%AF%95/><link rel=prev href=http://bingerambo.com/posts/2020/12/%E5%AE%89%E8%A3%85nvidia-docker2nvidia-container-v2%E5%92%8Cnvidia-k8s-gpu%E6%8F%92%E4%BB%B6/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"K8S基于NUMA亲和性的资源分配特性测试","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2020\/12\/k8s%E5%9F%BA%E4%BA%8Enuma%E4%BA%B2%E5%92%8C%E6%80%A7%E7%9A%84%E8%B5%84%E6%BA%90%E5%88%86%E9%85%8D%E7%89%B9%E6%80%A7%E6%B5%8B%E8%AF%95\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":3774,"url":"http:\/\/bingerambo.com\/posts\/2020\/12\/k8s%E5%9F%BA%E4%BA%8Enuma%E4%BA%B2%E5%92%8C%E6%80%A7%E7%9A%84%E8%B5%84%E6%BA%90%E5%88%86%E9%85%8D%E7%89%B9%E6%80%A7%E6%B5%8B%E8%AF%95\/","datePublished":"2020-12-29T08:43:17+08:00","dateModified":"2020-12-29T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":"K8S1.20的kubelet的cpu和topo manager功能测试"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/notes/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/notes/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">K8S基于NUMA亲和性的资源分配特性测试</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2020-12-29>2020-12-29</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 3774 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 8 分钟&nbsp;
+<i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#配置kubelet>配置kubelet</a></li><li><a href=#topology-manager-policy>topology-manager-policy</a></li><li><a href=#kubeletenv配置示例>kubelet.env配置示例</a></li><li><a href=#kubelet重启>kubelet重启</a></li><li><a href=#启动gpu-k8s插件>启动GPU k8s插件</a></li><li><a href=#kubelet的快照文件>kubelet的快照文件</a></li><li><a href=#gpu命令>GPU命令</a><ul><li><a href=#gpu-uuid>GPU uuid</a></li><li><a href=#gpu-详细信息>GPU 详细信息</a></li><li><a href=#gpu拓扑>GPU拓扑</a></li></ul></li><li><a href=#测试>测试</a><ul><li><a href=#cpu-numa亲和性>CPU numa亲和性</a></li><li><a href=#gpucpu-numa亲和性>GPU+CPU numa亲和性</a></li><li><a href=#numa资源不足场景测试>numa资源不足场景测试</a><ul><li><a href=#cpu某num组资源不足>cpu某num组资源不足</a></li><li><a href=#gpu某numa组资源不足>GPU某numa组资源不足</a></li><li><a href=#gpu和cpu-numa组资源都不满足>GPU和cpu numa组资源都不满足</a></li></ul></li></ul></li><li><a href=#附录>附录</a><ul><li><a href=#kubelet-numa拓扑亲和性资源分配方案>kubelet numa拓扑亲和性资源分配方案：</a></li><li><a href=#测试pod-配置>测试pod 配置</a></li></ul></li></ul></nav></div></div><div class=content id=content><p>1.20版本正式添加了kubelet的numa亲和性资源（CPU和GPU）分配功能，本文记录操作要点</p><h2 id=配置kubelet>配置kubelet</h2><ol><li>添加kubelet中numa相关的运行命令参数</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>--cpu-manager-policy<span class=o>=</span>static --topology-manager-policy<span class=o>=</span>best-effort
+</code></pre></td></tr></table></div></div><p>kubelet的cpu-manager策略默认是none，会分配系统全部cpuset。这里需要显示指定策略</p><p>topology-manager-policy这里根据项目场景需要，配置best-effort：优选分配numa拓扑亲和性的资源，如果numa亲和性不满足，则分配系统可用资源。</p><ol start=2><li>cpu-manager策略默认配置</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>[root@gpu53 ~]# cat  /var/lib/kubelet/cpu_manager_state
+{&#34;policyName&#34;:&#34;none&#34;,&#34;defaultCpuSet&#34;:&#34;&#34;,&#34;checksum&#34;:1353318690}
+</code></pre></td></tr></table></div></div><ol start=3><li>cpu-manager策略static配置</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0,4-27&#34;,&#34;entries&#34;:{&#34;39b37746-7f5e-4064-b8e1-eebd2bfaa003&#34;:{&#34;app&#34;:&#34;1-3&#34;}},&#34;checksum&#34;:3300516549}
+</code></pre></td></tr></table></div></div><h2 id=topology-manager-policy>topology-manager-policy</h2><div class="details admonition note open"><div class="details-summary admonition-title"><i class="icon fas fa-pencil-alt fa-fw"></i>注意<i class="details-icon fas fa-angle-right fa-fw"></i></div><div class=details-content><div class=admonition-content><p><i class="far fa-bookmark fa-fw"></i>&nbsp;说明</p><ul><li>none: this policy will not attempt to do any alignment of resources. It will act the same as if the TopologyManager were not present at all. This is the default policy.</li><li>best-effort: with this policy, the TopologyManager will attempt to align allocations on NUMA nodes as best it can, but will always allow the pod to start even if some of the allocated resources are not aligned on the same NUMA node.</li><li>restricted: this policy is the same as the best-effort policy, except it will fail pod admission if allocated resources cannot be aligned properly. Unlike with the single-numa-node policy, some allocations may come from multiple NUMA nodes if it is impossible to ever satisfy the allocation request on a single NUMA node (e.g. 2 devices are requested and the only 2 devices on the system are on different NUMA nodes).</li><li>single-numa-node: this policy is the most restrictive and will only allow a pod to be admitted if all requested CPUs and devices can be allocated from exactly one NUMA node.</li></ul></div></div></div><h2 id=kubeletenv配置示例>kubelet.env配置示例</h2><p>/etc/kubernetes/kubelet.env</p><p>即在原有配置上增加 &ndash;cpu-manager-policy=static &ndash;topology-manager-policy=best-effort</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>
+[root@node2 kubelet]# cat /etc/kubernetes/kubelet.env
+KUBE_LOGTOSTDERR=&#34;--logtostderr=true&#34;
+KUBE_LOG_LEVEL=&#34;--v=2&#34;
+KUBELET_ADDRESS=&#34;--node-ip=10.151.11.61&#34;
+KUBELET_HOSTNAME=&#34;--hostname-override=node2&#34;
+
+
+
+KUBELET_ARGS=&#34;--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf \
+--config=/etc/kubernetes/kubelet-config.yaml \
+--kubeconfig=/etc/kubernetes/kubelet.conf \
+--pod-infra-container-image=k8s.gcr.io/pause:3.2 \
+--authentication-token-webhook \
+--enforce-node-allocatable=&#34;&#34; \
+--client-ca-file=/etc/kubernetes/ssl/ca.crt \
+--rotate-certificates \
+--node-status-update-frequency=10s \
+--cgroup-driver=systemd \
+--cgroups-per-qos=False \
+--max-pods=110 \
+--anonymous-auth=false \
+--read-only-port=0 \
+--fail-swap-on=True \
+--runtime-cgroups=/systemd/system.slice --kubelet-cgroups=/systemd/system.slice \
+ --cluster-dns=10.233.0.3 --cluster-domain=cluster.local --resolv-conf=/etc/resolv.conf --node-labels=   --eviction-hard=&#34;&#34;  --image-gc-high-threshold=100 --image-gc-low-threshold=99 --kube-reserved cpu=100m --system-reserved cpu=100m \
+--cpu-manager-policy=static --topology-manager-policy=best-effort  \
+   &#34;
+KUBELET_NETWORK_PLUGIN=&#34;--network-plugin=cni --cni-conf-dir=/etc/cni/net.d --cni-bin-dir=/opt/cni/bin&#34;
+KUBELET_CLOUDPROVIDER=&#34;&#34;
+
+PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+
+</code></pre></td></tr></table></div></div><h2 id=kubelet重启>kubelet重启</h2><p><strong>注意：kubelet修改cpu_manager策略配置，一定要停掉kubelet服务，并删除/var/lib/kubelet/cpu_manager_state文件，再重启kubelet，否则会导致kubelet服务重启失败。</strong></p><h2 id=启动gpu-k8s插件>启动GPU k8s插件</h2><p>需要支持CPUManager static policy
+这里采用镜像方式启动，详细操作参考<a href=/posts/2020/12/%E5%AE%89%E8%A3%85nvidia-docker2nvidia-container-v2%E5%92%8Cnvidia-k8s-gpu%E6%8F%92%E4%BB%B6/ rel><strong>K8S GPU DEVICEPLUGIN</strong></a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>docker run <span class=se>\
+</span><span class=se></span>    -it <span class=se>\
+</span><span class=se></span>    --privileged <span class=se>\
+</span><span class=se></span>    --network<span class=o>=</span>none <span class=se>\
+</span><span class=se></span>    -v /var/lib/kubelet/device-plugins:/var/lib/kubelet/device-plugins <span class=se>\
+</span><span class=se></span>    nvidia/k8s-device-plugin:devel --pass-device-specs
+
+</code></pre></td></tr></table></div></div><h2 id=kubelet的快照文件>kubelet的快照文件</h2><ul><li>cpu_manager_state：CPU管理器快照文件，包含cpu分配策略和已分配pod的cpuset信息</li><li>device-plugins/kubelet_internal_checkpoint：deviceplugin的快照信息，这里关注测试numa亲和性分配相关的TOPO分配信息</li></ul><h2 id=gpu命令>GPU命令</h2><h3 id=gpu-uuid>GPU uuid</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>nvidia-smi -L
+</code></pre></td></tr></table></div></div><p>显示如下，查询到INDEX -> UUID：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>[root@node2 ~]# nvidia-smi -L
+GPU 0: Tesla P100-PCIE-16GB (UUID: GPU-77a702db-e37f-3a74-d46d-c5713f66058c)
+GPU 1: Tesla P100-PCIE-16GB (UUID: GPU-9b341c59-f96b-ba85-c137-78c3652fea65)
+GPU 2: Tesla P100-PCIE-16GB (UUID: GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841)
+</code></pre></td></tr></table></div></div><h3 id=gpu-详细信息>GPU 详细信息</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>lspci <span class=p>|</span> grep -i nvidia
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>[root@node2 ~]# lspci | grep -i nvidia
+3b:00.0 3D controller: NVIDIA Corporation GP100GL [Tesla P100 PCIe 16GB] (rev a1)
+86:00.0 3D controller: NVIDIA Corporation GP100GL [Tesla P100 PCIe 16GB] (rev a1)
+d8:00.0 3D controller: NVIDIA Corporation GP100GL [Tesla P100 PCIe 16GB] (rev a1)
+
+</code></pre></td></tr></table></div></div><p>前边的序号 &ldquo;3b:00.0"是显卡的代号;</p><p>查看指定显卡的详细信息用以下指令：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>lspci -v -s 3b:00.0
+</code></pre></td></tr></table></div></div><p>这里能看到NUMA node 1</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>[root@node2 ~]# lspci -v -s d8:00.0
+d8:00.0 3D controller: NVIDIA Corporation GP100GL [Tesla P100 PCIe 16GB] (rev a1)
+        Subsystem: NVIDIA Corporation Device 118f
+        Flags: bus master, fast devsel, latency 0, IRQ 441, NUMA node 1
+        Memory at fa000000 (32-bit, non-prefetchable) [size=16M]
+        Memory at 39f800000000 (64-bit, prefetchable) [size=16G]
+        Memory at 39fc00000000 (64-bit, prefetchable) [size=32M]
+        Capabilities: [60] Power Management version 3
+        Capabilities: [68] MSI: Enable+ Count=1/1 Maskable- 64bit+
+        Capabilities: [78] Express Endpoint, MSI 00
+        Capabilities: [100] Virtual Channel
+        Capabilities: [258] L1 PM Substates
+        Capabilities: [128] Power Budgeting <span class=cp>&lt;?&gt;
+</span><span class=cp>        Capabilities: [420] Advanced Error Reporting
+</span><span class=cp>        Capabilities: [600] Vendor Specific Information: ID=0001 Rev=1 Len=024 &lt;?&gt;</span>
+        Capabilities: [900] <span class=ni>#19</span>
+        Kernel driver in use: nvidia
+        Kernel modules: nouveau, nvidia_drm, nvidia
+
+</code></pre></td></tr></table></div></div><h3 id=gpu拓扑>GPU拓扑</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>nvidia-smi topo -mp
+</code></pre></td></tr></table></div></div><p>GPU0属于NUMA组0，GPU1和GPU2属于NUMA组1</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>[root@node2 numa_test]# nvidia-smi topo -mp
+        GPU0    GPU1    GPU2    CPU Affinity    NUMA Affinity
+GPU0     X      SYS     SYS     0-13    0
+GPU1    SYS      X      NODE    14-27   1
+GPU2    SYS     NODE     X      14-27   1
+
+Legend:
+
+  X    = Self
+  SYS  = Connection traversing PCIe as well as the SMP interconnect between NUMA nodes (e.g., QPI/UPI)
+  NODE = Connection traversing PCIe as well as the interconnect between PCIe Host Bridges within a NUMA node
+  PHB  = Connection traversing PCIe as well as a PCIe Host Bridge (typically the CPU)
+  PXB  = Connection traversing multiple PCIe bridges (without traversing the PCIe Host Bridge)
+  PIX  = Connection traversing at most a single PCIe bridge
+
+</code></pre></td></tr></table></div></div><h2 id=测试>测试</h2><h3 id=cpu-numa亲和性>CPU numa亲和性</h3><ol><li>资源占用和释放：启动pod[3c]，并删除该pod</li></ol><p>占用3个cpu后，再释放：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0,4-27&#34;,&#34;entries&#34;:{&#34;39b37746-7f5e-4064-b8e1-eebd2bfaa003&#34;:{&#34;app&#34;:&#34;1-3&#34;}},&#34;checksum&#34;:3300516549}
+[root@node2 kubelet]# kubectl delete po cpu-numa-batch-pod
+pod &#34;cpu-numa-batch-pod&#34; deleted
+[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0-27&#34;,&#34;checksum&#34;:273146150}
+</code></pre></td></tr></table></div></div><ol start=2><li>环境资源未占用</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0,14-27&#34;,&#34;entries&#34;:{&#34;c0c5c4b3-3f63-4677-ba68-52da74012371&#34;:{&#34;app&#34;:&#34;1-13&#34;}},&#34;checksum&#34;:1954249489}
+</code></pre></td></tr></table></div></div><ol start=3><li>占用一个numa组的cpu资源，14个cpu</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0-13&#34;,&#34;entries&#34;:{&#34;6c5f3038-adfc-485d-9943-3fd5e825300d&#34;:{&#34;app&#34;:&#34;14-27&#34;}},&#34;checksum&#34;:3451722052}
+</code></pre></td></tr></table></div></div><ol start=4><li>启动2个pod，pod1 占用14c，pod2占用12c</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0,13&#34;,&#34;entries&#34;:{&#34;55784671-0e4e-49e2-b4d6-c0377ca14c81&#34;:{&#34;app&#34;:&#34;1-12&#34;},&#34;6c5f3038-adfc-485d-9943-3fd5e825300d&#34;:{&#34;app&#34;:&#34;14-27&#34;}},&#34;checksum&#34;:3558029577}
+</code></pre></td></tr></table></div></div><h3 id=gpucpu-numa亲和性>GPU+CPU numa亲和性</h3><ol><li>pod请求2个GPU，0个cpu</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0-27&#34;,&#34;checksum&#34;:273146150}[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]# cat device-plugins/kubelet_internal_checkpoint
+{&#34;Data&#34;:{&#34;PodDeviceEntries&#34;:[{&#34;PodUID&#34;:&#34;9a15d2b5-c152-46b9-96e0-d57032629e1f&#34;,&#34;ContainerName&#34;:&#34;app&#34;,&#34;ResourceName&#34;:&#34;nvidia.com/gpu&#34;,&#34;DeviceIDs&#34;:{&#34;1&#34;:[&#34;GPU-9b341c59-f96b-ba85-c137-78c3652fea65&#34;,&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;]},&#34;AllocResp&#34;:&#34;CmsKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSUUdQVS1jMWU5ZjI0OS1iMzdiLTgxYzItYThkOS1iYTVjYTAyOTQ4NDEsR1BVLTliMzQxYzU5LWY5NmItYmE4NS1jMTM3LTc4YzM2NTJmZWE2NRokCg4vZGV2L252aWRpYWN0bBIOL2Rldi9udmlkaWFjdGwaAnJ3GiYKDy9kZXYvbnZpZGlhLXV2bRIPL2Rldi9udmlkaWEtdXZtGgJydxoyChUvZGV2L252aWRpYS11dm0tdG9vbHMSFS9kZXYvbnZpZGlhLXV2bS10b29scxoCcncaLgoTL2Rldi9udmlkaWEtbW9kZXNldBITL2Rldi9udmlkaWEtbW9kZXNldBoCcncaIAoML2Rldi9udmlkaWExEgwvZGV2L252aWRpYTEaAnJ3GiAKDC9kZXYvbnZpZGlhMhIML2Rldi9udmlkaWEyGgJydw==&#34;}],&#34;RegisteredDevices&#34;:{&#34;nvidia.com/gpu&#34;:[&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;,&#34;GPU-9b341c59-f96b-ba85-c137-78c3652fea65&#34;,&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;]}},&#34;Checksum&#34;:2530956716}[root@node2 kubelet]#
+[root@node2 kubelet]#
+
+</code></pre></td></tr></table></div></div><p>查看容器信息 docker inspect，已分配GPU资源</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-json data-lang=json> <span class=s2>&#34;Devices&#34;</span><span class=err>:</span> <span class=p>[</span>
+                <span class=p>{</span>
+                    <span class=nt>&#34;PathOnHost&#34;</span><span class=p>:</span> <span class=s2>&#34;/dev/nvidia1&#34;</span><span class=p>,</span>
+                    <span class=nt>&#34;PathInContainer&#34;</span><span class=p>:</span> <span class=s2>&#34;/dev/nvidia1&#34;</span><span class=p>,</span>
+                    <span class=nt>&#34;CgroupPermissions&#34;</span><span class=p>:</span> <span class=s2>&#34;rw&#34;</span>
+                <span class=p>},</span>
+                <span class=p>{</span>
+                    <span class=nt>&#34;PathOnHost&#34;</span><span class=p>:</span> <span class=s2>&#34;/dev/nvidia2&#34;</span><span class=p>,</span>
+                    <span class=nt>&#34;PathInContainer&#34;</span><span class=p>:</span> <span class=s2>&#34;/dev/nvidia2&#34;</span><span class=p>,</span>
+                    <span class=nt>&#34;CgroupPermissions&#34;</span><span class=p>:</span> <span class=s2>&#34;rw&#34;</span>
+                <span class=p>}</span>
+            <span class=p>]</span>
+
+</code></pre></td></tr></table></div></div><p>结果：2个GPU都分配到了同1个numa组，cpu资源无指定则使用全部cpuset</p><ol start=2><li>pod请求1个GPU，3个cpu</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0,4-27&#34;,&#34;entries&#34;:{&#34;513cb897-0262-4868-826f-aa943ee45a38&#34;:{&#34;app&#34;:&#34;1-3&#34;}},&#34;checksum&#34;:1982473279}[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]# cat device-plugins/kubelet_internal_checkpoint
+{&#34;Data&#34;:{&#34;PodDeviceEntries&#34;:[{&#34;PodUID&#34;:&#34;513cb897-0262-4868-826f-aa943ee45a38&#34;,&#34;ContainerName&#34;:&#34;app&#34;,&#34;ResourceName&#34;:&#34;nvidia.com/gpu&#34;,&#34;DeviceIDs&#34;:{&#34;0&#34;:[&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;]},&#34;AllocResp&#34;:&#34;CkIKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSKEdQVS03N2E3MDJkYi1lMzdmLTNhNzQtZDQ2ZC1jNTcxM2Y2NjA1OGMaJAoOL2Rldi9udmlkaWFjdGwSDi9kZXYvbnZpZGlhY3RsGgJydxomCg8vZGV2L252aWRpYS11dm0SDy9kZXYvbnZpZGlhLXV2bRoCcncaMgoVL2Rldi9udmlkaWEtdXZtLXRvb2xzEhUvZGV2L252aWRpYS11dm0tdG9vbHMaAnJ3Gi4KEy9kZXYvbnZpZGlhLW1vZGVzZXQSEy9kZXYvbnZpZGlhLW1vZGVzZXQaAnJ3GiAKDC9kZXYvbnZpZGlhMBIML2Rldi9udmlkaWEwGgJydw==&#34;}],&#34;RegisteredDevices&#34;:{&#34;nvidia.com/gpu&#34;:[&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;,&#34;GPU-9b341c59-f96b-ba85-c137-78c3652fea65&#34;,&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;]}},&#34;Checksum&#34;:133412836}[root@node2 kubelet]#
+
+</code></pre></td></tr></table></div></div><p>查看容器信息 docker inspect，分配了GPU0</p><p>结果：资源充足时，1个GPU，3个cpu都分配到了numa组0，同时满足numa亲和性</p><ol start=3><li>pod请求2个GPU，3个cpu</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>
+[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0-13,17-27&#34;,&#34;entries&#34;:{&#34;de6df8b8-a6b7-41cc-97a6-19d0fbd44714&#34;:{&#34;app&#34;:&#34;14-16&#34;}},&#34;checksum&#34;:3366848516}[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]# cat device-plugins/kubelet_internal_checkpoint
+{&#34;Data&#34;:{&#34;PodDeviceEntries&#34;:[{&#34;PodUID&#34;:&#34;de6df8b8-a6b7-41cc-97a6-19d0fbd44714&#34;,&#34;ContainerName&#34;:&#34;app&#34;,&#34;ResourceName&#34;:&#34;nvidia.com/gpu&#34;,&#34;DeviceIDs&#34;:{&#34;1&#34;:[&#34;GPU-9b341c59-f96b-ba85-c137-78c3652fea65&#34;,&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;]},&#34;AllocResp&#34;:&#34;CmsKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSUUdQVS05YjM0MWM1OS1mOTZiLWJhODUtYzEzNy03OGMzNjUyZmVhNjUsR1BVLWMxZTlmMjQ5LWIzN2ItODFjMi1hOGQ5LWJhNWNhMDI5NDg0MRokCg4vZGV2L252aWRpYWN0bBIOL2Rldi9udmlkaWFjdGwaAnJ3GiYKDy9kZXYvbnZpZGlhLXV2bRIPL2Rldi9udmlkaWEtdXZtGgJydxoyChUvZGV2L252aWRpYS11dm0tdG9vbHMSFS9kZXYvbnZpZGlhLXV2bS10b29scxoCcncaLgoTL2Rldi9udmlkaWEtbW9kZXNldBITL2Rldi9udmlkaWEtbW9kZXNldBoCcncaIAoML2Rldi9udmlkaWExEgwvZGV2L252aWRpYTEaAnJ3GiAKDC9kZXYvbnZpZGlhMhIML2Rldi9udmlkaWEyGgJydw==&#34;}],&#34;RegisteredDevices&#34;:{&#34;nvidia.com/gpu&#34;:[&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;,&#34;GPU-9b341c59-f96b-ba85-c137-78c3652fea65&#34;,&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;]}},&#34;Checksum&#34;:4219022648}[root@node2 kubelet]#
+[root@node2 kubelet]# ll device-plugins/kubelet_internal_checkpoint
+
+
+</code></pre></td></tr></table></div></div><p>查看容器信息 docker inspect，分配了GPU1和2</p><p>结果：资源充足时，2个GPU，3个cpu都分配到了numa组1，同时满足numa亲和性</p><ol start=4><li><p>启动2个pod</p><ul><li>pod1：请求1个GPU，3个cpu [场景2]</li><li>pod2：请求2个GPU，3个cpu [场景3]</li></ul></li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>
+[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0,4-13,17-27&#34;,&#34;entries&#34;:{&#34;513cb897-0262-4868-826f-aa943ee45a38&#34;:{&#34;app&#34;:&#34;1-3&#34;},&#34;94283d1b-ce5a-4797-bff8-0cf0c7143b2b&#34;:{&#34;app&#34;:&#34;14-16&#34;}},&#34;checksum&#34;:1623972425}[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]# cat device-plugins/kubelet_internal_checkpoint
+{&#34;Data&#34;:{&#34;PodDeviceEntries&#34;:[{&#34;PodUID&#34;:&#34;513cb897-0262-4868-826f-aa943ee45a38&#34;,&#34;ContainerName&#34;:&#34;app&#34;,&#34;ResourceName&#34;:&#34;nvidia.com/gpu&#34;,&#34;DeviceIDs&#34;:{&#34;0&#34;:[&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;]},&#34;AllocResp&#34;:&#34;CkIKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSKEdQVS03N2E3MDJkYi1lMzdmLTNhNzQtZDQ2ZC1jNTcxM2Y2NjA1OGMaJAoOL2Rldi9udmlkaWFjdGwSDi9kZXYvbnZpZGlhY3RsGgJydxomCg8vZGV2L252aWRpYS11dm0SDy9kZXYvbnZpZGlhLXV2bRoCcncaMgoVL2Rldi9udmlkaWEtdXZtLXRvb2xzEhUvZGV2L252aWRpYS11dm0tdG9vbHMaAnJ3Gi4KEy9kZXYvbnZpZGlhLW1vZGVzZXQSEy9kZXYvbnZpZGlhLW1vZGVzZXQaAnJ3GiAKDC9kZXYvbnZpZGlhMBIML2Rldi9udmlkaWEwGgJydw==&#34;},{&#34;PodUID&#34;:&#34;94283d1b-ce5a-4797-bff8-0cf0c7143b2b&#34;,&#34;ContainerName&#34;:&#34;app&#34;,&#34;ResourceName&#34;:&#34;nvidia.com/gpu&#34;,&#34;DeviceIDs&#34;:{&#34;1&#34;:[&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;,&#34;GPU-9b341c59-f96b-ba85-c137-78c3652fea65&#34;]},&#34;AllocResp&#34;:&#34;CmsKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSUUdQVS1jMWU5ZjI0OS1iMzdiLTgxYzItYThkOS1iYTVjYTAyOTQ4NDEsR1BVLTliMzQxYzU5LWY5NmItYmE4NS1jMTM3LTc4YzM2NTJmZWE2NRokCg4vZGV2L252aWRpYWN0bBIOL2Rldi9udmlkaWFjdGwaAnJ3GiYKDy9kZXYvbnZpZGlhLXV2bRIPL2Rldi9udmlkaWEtdXZtGgJydxoyChUvZGV2L252aWRpYS11dm0tdG9vbHMSFS9kZXYvbnZpZGlhLXV2bS10b29scxoCcncaLgoTL2Rldi9udmlkaWEtbW9kZXNldBITL2Rldi9udmlkaWEtbW9kZXNldBoCcncaIAoML2Rldi9udmlkaWExEgwvZGV2L252aWRpYTEaAnJ3GiAKDC9kZXYvbnZpZGlhMhIML2Rldi9udmlkaWEyGgJydw==&#34;}],&#34;RegisteredDevices&#34;:{&#34;nvidia.com/gpu&#34;:[&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;,&#34;GPU-9b341c59-f96b-ba85-c137-78c3652fea65&#34;,&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;]}},&#34;Checksum&#34;:2442330366}[root@node2 kubelet]#
+
+
+</code></pre></td></tr></table></div></div><p>查看容器信息 docker inspect，pod1的计算资源分配到了numa组0；pod2的计算资源分配到了numa组1</p><p>结果：资源充足时，2个pod的计算资源分配满足numa亲和性</p><ol start=5><li>启动2个pod 2，结果同上<ul><li>pod1：请求1个GPU，3个cpu</li><li>pod2：请求1个GPU，3个cpu</li></ul></li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0,4-13,17-27&#34;,&#34;entries&#34;:{&#34;513cb897-0262-4868-826f-aa943ee45a38&#34;:{&#34;app&#34;:&#34;1-3&#34;},&#34;f22736b4-45a9-4852-8fdd-feb948918597&#34;:{&#34;app&#34;:&#34;14-16&#34;}},&#34;checksum&#34;:2054609245}[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]# cat device-plugins/kubelet_internal_checkpoint
+{&#34;Data&#34;:{&#34;PodDeviceEntries&#34;:[{&#34;PodUID&#34;:&#34;513cb897-0262-4868-826f-aa943ee45a38&#34;,&#34;ContainerName&#34;:&#34;app&#34;,&#34;ResourceName&#34;:&#34;nvidia.com/gpu&#34;,&#34;DeviceIDs&#34;:{&#34;0&#34;:[&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;]},&#34;AllocResp&#34;:&#34;CkIKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSKEdQVS03N2E3MDJkYi1lMzdmLTNhNzQtZDQ2ZC1jNTcxM2Y2NjA1OGMaJAoOL2Rldi9udmlkaWFjdGwSDi9kZXYvbnZpZGlhY3RsGgJydxomCg8vZGV2L252aWRpYS11dm0SDy9kZXYvbnZpZGlhLXV2bRoCcncaMgoVL2Rldi9udmlkaWEtdXZtLXRvb2xzEhUvZGV2L252aWRpYS11dm0tdG9vbHMaAnJ3Gi4KEy9kZXYvbnZpZGlhLW1vZGVzZXQSEy9kZXYvbnZpZGlhLW1vZGVzZXQaAnJ3GiAKDC9kZXYvbnZpZGlhMBIML2Rldi9udmlkaWEwGgJydw==&#34;},{&#34;PodUID&#34;:&#34;f22736b4-45a9-4852-8fdd-feb948918597&#34;,&#34;ContainerName&#34;:&#34;app&#34;,&#34;ResourceName&#34;:&#34;nvidia.com/gpu&#34;,&#34;DeviceIDs&#34;:{&#34;1&#34;:[&#34;GPU-9b341c59-f96b-ba85-c137-78c3652fea65&#34;]},&#34;AllocResp&#34;:&#34;CkIKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSKEdQVS05YjM0MWM1OS1mOTZiLWJhODUtYzEzNy03OGMzNjUyZmVhNjUaJAoOL2Rldi9udmlkaWFjdGwSDi9kZXYvbnZpZGlhY3RsGgJydxomCg8vZGV2L252aWRpYS11dm0SDy9kZXYvbnZpZGlhLXV2bRoCcncaMgoVL2Rldi9udmlkaWEtdXZtLXRvb2xzEhUvZGV2L252aWRpYS11dm0tdG9vbHMaAnJ3Gi4KEy9kZXYvbnZpZGlhLW1vZGVzZXQSEy9kZXYvbnZpZGlhLW1vZGVzZXQaAnJ3GiAKDC9kZXYvbnZpZGlhMRIML2Rldi9udmlkaWExGgJydw==&#34;}],&#34;RegisteredDevices&#34;:{&#34;nvidia.com/gpu&#34;:[&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;,&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;,&#34;GPU-9b341c59-f96b-ba85-c137-78c3652fea65&#34;]}},&#34;Checksum&#34;:3082069630}[root@node2 kubelet]#
+
+</code></pre></td></tr></table></div></div><p>查看容器信息 docker inspect，pod1的计算资源分配到了numa组0；pod2的计算资源分配到了numa组1</p><p>结果：资源充足时，2个pod的计算资源分配满足numa亲和性</p><ol start=6><li>启动2个pod 3<ul><li>pod1：请求0个GPU，3个cpu 已占用了numa组1</li><li>pod2：请求1个GPU，3个cpu 测试pod2被分配到哪个numa组</li></ul></li></ol><p>pod2资源都分配到了numa组0，满足numa亲和性</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>
+[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0-13,17-27&#34;,&#34;entries&#34;:{&#34;f21fe02b-e6e2-4d04-9a4a-9e57367fa324&#34;:{&#34;app&#34;:&#34;14-16&#34;}},&#34;checksum&#34;:2485662466}
+
+
+
+
+[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0,4-13,17-27&#34;,&#34;entries&#34;:{&#34;78a1a5c8-39ee-47c3-8e95-9328f1398693&#34;:{&#34;app&#34;:&#34;1-3&#34;},&#34;f21fe02b-e6e2-4d04-9a4a-9e57367fa324&#34;:{&#34;app&#34;:&#34;14-16&#34;}},&#34;checksum&#34;:3632910195}[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]# cat device-plugins/kubelet_internal_checkpoint
+{&#34;Data&#34;:{&#34;PodDeviceEntries&#34;:[{&#34;PodUID&#34;:&#34;f21fe02b-e6e2-4d04-9a4a-9e57367fa324&#34;,&#34;ContainerName&#34;:&#34;app&#34;,&#34;ResourceName&#34;:&#34;nvidia.com/gpu&#34;,&#34;DeviceIDs&#34;:{&#34;1&#34;:[&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;]},&#34;AllocResp&#34;:&#34;CkIKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSKEdQVS1jMWU5ZjI0OS1iMzdiLTgxYzItYThkOS1iYTVjYTAyOTQ4NDEaJAoOL2Rldi9udmlkaWFjdGwSDi9kZXYvbnZpZGlhY3RsGgJydxomCg8vZGV2L252aWRpYS11dm0SDy9kZXYvbnZpZGlhLXV2bRoCcncaMgoVL2Rldi9udmlkaWEtdXZtLXRvb2xzEhUvZGV2L252aWRpYS11dm0tdG9vbHMaAnJ3Gi4KEy9kZXYvbnZpZGlhLW1vZGVzZXQSEy9kZXYvbnZpZGlhLW1vZGVzZXQaAnJ3GiAKDC9kZXYvbnZpZGlhMhIML2Rldi9udmlkaWEyGgJydw==&#34;},{&#34;PodUID&#34;:&#34;78a1a5c8-39ee-47c3-8e95-9328f1398693&#34;,&#34;ContainerName&#34;:&#34;app&#34;,&#34;ResourceName&#34;:&#34;nvidia.com/gpu&#34;,&#34;DeviceIDs&#34;:{&#34;0&#34;:[&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;]},&#34;AllocResp&#34;:&#34;CkIKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSKEdQVS03N2E3MDJkYi1lMzdmLTNhNzQtZDQ2ZC1jNTcxM2Y2NjA1OGMaJAoOL2Rldi9udmlkaWFjdGwSDi9kZXYvbnZpZGlhY3RsGgJydxomCg8vZGV2L252aWRpYS11dm0SDy9kZXYvbnZpZGlhLXV2bRoCcncaMgoVL2Rldi9udmlkaWEtdXZtLXRvb2xzEhUvZGV2L252aWRpYS11dm0tdG9vbHMaAnJ3Gi4KEy9kZXYvbnZpZGlhLW1vZGVzZXQSEy9kZXYvbnZpZGlhLW1vZGVzZXQaAnJ3GiAKDC9kZXYvbnZpZGlhMBIML2Rldi9udmlkaWEwGgJydw==&#34;}],&#34;RegisteredDevices&#34;:{&#34;nvidia.com/gpu&#34;:[&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;,&#34;GPU-9b341c59-f96b-ba85-c137-78c3652fea65&#34;,&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;]}},&#34;Checksum&#34;:3193682924}[root@node2 kubelet]#
+</code></pre></td></tr></table></div></div><h3 id=numa资源不足场景测试>numa资源不足场景测试</h3><h4 id=cpu某num组资源不足>cpu某num组资源不足</h4><ol><li>启动2个pod
+启动2个pod<ul><li>pod1：请求0个GPU，12个cpu</li><li>pod2：请求1个GPU，3个cpu</li></ul></li></ol><p>pod1分配到了numa组0，且基本上占满numa组0的cpu资源；
+这时pod2再分配资源（cpu和GPU）时，根据numa亲和性策略，要分配到numa组1的cpu和GPU资源</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0,13,17-27&#34;,&#34;entries&#34;:{&#34;77025d90-6e46-4a87-ad3a-bf0c02c6713c&#34;:{&#34;app&#34;:&#34;1-12&#34;},&#34;f21fe02b-e6e2-4d04-9a4a-9e57367fa324&#34;:{&#34;app&#34;:&#34;14-16&#34;}},&#34;checksum&#34;:874856219}[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]# cat device-plugins/kubelet_internal_checkpoint
+{&#34;Data&#34;:{&#34;PodDeviceEntries&#34;:[{&#34;PodUID&#34;:&#34;f21fe02b-e6e2-4d04-9a4a-9e57367fa324&#34;,&#34;ContainerName&#34;:&#34;app&#34;,&#34;ResourceName&#34;:&#34;nvidia.com/gpu&#34;,&#34;DeviceIDs&#34;:{&#34;1&#34;:[&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;]},&#34;AllocResp&#34;:&#34;CkIKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSKEdQVS1jMWU5ZjI0OS1iMzdiLTgxYzItYThkOS1iYTVjYTAyOTQ4NDEaJAoOL2Rldi9udmlkaWFjdGwSDi9kZXYvbnZpZGlhY3RsGgJydxomCg8vZGV2L252aWRpYS11dm0SDy9kZXYvbnZpZGlhLXV2bRoCcncaMgoVL2Rldi9udmlkaWEtdXZtLXRvb2xzEhUvZGV2L252aWRpYS11dm0tdG9vbHMaAnJ3Gi4KEy9kZXYvbnZpZGlhLW1vZGVzZXQSEy9kZXYvbnZpZGlhLW1vZGVzZXQaAnJ3GiAKDC9kZXYvbnZpZGlhMhIML2Rldi9udmlkaWEyGgJydw==&#34;}],&#34;RegisteredDevices&#34;:{&#34;nvidia.com/gpu&#34;:[&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;,&#34;GPU-9b341c59-f96b-ba85-c137-78c3652fea65&#34;,&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;]}},&#34;Checksum&#34;:2941906560}[root@node2 kubelet]#
+[root@node2 kubelet]#
+
+</code></pre></td></tr></table></div></div><ol start=2><li>启动2个pod 2</li></ol><p>启动2个pod</p><ul><li>pod1：请求1个GPU，3个cpu, 已占numa组1</li><li>pod2：请求1个GPU，12个cpu</li></ul><p>第2个pod 9388acc6-a396-4f03-a353-ce153da46aaf 的cpu资源 占用了numa组0和1，gpu资源占用了numa组0，如下</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0-13,17-27&#34;,&#34;entries&#34;:{&#34;f21fe02b-e6e2-4d04-9a4a-9e57367fa324&#34;:{&#34;app&#34;:&#34;14-16&#34;}},&#34;checksum&#34;:2485662466}[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0,20-27&#34;,&#34;entries&#34;:{&#34;9388acc6-a396-4f03-a353-ce153da46aaf&#34;:{&#34;app&#34;:&#34;1-13,17-19&#34;},&#34;f21fe02b-e6e2-4d04-9a4a-9e57367fa324&#34;:{&#34;app&#34;:&#34;14-16&#34;}},&#34;checksum&#34;:4055801500}[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]# cat device-plugins/kubelet_internal_checkpoint
+{&#34;Data&#34;:{&#34;PodDeviceEntries&#34;:[{&#34;PodUID&#34;:&#34;f21fe02b-e6e2-4d04-9a4a-9e57367fa324&#34;,&#34;ContainerName&#34;:&#34;app&#34;,&#34;ResourceName&#34;:&#34;nvidia.com/gpu&#34;,&#34;DeviceIDs&#34;:{&#34;1&#34;:[&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;]},&#34;AllocResp&#34;:&#34;CkIKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSKEdQVS1jMWU5ZjI0OS1iMzdiLTgxYzItYThkOS1iYTVjYTAyOTQ4NDEaJAoOL2Rldi9udmlkaWFjdGwSDi9kZXYvbnZpZGlhY3RsGgJydxomCg8vZGV2L252aWRpYS11dm0SDy9kZXYvbnZpZGlhLXV2bRoCcncaMgoVL2Rldi9udmlkaWEtdXZtLXRvb2xzEhUvZGV2L252aWRpYS11dm0tdG9vbHMaAnJ3Gi4KEy9kZXYvbnZpZGlhLW1vZGVzZXQSEy9kZXYvbnZpZGlhLW1vZGVzZXQaAnJ3GiAKDC9kZXYvbnZpZGlhMhIML2Rldi9udmlkaWEyGgJydw==&#34;},{&#34;PodUID&#34;:&#34;9388acc6-a396-4f03-a353-ce153da46aaf&#34;,&#34;ContainerName&#34;:&#34;app&#34;,&#34;ResourceName&#34;:&#34;nvidia.com/gpu&#34;,&#34;DeviceIDs&#34;:{&#34;0&#34;:[&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;]},&#34;AllocResp&#34;:&#34;CkIKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSKEdQVS03N2E3MDJkYi1lMzdmLTNhNzQtZDQ2ZC1jNTcxM2Y2NjA1OGMaJAoOL2Rldi9udmlkaWFjdGwSDi9kZXYvbnZpZGlhY3RsGgJydxomCg8vZGV2L252aWRpYS11dm0SDy9kZXYvbnZpZGlhLXV2bRoCcncaMgoVL2Rldi9udmlkaWEtdXZtLXRvb2xzEhUvZGV2L252aWRpYS11dm0tdG9vbHMaAnJ3Gi4KEy9kZXYvbnZpZGlhLW1vZGVzZXQSEy9kZXYvbnZpZGlhLW1vZGVzZXQaAnJ3GiAKDC9kZXYvbnZpZGlhMBIML2Rldi9udmlkaWEwGgJydw==&#34;}],&#34;RegisteredDevices&#34;:{&#34;nvidia.com/gpu&#34;:[&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;,&#34;GPU-9b341c59-f96b-ba85-c137-78c3652fea65&#34;,&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;]}},&#34;Checksum&#34;:4148283274}[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+
+
+</code></pre></td></tr></table></div></div><p>此时的拓扑管理器的策略结果输出如下，虽然有部分cpu和gpu不在同一个numa组，认为cpu和gpu的合并分配结果仍满足numa亲和性</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>
+Dec 29 15:13:13 node2 kubelet[117175]: I1229 15:13:13.740680  117175 topology_manager.go:187] [topologymanager] Topology Admit Handler
+Dec 29 15:13:13 node2 kubelet[117175]: I1229 15:13:13.740755  117175 scope_container.go:80] [topologymanager] TopologyHints for pod &#39;16cpu-numa-batch-pod_default(9388acc6-a396-4f03-a353-ce153da46aaf)&#39;, container &#39;app&#39;: map[nvidia.com/gpu:[{01 true} {10 true} {11 false}]]
+Dec 29 15:13:13 node2 kubelet[117175]: I1229 15:13:13.740986  117175 policy_static.go:379] [cpumanager] TopologyHints generated for pod &#39;16cpu-numa-batch-pod_default(9388acc6-a396-4f03-a353-ce153da46aaf)&#39;, container &#39;app&#39;: [{11 true}]
+Dec 29 15:13:13 node2 kubelet[117175]: I1229 15:13:13.741009  117175 scope_container.go:80] [topologymanager] TopologyHints for pod &#39;16cpu-numa-batch-pod_default(9388acc6-a396-4f03-a353-ce153da46aaf)&#39;, container &#39;app&#39;: map[cpu:[{11 true}]]
+Dec 29 15:13:13 node2 kubelet[117175]: I1229 15:13:13.741037  117175 scope_container.go:88] [topologymanager] ContainerTopologyHint: {01 true}
+Dec 29 15:13:13 node2 kubelet[117175]: I1229 15:13:13.741054  117175 scope_container.go:53] [topologymanager] Best TopologyHint for (pod: 16cpu-numa-batch-pod_default(9388acc6-a396-4f03-a353-ce153da46aaf) container: app): {01 true}
+Dec 29 15:13:13 node2 kubelet[117175]: I1229 15:13:13.741072  117175 scope_container.go:63] [topologymanager] Topology Affinity for (pod: 16cpu-numa-batch-pod_default(9388acc6-a396-4f03-a353-ce153da46aaf) container: app): {01 true}
+Dec 29 15:13:13 node2 kubelet[117175]: I1229 15:13:13.743378  117175 policy_static.go:221] [cpumanager] static policy: Allocate (pod: 16cpu-numa-batch-pod_default(9388acc6-a396-4f03-a353-ce153da46aaf), container: app)
+Dec 29 15:13:13 node2 kubelet[117175]: I1229 15:13:13.743418  117175 policy_static.go:232] [cpumanager] Pod 16cpu-numa-batch-pod_default(9388acc6-a396-4f03-a353-ce153da46aaf), Container app Topology Affinity is: {01 true}
+Dec 29 15:13:13 node2 kubelet[117175]: I1229 15:13:13.743448  117175 policy_static.go:259] [cpumanager] allocateCpus: (numCPUs: 16, socket: 01)
+Dec 29 15:13:13 node2 kubelet[117175]: I1229 15:13:13.743841  117175 state_mem.go:88] [cpumanager] updated default cpuset: &#34;0,20-27&#34;
+Dec 29 15:13:13 node2 kubelet[117175]: I1229 15:13:13.744701  117175 policy_static.go:294] [cpumanager] allocateCPUs: returning &#34;1-13,17-19&#34;
+Dec 29 15:13:13 node2 kubelet[117175]: I1229 15:13:13.744761  117175 state_mem.go:80] [cpumanager] updated desired cpuset (pod: 9388acc6-a396-4f03-a353-ce153da46aaf, container: app, cpuset: &#34;1-13,17-19&#34;)
+
+
+</code></pre></td></tr></table></div></div><h4 id=gpu某numa组资源不足>GPU某numa组资源不足</h4><p>启动2个pod</p><ul><li>pod1：请求1个GPU，3个cpu 占有numa组1</li><li>pod2：请求2个GPU，0个cpu</li></ul><p>pod2 [08b4a90a-534a-4fc6-90c3-b57ee777071d]的2个GPU分配到了numa组0和1，在best-effort策略下，虽不满足numa亲和性，但仍按系统可用资源进行分配</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0-13,17-27&#34;,&#34;entries&#34;:{&#34;f21fe02b-e6e2-4d04-9a4a-9e57367fa324&#34;:{&#34;app&#34;:&#34;14-16&#34;}},&#34;checksum&#34;:2485662466}[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]# cat device-plugins/kubelet_internal_checkpoint
+{&#34;Data&#34;:{&#34;PodDeviceEntries&#34;:[{&#34;PodUID&#34;:&#34;08b4a90a-534a-4fc6-90c3-b57ee777071d&#34;,&#34;ContainerName&#34;:&#34;app&#34;,&#34;ResourceName&#34;:&#34;nvidia.com/gpu&#34;,&#34;DeviceIDs&#34;:{&#34;0&#34;:[&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;],&#34;1&#34;:[&#34;GPU-9b341c59-f96b-ba85-c137-78c3652fea65&#34;]},&#34;AllocResp&#34;:&#34;CmsKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSUUdQVS05YjM0MWM1OS1mOTZiLWJhODUtYzEzNy03OGMzNjUyZmVhNjUsR1BVLTc3YTcwMmRiLWUzN2YtM2E3NC1kNDZkLWM1NzEzZjY2MDU4YxokCg4vZGV2L252aWRpYWN0bBIOL2Rldi9udmlkaWFjdGwaAnJ3GiYKDy9kZXYvbnZpZGlhLXV2bRIPL2Rldi9udmlkaWEtdXZtGgJydxoyChUvZGV2L252aWRpYS11dm0tdG9vbHMSFS9kZXYvbnZpZGlhLXV2bS10b29scxoCcncaLgoTL2Rldi9udmlkaWEtbW9kZXNldBITL2Rldi9udmlkaWEtbW9kZXNldBoCcncaIAoML2Rldi9udmlkaWEwEgwvZGV2L252aWRpYTAaAnJ3GiAKDC9kZXYvbnZpZGlhMRIML2Rldi9udmlkaWExGgJydw==&#34;},{&#34;PodUID&#34;:&#34;f21fe02b-e6e2-4d04-9a4a-9e57367fa324&#34;,&#34;ContainerName&#34;:&#34;app&#34;,&#34;ResourceName&#34;:&#34;nvidia.com/gpu&#34;,&#34;DeviceIDs&#34;:{&#34;1&#34;:[&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;]},&#34;AllocResp&#34;:&#34;CkIKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSKEdQVS1jMWU5ZjI0OS1iMzdiLTgxYzItYThkOS1iYTVjYTAyOTQ4NDEaJAoOL2Rldi9udmlkaWFjdGwSDi9kZXYvbnZpZGlhY3RsGgJydxomCg8vZGV2L252aWRpYS11dm0SDy9kZXYvbnZpZGlhLXV2bRoCcncaMgoVL2Rldi9udmlkaWEtdXZtLXRvb2xzEhUvZGV2L252aWRpYS11dm0tdG9vbHMaAnJ3Gi4KEy9kZXYvbnZpZGlhLW1vZGVzZXQSEy9kZXYvbnZpZGlhLW1vZGVzZXQaAnJ3GiAKDC9kZXYvbnZpZGlhMhIML2Rldi9udmlkaWEyGgJydw==&#34;}],&#34;RegisteredDevices&#34;:{&#34;nvidia.com/gpu&#34;:[&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;,&#34;GPU-9b341c59-f96b-ba85-c137-78c3652fea65&#34;,&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;]}},&#34;Checksum&#34;:3342579237}[root@node2 kubelet]#
+</code></pre></td></tr></table></div></div><p>拓扑管理器的策略分配结果，如下，不满足numa亲和性。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>Dec 29 14:50:05 node2 kubelet[117175]: I1229 14:50:05.825370  117175 scope_container.go:80] [topologymanager] TopologyHints for pod &#39;2gpu-numa-batch-pod_default(08b4a90a-534a-4fc6-90c3-b57ee777071d)&#39;, container &#39;app&#39;: map[]
+Dec 29 14:50:05 node2 kubelet[117175]: I1229 14:50:05.825386  117175 policy.go:70] [topologymanager] Hint Provider has no preference for NUMA affinity with any resource
+Dec 29 14:50:05 node2 kubelet[117175]: I1229 14:50:05.825403  117175 scope_container.go:88] [topologymanager] ContainerTopologyHint: {11 false}
+</code></pre></td></tr></table></div></div><h4 id=gpu和cpu-numa组资源都不满足>GPU和cpu numa组资源都不满足</h4><p>启动2个pod</p><ul><li>pod1：请求1个GPU，3个cpu 占有numa组1</li><li>pod2：请求2个GPU，16个cpu</li></ul><p>pod2 [27a7e589-4c5e-4c47-813e-be1a118d3d80] 的cpu分配到了2个numa组，GPU也同样分配到了2个numa组，不满足numa亲和性了。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0-13,17-27&#34;,&#34;entries&#34;:{&#34;f21fe02b-e6e2-4d04-9a4a-9e57367fa324&#34;:{&#34;app&#34;:&#34;14-16&#34;}},&#34;checksum&#34;:2485662466}[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]# cat device-plugins/kubelet_internal_checkpoint
+{&#34;Data&#34;:{&#34;PodDeviceEntries&#34;:[{&#34;PodUID&#34;:&#34;f21fe02b-e6e2-4d04-9a4a-9e57367fa324&#34;,&#34;ContainerName&#34;:&#34;app&#34;,&#34;ResourceName&#34;:&#34;nvidia.com/gpu&#34;,&#34;DeviceIDs&#34;:{&#34;1&#34;:[&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;]},&#34;AllocResp&#34;:&#34;CkIKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSKEdQVS1jMWU5ZjI0OS1iMzdiLTgxYzItYThkOS1iYTVjYTAyOTQ4NDEaJAoOL2Rldi9udmlkaWFjdGwSDi9kZXYvbnZpZGlhY3RsGgJydxomCg8vZGV2L252aWRpYS11dm0SDy9kZXYvbnZpZGlhLXV2bRoCcncaMgoVL2Rldi9udmlkaWEtdXZtLXRvb2xzEhUvZGV2L252aWRpYS11dm0tdG9vbHMaAnJ3Gi4KEy9kZXYvbnZpZGlhLW1vZGVzZXQSEy9kZXYvbnZpZGlhLW1vZGVzZXQaAnJ3GiAKDC9kZXYvbnZpZGlhMhIML2Rldi9udmlkaWEyGgJydw==&#34;},{&#34;PodUID&#34;:&#34;27a7e589-4c5e-4c47-813e-be1a118d3d80&#34;,&#34;ContainerName&#34;:&#34;app&#34;,&#34;ResourceName&#34;:&#34;nvidia.com/gpu&#34;,&#34;DeviceIDs&#34;:{&#34;0&#34;:[&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;],&#34;1&#34;:[&#34;GPU-9b341c59-f96b-ba85-c137-78c3652fea65&#34;]},&#34;AllocResp&#34;:&#34;CmsKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSUUdQVS03N2E3MDJkYi1lMzdmLTNhNzQtZDQ2ZC1jNTcxM2Y2NjA1OGMsR1BVLTliMzQxYzU5LWY5NmItYmE4NS1jMTM3LTc4YzM2NTJmZWE2NRokCg4vZGV2L252aWRpYWN0bBIOL2Rldi9udmlkaWFjdGwaAnJ3GiYKDy9kZXYvbnZpZGlhLXV2bRIPL2Rldi9udmlkaWEtdXZtGgJydxoyChUvZGV2L252aWRpYS11dm0tdG9vbHMSFS9kZXYvbnZpZGlhLXV2bS10b29scxoCcncaLgoTL2Rldi9udmlkaWEtbW9kZXNldBITL2Rldi9udmlkaWEtbW9kZXNldBoCcncaIAoML2Rldi9udmlkaWEwEgwvZGV2L252aWRpYTAaAnJ3GiAKDC9kZXYvbnZpZGlhMRIML2Rldi9udmlkaWExGgJydw==&#34;}],&#34;RegisteredDevices&#34;:{&#34;nvidia.com/gpu&#34;:[&#34;GPU-77a702db-e37f-3a74-d46d-c5713f66058c&#34;,&#34;GPU-9b341c59-f96b-ba85-c137-78c3652fea65&#34;,&#34;GPU-c1e9f249-b37b-81c2-a8d9-ba5ca0294841&#34;]}},&#34;Checksum&#34;:4286867880}[root@node2 kubelet]#
+[root@node2 kubelet]#
+[root@node2 kubelet]# cat cpu_manager_state
+{&#34;policyName&#34;:&#34;static&#34;,&#34;defaultCpuSet&#34;:&#34;0,6-13&#34;,&#34;entries&#34;:{&#34;27a7e589-4c5e-4c47-813e-be1a118d3d80&#34;:{&#34;app&#34;:&#34;1-5,17-27&#34;},&#34;f21fe02b-e6e2-4d04-9a4a-9e57367fa324&#34;:{&#34;app&#34;:&#34;14-16&#34;}},&#34;checksum&#34;:3981361486}[root@node2 kubelet]#
+[root@node2 kubelet]#
+
+</code></pre></td></tr></table></div></div><p>拓扑管理器的策略分配结果，如下，不满足numa亲和性。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>Dec 29 15:37:43 node2 kubelet[117175]: I1229 15:37:43.719228  117175 topology_manager.go:187] [topologymanager] Topology Admit Handler
+Dec 29 15:37:43 node2 kubelet[117175]: I1229 15:37:43.719322  117175 scope_container.go:80] [topologymanager] TopologyHints for pod &#39;16cpu-2gpu-numa-kubebatch-pod_default(27a7e589-4c5e-4c47-813e-be1a118d3d80)&#39;, container &#39;app&#39;: map[nvidia.com/gpu:[{11 false}]]
+Dec 29 15:37:43 node2 kubelet[117175]: I1229 15:37:43.719555  117175 policy_static.go:379] [cpumanager] TopologyHints generated for pod &#39;16cpu-2gpu-numa-kubebatch-pod_default(27a7e589-4c5e-4c47-813e-be1a118d3d80)&#39;, container &#39;app&#39;: [{11 true}]
+Dec 29 15:37:43 node2 kubelet[117175]: I1229 15:37:43.719581  117175 scope_container.go:80] [topologymanager] TopologyHints for pod &#39;16cpu-2gpu-numa-kubebatch-pod_default(27a7e589-4c5e-4c47-813e-be1a118d3d80)&#39;, container &#39;app&#39;: map[cpu:[{11 true}]]
+Dec 29 15:37:43 node2 kubelet[117175]: I1229 15:37:43.719605  117175 scope_container.go:88] [topologymanager] ContainerTopologyHint: {11 false}
+Dec 29 15:37:43 node2 kubelet[117175]: I1229 15:37:43.719622  117175 scope_container.go:53] [topologymanager] Best TopologyHint for (pod: 16cpu-2gpu-numa-kubebatch-pod_default(27a7e589-4c5e-4c47-813e-be1a118d3d80) container: app): {11 false}
+Dec 29 15:37:43 node2 kubelet[117175]: I1229 15:37:43.719639  117175 scope_container.go:63] [topologymanager] Topology Affinity for (pod: 16cpu-2gpu-numa-kubebatch-pod_default(27a7e589-4c5e-4c47-813e-be1a118d3d80) container: app): {11 false}
+Dec 29 15:37:43 node2 kubelet[117175]: I1229 15:37:43.721990  117175 policy_static.go:221] [cpumanager] static policy: Allocate (pod: 16cpu-2gpu-numa-kubebatch-pod_default(27a7e589-4c5e-4c47-813e-be1a118d3d80), container: app)
+Dec 29 15:37:43 node2 kubelet[117175]: I1229 15:37:43.722024  117175 policy_static.go:232] [cpumanager] Pod 16cpu-2gpu-numa-kubebatch-pod_default(27a7e589-4c5e-4c47-813e-be1a118d3d80), Container app Topology Affinity is: {11 false}
+Dec 29 15:37:43 node2 kubelet[117175]: I1229 15:37:43.722052  117175 policy_static.go:259] [cpumanager] allocateCpus: (numCPUs: 16, socket: 11)
+Dec 29 15:37:43 node2 kubelet[117175]: I1229 15:37:43.722773  117175 state_mem.go:88] [cpumanager] updated default cpuset: &#34;0,6-13&#34;
+Dec 29 15:37:43 node2 kubelet[117175]: I1229 15:37:43.723694  117175 policy_static.go:294] [cpumanager] allocateCPUs: returning &#34;1-5,17-27&#34;
+
+</code></pre></td></tr></table></div></div><h2 id=附录>附录</h2><h3 id=kubelet-numa拓扑亲和性资源分配方案>kubelet numa拓扑亲和性资源分配方案：</h3><p><a href=https://kubernetes.io/blog/2020/04/01/kubernetes-1-18-feature-topoloy-manager-beta/ target=_blank rel="noopener noreffer">Kubernetes Topology Manager Moves to Beta - Align Up!</a></p><h3 id=测试pod-配置>测试pod 配置</h3><p>16cpu-2gpu-numa-kubebatch-pod.yaml</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>16cpu-2gpu-numa-kubebatch-pod</span><span class=w>
+</span><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>myapp</span><span class=w>
+</span><span class=w>    </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>schedulerName</span><span class=p>:</span><span class=w> </span><span class=l>kube-batch</span><span class=w>
+</span><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>app</span><span class=w>
+</span><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>docker.io/busybox:latest</span><span class=w>
+</span><span class=w>    </span><span class=nt>imagePullPolicy</span><span class=p>:</span><span class=w> </span><span class=l>IfNotPresent</span><span class=w>
+</span><span class=w>    </span><span class=nt>command</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;sleep&#34;</span><span class=p>,</span><span class=w> </span><span class=s2>&#34;3600&#34;</span><span class=p>]</span><span class=w>
+</span><span class=w>    </span><span class=nt>securityContext</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>privileged</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>limits</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;16&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;100Mi&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>nvidia.com/gpu</span><span class=p>:</span><span class=w> </span><span class=m>2</span><span class=w>
+</span><span class=w>      </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;16&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;100Mi&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>nvidia.com/gpu</span><span class=p>:</span><span class=w> </span><span class=m>2</span><span class=w>
+</span><span class=w>  </span><span class=nt>affinity</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>nodeAffinity</span><span class=p>:</span><span class=w>
+</span><span class=w>          </span><span class=nt>requiredDuringSchedulingIgnoredDuringExecution</span><span class=p>:</span><span class=w>  </span><span class=c># 硬策略</span><span class=w>
+</span><span class=w>            </span><span class=nt>nodeSelectorTerms</span><span class=p>:</span><span class=w>
+</span><span class=w>            </span>- <span class=nt>matchExpressions</span><span class=p>:</span><span class=w>
+</span><span class=w>              </span>- <span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>node-role.kubernetes.io/node</span><span class=w>
+</span><span class=w>                </span><span class=nt>operator</span><span class=p>:</span><span class=w> </span><span class=l>NotIn</span><span class=w>
+</span><span class=w>                </span><span class=nt>values</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span>- <span class=s2>&#34;true&#34;</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2020-12-29</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/k8s/>K8S</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2020/12/%E5%AE%89%E8%A3%85nvidia-docker2nvidia-container-v2%E5%92%8Cnvidia-k8s-gpu%E6%8F%92%E4%BB%B6/ class=prev rel=prev title="安装NVIDIA Docker2(NVIDIA Container V2)和NVIDIA K8S-GPU插件"><i class="fas fa-angle-left fa-fw"></i>安装NVIDIA Docker2(NVIDIA Container V2)和NVIDIA K8S-GPU插件</a></div></div><div id=comments></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2020</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
+<script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i></a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css><script type=text/javascript src=https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script><script type=text/javascript>window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type=text/javascript src=/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-81425808-1',{'anonymize_ip':true});</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script><script src=https://libs.baidu.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js></script><script type=text/javascript src=/js/custom.js></script><script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script></body></html>
