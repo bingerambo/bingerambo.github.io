@@ -14,6 +14,6 @@
 {{< timeline eventclass="event-r" datetime="2017-03-25" title=""  word="深度学习，看论文的速度赶不上出论文的速度。" >}}  
 
 {{< timeline tlyear="2016" >}}  
-{{< timeline eventclass="event-r" datetime="2016-08-01" title="qingshanyinyin"  word="在这座喧嚣的城市，每天低头的忙碌，浮躁的心情，使得渐渐不再关心身边的人，慢慢不再留意周遭景物。而Tuantuan.G的随笔图文，以发现美的心灵，撷取了这座城和你我身边的美丽片景。。。" >}}  
+{{< timeline eventclass="event-r" datetime="2016-08-01" title=""  word="在这座喧嚣的城市，每天低头的忙碌，浮躁的心情，使得渐渐不再关心身边的人，慢慢不再留意周遭景物。而Tuantuan.G的随笔图文，以发现美的心灵，撷取了这座城和你我身边的美丽片景。。。" >}}  
 
 {{< timeline eventclass="event-l" datetime="2016-07-09" title=""  word="小站开张了\(- -)/。。。" >}}  
