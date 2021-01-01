@@ -469,17 +469,17 @@ pre code {
   border-radius: 5px;
 }
 
-footer{
+/*footer{
   background: #5e6482;
   height: 40px;
   color: #fff;
   text-align: center;
   padding-top: 10px;
   padding-bottom: 10px;
-}
+}*/
 
 @media (max-width:768px){
-  .container{
+  /*.container{
     width: 95%;
   }
 
@@ -489,7 +489,7 @@ footer{
 
   h1{
     font-size: 23px;
-  }
+  }*/
 
   #timeline{
     background: url(../images/timeline/line.png);
