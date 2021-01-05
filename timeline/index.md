@@ -3,7 +3,7 @@
 
 
 {{< timeline tlyear="2020" >}}  
-{{< timeline eventclass="event-r" datetime="2020-12-31 21:46" title="事件墙"  word="随笔版面UI升级" >}}
+{{< timeline eventclass="event-r" datetime="2020-12-31 21:46" title="随记栏目改版"  word="自定义css3模板，随记版面UI升级" >}}
 {{< timeline eventclass="event-l" datetime="2020-10-04 22:00" title="小站改版"  word="原来小站采用的jeckyll，归档工作笔记和随笔心得不是太方便，且生成页面速度缓慢。现为提升效率和资料检索，从UI到框架重新整下，花了2个周末搞定。小站的代码复制和搜索功能挺好用" >}}
 {{< timeline eventclass="event-r" datetime="2020-12-11 11:00" title="kubernetes 源码分析 "  word="参考电子书目https://www.bookstack.cn/read/source-code-reading-notes/README.md" >}}  
 
