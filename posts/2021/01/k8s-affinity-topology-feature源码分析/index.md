@@ -296,25 +296,8 @@ func (m *ManagerImpl) generateDeviceTopologyHints(resource string, available set
 
 **merge思想，是把多中类型资源的topo hints（即下面中的每一行），合并为一个hint，合并算法为位与运算。**
 
+<img src="merged-hints.png">
 
-```shell
-
-cross-product entry
-{cpu, gpu-vendor.com/gpu, nic-vendor.com/nic}   "merged" hint
-{{01: True}, {01: True}, {01: True}}            {01: True}
-{{01: True}, {01: True}, {10: True}}            {00: False}
-{{01: True}, {10: True}, {01: True}}            {00: False}
-{{01: True}, {10: True}, {10: True}}            {00: False}
-{{10: True}, {01: True}, {01: True}}            {00: False}
-{{10: True}, {01: True}, {10: True}}            {00: False}
-{{10: True}, {10: True}, {01: True}}            {00: False}
-{{10: True}, {10: True}, {10: True}}            {10: True}
-{{11: False}, {01: True}, {01: True}}           {01: False}
-{{11: False}, {01: True}, {10: True}}           {00: False}
-{{11: False}, {10: True}, {01: True}}           {00: False}
-{{11: False}, {10: True}, {10: True}}           {10: False}
-
-```
 
 不同的topo policy实现，区别就在merge处理中，如下
 
