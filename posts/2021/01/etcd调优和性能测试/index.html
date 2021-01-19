@@ -1,0 +1,1253 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>Etcd调优和性能测试 - 斌哥的小站|Binge Blog</title><meta name=Description content="Etcd参数调优配置和对比测试"><meta property="og:title" content="Etcd调优和性能测试"><meta property="og:description" content="Etcd参数调优配置和对比测试"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2021/01/etcd%E8%B0%83%E4%BC%98%E5%92%8C%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2021-01-19T08:43:17+08:00"><meta property="article:modified_time" content="2021-01-19T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="Etcd调优和性能测试"><meta name=twitter:description content="Etcd参数调优配置和对比测试"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2021/01/etcd%E8%B0%83%E4%BC%98%E5%92%8C%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/><link rel=prev href=http://bingerambo.com/posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E5%B8%B8%E7%94%A8%E5%92%8C%E4%B8%80%E4%BA%9B%E8%AE%B0%E4%B8%8D%E4%BD%8F%E7%9A%84%E5%91%BD%E4%BB%A4/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Etcd调优和性能测试","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2021\/01\/etcd%E8%B0%83%E4%BC%98%E5%92%8C%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"Etcd","wordcount":7791,"url":"http:\/\/bingerambo.com\/posts\/2021\/01\/etcd%E8%B0%83%E4%BC%98%E5%92%8C%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95\/","datePublished":"2021-01-19T08:43:17+08:00","dateModified":"2021-01-19T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":"Etcd参数调优配置和对比测试"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">Etcd调优和性能测试</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/><i class="far fa-folder fa-fw"></i>数据库</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2021-01-19>2021-01-19</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 7791 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 16 分钟&nbsp;
+<i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#说明>说明</a></li><li><a href=#etcd-安装>etcd 安装</a><ul><li><a href=#二进制方式安装>二进制方式安装</a></li><li><a href=#etcd-启动>etcd 启动</a></li><li><a href=#etcd-键值测试>etcd 键值测试</a></li></ul></li><li><a href=#etcd-参数优化>etcd 参数优化</a><ul><li><a href=#快照>快照</a></li><li><a href=#历史数据压缩频率>历史数据压缩频率</a></li><li><a href=#时间参数>时间参数</a></li><li><a href=#磁盘io优先级在全部etcd节点执行>磁盘IO优先级，在全部etcd节点执行</a></li></ul></li><li><a href=#etcd配置环境变量方式>etcd配置，环境变量方式</a></li><li><a href=#etcd配置-命令行参数方式>etcd配置， 命令行参数方式</a></li><li><a href=#benchmark安装>benchmark安装</a><ul><li><a href=#get方式>get方式</a></li><li><a href=#编译方式>编译方式</a></li></ul></li><li><a href=#benchmark指标>benchmark指标</a></li><li><a href=#benchmark测试>benchmark测试</a><ul><li><a href=#启动etcd>启动etcd</a></li><li><a href=#write测试>write测试</a></li><li><a href=#read测试>read测试</a><ul><li><a href=#测试命令>测试命令</a></li></ul></li><li><a href=#read-only-时间参数设置优化>read-only 时间参数设置优化</a></li><li><a href=#benchmark测试条件>benchmark测试条件</a></li></ul></li><li><a href=#磁盘io-参数调优>磁盘IO 参数调优</a><ul><li><a href=#查询命令>查询命令</a></li><li><a href=#设置命令>设置命令</a></li><li><a href=#优化后测试>优化后测试</a><ul><li><a href=#说明-1>说明</a></li><li><a href=#write测试-1>write测试</a></li><li><a href=#read测试-1>read测试</a></li><li><a href=#测试命令-1>测试命令</a></li><li><a href=#对比结果>对比结果</a></li></ul></li></ul></li><li><a href=#结论>结论</a></li><li><a href=#附录>附录</a><ul><li><a href=#linearizability>Linearizability</a></li><li><a href=#测试记录>测试记录</a><ul><li><a href=#write测试-2>write测试</a></li><li><a href=#read测试-2>read测试</a></li></ul></li></ul></li></ul></nav></div></div><div class=content id=content><p>针对etcd的性能指标：延迟(latency)和吞吐量(throughput)，进行Etcd参数调优和对比测试</p><h2 id=说明>说明</h2><p>etcd 提供稳定的，持续的高性能。两个定义性能的因素：延迟(latency)和吞吐量(throughput)。延迟是完成操作的时间。吞吐量是在某个时间期间之内完成操作的总数量。当 etcd 接收并发客户端请求时，通常平均延迟随着总体吞吐量增加而增加。在通常的云环境，比如 Google Compute Engine (GCE) 标准的 n-4 或者 AWS 上相当的机器类型，一个三成员 etcd 集群在轻负载下可以在低于1毫秒内完成一个请求，并在重负载下可以每秒完成超过 30000 个请求。</p><p>etcd 使用 Raft 一致性算法来在成员之间复制请求并达成一致。一致性性能，特别是提交延迟，受限于两个物理约束：网络IO延迟和磁盘IO延迟。完成一个etcd请求的最小时间是成员之间的网络往返时延(Round Trip Time / RTT)，加需要提交数据到持久化存储的 fdatasync 时间。在一个数据中心内的 RTT 可能有数百毫秒。在美国典型的 RTT 是大概 50ms, 而在大陆之间可以慢到400ms. 旋转硬盘(注：指传统机械硬盘)的典型 fdatasync 延迟是大概 10ms。对于 SSD 硬盘, 延迟通常低于 1ms. 为了提高吞吐量, etcd 将多个请求打包在一起并提交给 Raft。这个批量策略让 etcd 在重负载时获得高吞吐量.</p><p>有其他子系统影响到 etcd 的整体性能。每个序列化的 etcd 请求必须通过 etcd 的 boltdb支持的(boltdb-backed) MVCC 存储引擎,它通常需要10微秒来完成。etcd 定期递增快照它最近实施的请求，将他们和之前在磁盘上的快照合并。这个过程可能导致延迟尖峰(latency spike)。虽然在SSD上这通常不是问题，在HDD上它可能加倍可观察到的延迟。而且，进行中的压缩可以影响 etcd 的性能。幸运的是，压缩通常无足轻重，因为压缩是错开的，因此它不和常规请求竞争资源。RPC 系统，gRPC，为 etcd 提供定义良好，可扩展的 API，但是它也引入了额外的延迟，尤其是本地读取。</p><h2 id=etcd-安装>etcd 安装</h2><h3 id=二进制方式安装>二进制方式安装</h3><p><a href=https://github.com/etcd-io/etcd/releases target=_blank rel="noopener noreffer">参考版本地址</a>
+这里选择<code>ETCD_VER=v3.4.13</code>版本</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+<span class=nv>ETCD_VER</span><span class=o>=</span>v3.4.13
+
+<span class=c1># choose either URL</span>
+<span class=nv>GOOGLE_URL</span><span class=o>=</span>https://storage.googleapis.com/etcd
+<span class=nv>GITHUB_URL</span><span class=o>=</span>https://github.com/etcd-io/etcd/releases/download
+<span class=c1># choose GITHUB_URL</span>
+<span class=nv>DOWNLOAD_URL</span><span class=o>=</span><span class=si>${</span><span class=nv>GITHUB_URL</span><span class=si>}</span>
+
+rm -f /tmp/etcd-<span class=si>${</span><span class=nv>ETCD_VER</span><span class=si>}</span>-linux-amd64.tar.gz
+rm -rf /tmp/etcd-download-test <span class=o>&amp;&amp;</span> mkdir -p /tmp/etcd-download-test
+
+curl -L <span class=si>${</span><span class=nv>DOWNLOAD_URL</span><span class=si>}</span>/<span class=si>${</span><span class=nv>ETCD_VER</span><span class=si>}</span>/etcd-<span class=si>${</span><span class=nv>ETCD_VER</span><span class=si>}</span>-linux-amd64.tar.gz -o /tmp/etcd-<span class=si>${</span><span class=nv>ETCD_VER</span><span class=si>}</span>-linux-amd64.tar.gz
+tar xzvf /tmp/etcd-<span class=si>${</span><span class=nv>ETCD_VER</span><span class=si>}</span>-linux-amd64.tar.gz -C /tmp/etcd-download-test --strip-components<span class=o>=</span><span class=m>1</span>
+rm -f /tmp/etcd-<span class=si>${</span><span class=nv>ETCD_VER</span><span class=si>}</span>-linux-amd64.tar.gz
+
+/tmp/etcd-download-test/etcd --version
+/tmp/etcd-download-test/etcdctl version
+</code></pre></td></tr></table></div></div><h3 id=etcd-启动>etcd 启动</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># start a local etcd server</span>
+/tmp/etcd-download-test/etcd
+
+<span class=c1>## 指定etcd name</span>
+/tmp/etcd-download-test/etcd --name<span class=o>=</span>etcdtest 
+
+<span class=c1>## 指定data-dir</span>
+/tmp/etcd-download-test/etcd --name<span class=o>=</span>etcdtest --data-dir<span class=o>=</span>/var/lib/etcd 
+
+<span class=c1>## 指定 params</span>
+/tmp/etcd-download-test/etcd --name<span class=o>=</span>etcdtest --heartbeat-interval<span class=o>=</span><span class=m>200</span> --election-timeout<span class=o>=</span><span class=m>2000</span> --snapshot-count<span class=o>=</span><span class=m>5000</span> --auto-compaction-retention<span class=o>=</span><span class=m>1</span>
+</code></pre></td></tr></table></div></div><h3 id=etcd-键值测试>etcd 键值测试</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># write,read to etcd</span>
+/tmp/etcd-download-test/etcdctl --endpoints<span class=o>=</span>localhost:2379 put foo bar
+/tmp/etcd-download-test/etcdctl --endpoints<span class=o>=</span>localhost:2379 get foo
+</code></pre></td></tr></table></div></div><h2 id=etcd-参数优化>etcd 参数优化</h2><h3 id=快照>快照</h3><p>etcd_snapshot_count 5000</p><p>数据快照触发数量，etcd处理指定的次数的事务提交后，生产数据快照</p><h3 id=历史数据压缩频率>历史数据压缩频率</h3><p>etcd_compaction_retention 1</p><p>由于ETCD数据存储多版本数据，随着写入的主键增加历史版本需要定时清理，　默认的历史数据是不会清理的，数据达到2G就不能写入，必须要清理压缩历史数据才能继续写入；</p><p>所以根据业务需求，在上生产环境之前就提前确定，历史数据多长时间压缩一次；　我们的生产环境现在升级后是默认一小时压缩一次数据。这样可以极大的保证集群稳定，减少内存和磁盘占用</p><h3 id=时间参数>时间参数</h3><p>etcd_heartbeat_interval 200
+etcd_election_timeout 2000</p><p>客户端连接后的心跳间隔（毫秒）
+集群选举的超时时间（毫秒）</p><h3 id=磁盘io优先级在全部etcd节点执行>磁盘IO优先级，在全部etcd节点执行</h3><p>ionice -c2 -n0 -p <code>pgrep etcd</code></p><h2 id=etcd配置环境变量方式>etcd配置，环境变量方式</h2><p>vi /etc/etcd.env</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>vi /etc/etcd.env
+
+<span class=nv>ETCD_SNAPSHOT_COUNT</span><span class=o>=</span><span class=m>5000</span>
+<span class=nv>ETCD_HEARTBEAT_INTERVAL</span><span class=o>=</span><span class=m>200</span>
+<span class=nv>ETCD_ELECTION_TIMEOUT</span><span class=o>=</span><span class=m>2000</span>
+<span class=nv>ETCD_AUTO_COMPACTION_RETENTION</span><span class=o>=</span><span class=m>1</span>
+</code></pre></td></tr></table></div></div><h2 id=etcd配置-命令行参数方式>etcd配置， 命令行参数方式</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>etcd --heartbeat-interval<span class=o>=</span><span class=m>200</span> --election-timeout<span class=o>=</span><span class=m>2000</span> --snapshot-count<span class=o>=</span><span class=m>5000</span> --auto-compaction-retention<span class=o>=</span><span class=m>1</span>
+</code></pre></td></tr></table></div></div><h2 id=benchmark安装>benchmark安装</h2><p><a href=https://github.com/etcd-io/etcd/tree/master/tools/benchmark target=_blank rel="noopener noreffer">etcd/tools/benchmark</a> 是etcd官方benchmark测试工具</p><p>安装命令如下，</p><h3 id=get方式>get方式</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># set myproject go env</span>
+<span class=nb>export</span> <span class=nv>GOPATH</span><span class=o>=</span>/home/wangb/go_projects
+go get go.etcd.io/etcd/tools/benchmark
+ls <span class=nv>$GOPATH</span>/bin
+</code></pre></td></tr></table></div></div><p>示例：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+$ go get go.etcd.io/etcd/tools/benchmark
+<span class=c1># GOPATH should be set</span>
+$ ls <span class=nv>$GOPATH</span>/bin
+benchmark
+</code></pre></td></tr></table></div></div><h3 id=编译方式>编译方式</h3><p>如果上面get方式不能成功，则下载etcd源码，进行编译</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback># 使用go mod
+
+# 进入项目根目录，如go_projects/src/etcd-3.4.13
+
+export GO111MODULE=on
+# export GO111MODULE=off
+# go env -w GOPROXY=https://goproxy.cn,direct
+
+#进入项目目录
+#go mod init godev
+
+# 下载依赖
+go mod tidy
+
+# 生成项目vendor
+go mod vendor
+
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># etcd-3.4.13/tools/benchmark</span>
+<span class=nb>cd</span> tools/benchmark
+go build -o benchmark
+</code></pre></td></tr></table></div></div><p>示例：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/go_projects/src/etcd-3.4.13/tools/benchmark<span class=o>]</span><span class=c1># go build -o benchmark</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/go_projects/src/etcd-3.4.13/tools/benchmark<span class=o>]</span><span class=c1># ll</span>
+total <span class=m>19080</span>
+-rwxr-xr-x. <span class=m>1</span> root root <span class=m>19525385</span> Jan <span class=m>18</span> 11:09 benchmark
+drwxr-xr-x. <span class=m>2</span> root root      <span class=m>278</span> Aug <span class=m>25</span> 03:11 cmd
+-rw-r--r--. <span class=m>1</span> root root      <span class=m>675</span> Aug <span class=m>25</span> 03:11 doc.go
+-rw-r--r--. <span class=m>1</span> root root      <span class=m>784</span> Aug <span class=m>25</span> 03:11 main.go
+-rw-r--r--. <span class=m>1</span> root root      <span class=m>284</span> Aug <span class=m>25</span> 03:11 README.md
+
+</code></pre></td></tr></table></div></div><h2 id=benchmark指标>benchmark指标</h2><p>性能指标说明：</p><ul><li>延时</li><li>吞吐量</li></ul><table><thead><tr><th style=text-align:center>title</th><th style=text-align:center>description</th></tr></thead><tbody><tr><td style=text-align:center>Performance</td><td style=text-align:center>Understanding performance: latency & throughput</td></tr></tbody></table><h2 id=benchmark测试>benchmark测试</h2><h3 id=启动etcd>启动etcd</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh>/tmp/etcd-download-test/etcd --name<span class=o>=</span>etcdtest --heartbeat-interval<span class=o>=</span><span class=m>200</span> --election-timeout<span class=o>=</span><span class=m>2000</span> --snapshot-count<span class=o>=</span><span class=m>5000</span> --auto-compaction-retention<span class=o>=</span><span class=m>1</span>
+</code></pre></td></tr></table></div></div><p>启动打印</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1># /tmp/etcd-download-test/etcd --name=etcdtest --heartbeat-interval=200 --election-timeout=2000 --snapshot-count=5000 --auto-compaction-retention=1</span>
+<span class=o>[</span>WARNING<span class=o>]</span> Deprecated <span class=s1>&#39;--logger=capnslog&#39;</span> flag is set<span class=p>;</span> use <span class=s1>&#39;--logger=zap&#39;</span> flag instead
+2021-01-19 14:34:35.907827 I <span class=p>|</span> etcdmain: etcd Version: 3.4.13
+2021-01-19 14:34:35.908025 I <span class=p>|</span> etcdmain: Git SHA: ae9734ed2
+2021-01-19 14:34:35.908089 I <span class=p>|</span> etcdmain: Go Version: go1.12.17
+2021-01-19 14:34:35.908116 I <span class=p>|</span> etcdmain: Go OS/Arch: linux/amd64
+2021-01-19 14:34:35.908144 I <span class=p>|</span> etcdmain: setting maximum number of CPUs to 32, total number of available CPUs is <span class=m>32</span>
+2021-01-19 14:34:35.908186 W <span class=p>|</span> etcdmain: no data-dir provided, using default data-dir ./etcdtest.etcd
+<span class=o>[</span>WARNING<span class=o>]</span> Deprecated <span class=s1>&#39;--logger=capnslog&#39;</span> flag is set<span class=p>;</span> use <span class=s1>&#39;--logger=zap&#39;</span> flag instead
+2021-01-19 14:34:35.912732 I <span class=p>|</span> embed: <span class=nv>name</span> <span class=o>=</span> etcdtest
+2021-01-19 14:34:35.912790 I <span class=p>|</span> embed: data <span class=nv>dir</span> <span class=o>=</span> etcdtest.etcd
+2021-01-19 14:34:35.912833 I <span class=p>|</span> embed: member <span class=nv>dir</span> <span class=o>=</span> etcdtest.etcd/member
+2021-01-19 14:34:35.912854 I <span class=p>|</span> embed: <span class=nv>heartbeat</span> <span class=o>=</span> 200ms
+2021-01-19 14:34:35.912873 I <span class=p>|</span> embed: <span class=nv>election</span> <span class=o>=</span> 2000ms
+2021-01-19 14:34:35.912891 I <span class=p>|</span> embed: snapshot <span class=nv>count</span> <span class=o>=</span> <span class=m>5000</span>
+2021-01-19 14:34:35.912944 I <span class=p>|</span> embed: advertise client <span class=nv>URLs</span> <span class=o>=</span> http://localhost:2379
+2021-01-19 14:34:35.925333 I <span class=p>|</span> etcdserver: starting member 8e9e05c52164694d in cluster cdf818194e3a8c32
+raft2021/01/19 14:34:35 INFO: 8e9e05c52164694d switched to configuration <span class=nv>voters</span><span class=o>=()</span>
+raft2021/01/19 14:34:35 INFO: 8e9e05c52164694d became follower at term <span class=m>0</span>
+raft2021/01/19 14:34:35 INFO: newRaft 8e9e05c52164694d <span class=o>[</span>peers: <span class=o>[]</span>, term: 0, commit: 0, applied: 0, lastindex: 0, lastterm: 0<span class=o>]</span>
+raft2021/01/19 14:34:35 INFO: 8e9e05c52164694d became follower at term <span class=m>1</span>
+raft2021/01/19 14:34:35 INFO: 8e9e05c52164694d switched to configuration <span class=nv>voters</span><span class=o>=(</span>10276657743932975437<span class=o>)</span>
+2021-01-19 14:34:35.928869 W <span class=p>|</span> auth: simple token is not cryptographically signed
+2021-01-19 14:34:35.933119 I <span class=p>|</span> etcdserver: starting server... <span class=o>[</span>version: 3.4.13, cluster version: to_be_decided<span class=o>]</span>
+2021-01-19 14:34:35.933413 I <span class=p>|</span> etcdserver: 8e9e05c52164694d as single-node<span class=p>;</span> fast-forwarding <span class=m>9</span> ticks <span class=o>(</span>election ticks 10<span class=o>)</span>
+raft2021/01/19 14:34:35 INFO: 8e9e05c52164694d switched to configuration <span class=nv>voters</span><span class=o>=(</span>10276657743932975437<span class=o>)</span>
+2021-01-19 14:34:35.935531 I <span class=p>|</span> etcdserver/membership: added member 8e9e05c52164694d <span class=o>[</span>http://localhost:2380<span class=o>]</span> to cluster cdf818194e3a8c32
+2021-01-19 14:34:35.939938 I <span class=p>|</span> embed: listening <span class=k>for</span> peers on 127.0.0.1:2380
+raft2021/01/19 14:34:37 INFO: 8e9e05c52164694d is starting a new election at term <span class=m>1</span>
+raft2021/01/19 14:34:37 INFO: 8e9e05c52164694d became candidate at term <span class=m>2</span>
+raft2021/01/19 14:34:37 INFO: 8e9e05c52164694d received MsgVoteResp from 8e9e05c52164694d at term <span class=m>2</span>
+raft2021/01/19 14:34:37 INFO: 8e9e05c52164694d became leader at term <span class=m>2</span>
+raft2021/01/19 14:34:37 INFO: raft.node: 8e9e05c52164694d elected leader 8e9e05c52164694d at term <span class=m>2</span>
+2021-01-19 14:34:37.328580 I <span class=p>|</span> etcdserver: setting up the initial cluster version to 3.4
+2021-01-19 14:34:37.330234 N <span class=p>|</span> etcdserver/membership: <span class=nb>set</span> the initial cluster version to 3.4
+2021-01-19 14:34:37.330360 I <span class=p>|</span> embed: ready to serve client requests
+2021-01-19 14:34:37.330537 I <span class=p>|</span> etcdserver: published <span class=o>{</span>Name:etcdtest ClientURLs:<span class=o>[</span>http://localhost:2379<span class=o>]}</span> to cluster cdf818194e3a8c32
+2021-01-19 14:34:37.330575 I <span class=p>|</span> etcdserver/api: enabled capabilities <span class=k>for</span> version 3.4
+2021-01-19 14:34:37.332810 N <span class=p>|</span> embed: serving insecure client requests on 127.0.0.1:2379, this is strongly discouraged!
+2021-01-19 14:36:58.994204 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 5001, lastsnap: 0<span class=o>)</span>
+2021-01-19 14:36:58.999539 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>5001</span>
+2021-01-19 14:36:59.000747 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>1</span>
+2021-01-19 14:37:02.580676 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 10002, lastsnap: 5001<span class=o>)</span>
+2021-01-19 14:37:02.585886 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>10002</span>
+2021-01-19 14:37:02.587930 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>5002</span>
+2021-01-19 14:37:02.879022 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 15005, lastsnap: 10002<span class=o>)</span>
+2021-01-19 14:37:02.889233 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>15005</span>
+2021-01-19 14:37:02.893700 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>10005</span>
+2021-01-19 14:37:03.030899 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 20042, lastsnap: 15005<span class=o>)</span>
+2021-01-19 14:37:03.047952 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>20042</span>
+2021-01-19 14:37:03.051905 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>15042</span>
+2021-01-19 14:37:03.208428 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 25335, lastsnap: 20042<span class=o>)</span>
+2021-01-19 14:37:03.220643 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>25335</span>
+2021-01-19 14:37:03.226455 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>20335</span>
+2021-01-19 14:37:03.381115 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 30503, lastsnap: 25335<span class=o>)</span>
+2021-01-19 14:37:03.399205 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>30503</span>
+2021-01-19 14:37:03.405633 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>25503</span>
+2021-01-19 14:37:03.552010 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 35970, lastsnap: 30503<span class=o>)</span>
+2021-01-19 14:37:03.573982 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>35970</span>
+2021-01-19 14:37:03.574904 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>30970</span>
+2021-01-19 14:37:03.749731 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 41678, lastsnap: 35970<span class=o>)</span>
+2021-01-19 14:37:03.778794 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>41678</span>
+2021-01-19 14:37:03.793623 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>36678</span>
+2021-01-19 14:37:03.935394 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 46839, lastsnap: 41678<span class=o>)</span>
+2021-01-19 14:37:03.964458 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>46839</span>
+2021-01-19 14:37:03.977165 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>41839</span>
+2021-01-19 14:37:04.182597 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 51885, lastsnap: 46839<span class=o>)</span>
+2021-01-19 14:37:04.206669 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>51885</span>
+2021-01-19 14:37:04.207931 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>46885</span>
+2021-01-19 14:37:04.387361 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 57144, lastsnap: 51885<span class=o>)</span>
+2021-01-19 14:37:04.416557 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>57144</span>
+2021-01-19 14:37:04.435562 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>52144</span>
+2021-01-19 14:37:04.598093 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 62521, lastsnap: 57144<span class=o>)</span>
+2021-01-19 14:37:04.626258 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>62521</span>
+2021-01-19 14:37:04.641498 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>57521</span>
+2021-01-19 14:37:04.773653 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 67553, lastsnap: 62521<span class=o>)</span>
+2021-01-19 14:37:04.788911 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>67553</span>
+2021-01-19 14:37:04.791871 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>62553</span>
+2021-01-19 14:37:04.959274 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 72572, lastsnap: 67553<span class=o>)</span>
+2021-01-19 14:37:04.972930 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>72572</span>
+2021-01-19 14:37:04.979931 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>67572</span>
+2021-01-19 14:37:05.130776 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 77731, lastsnap: 72572<span class=o>)</span>
+2021-01-19 14:37:05.163934 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>77731</span>
+2021-01-19 14:37:05.164320 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>72731</span>
+2021-01-19 14:37:05.341994 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 82808, lastsnap: 77731<span class=o>)</span>
+2021-01-19 14:37:05.362133 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>82808</span>
+2021-01-19 14:37:05.362556 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>77808</span>
+2021-01-19 14:37:05.534155 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 87972, lastsnap: 82808<span class=o>)</span>
+2021-01-19 14:37:05.552320 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>87972</span>
+2021-01-19 14:37:05.560299 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>82972</span>
+2021-01-19 14:37:05.708062 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 93127, lastsnap: 87972<span class=o>)</span>
+2021-01-19 14:37:05.733762 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>93127</span>
+2021-01-19 14:37:05.744657 I <span class=p>|</span> etcdserver: compacted raft log at <span class=m>88127</span>
+2021-01-19 14:37:05.915552 I <span class=p>|</span> etcdserver: start to snapshot <span class=o>(</span>applied: 98166, lastsnap: 93127<span class=o>)</span>
+2021-01-19 14:37:05.936166 I <span class=p>|</span> pkg/fileutil: purged file etcdtest.etcd/member/snap/0000000000000002-0000000000001389.snap successfully
+2021-01-19 14:37:05.936297 I <span class=p>|</span> pkg/fileutil: purged file etcdtest.etcd/member/snap/0000000000000002-0000000000002712.snap successfully
+2021-01-19 14:37:05.936417 I <span class=p>|</span> pkg/fileutil: purged file etcdtest.etcd/member/snap/0000000000000002-0000000000003a9d.snap successfully
+2021-01-19 14:37:05.936540 I <span class=p>|</span> pkg/fileutil: purged file etcdtest.etcd/member/snap/0000000000000002-0000000000004e4a.snap successfully
+2021-01-19 14:37:05.936641 I <span class=p>|</span> pkg/fileutil: purged file etcdtest.etcd/member/snap/0000000000000002-00000000000062f7.snap successfully
+2021-01-19 14:37:05.936752 I <span class=p>|</span> pkg/fileutil: purged file etcdtest.etcd/member/snap/0000000000000002-0000000000007727.snap successfully
+2021-01-19 14:37:05.936873 I <span class=p>|</span> pkg/fileutil: purged file etcdtest.etcd/member/snap/0000000000000002-0000000000008c82.snap successfully
+2021-01-19 14:37:05.936984 I <span class=p>|</span> pkg/fileutil: purged file etcdtest.etcd/member/snap/0000000000000002-000000000000a2ce.snap successfully
+2021-01-19 14:37:05.937092 I <span class=p>|</span> pkg/fileutil: purged file etcdtest.etcd/member/snap/0000000000000002-000000000000b6f7.snap successfully
+2021-01-19 14:37:05.937197 I <span class=p>|</span> pkg/fileutil: purged file etcdtest.etcd/member/snap/0000000000000002-000000000000caad.snap successfully
+2021-01-19 14:37:05.937311 I <span class=p>|</span> pkg/fileutil: purged file etcdtest.etcd/member/snap/0000000000000002-000000000000df38.snap successfully
+2021-01-19 14:37:05.937419 I <span class=p>|</span> pkg/fileutil: purged file etcdtest.etcd/member/snap/0000000000000002-000000000000f439.snap successfully
+2021-01-19 14:37:05.937532 I <span class=p>|</span> pkg/fileutil: purged file etcdtest.etcd/member/snap/0000000000000002-00000000000107e1.snap successfully
+2021-01-19 14:37:05.937663 I <span class=p>|</span> pkg/fileutil: purged file etcdtest.etcd/member/snap/0000000000000002-0000000000011b7c.snap successfully
+2021-01-19 14:37:05.944586 I <span class=p>|</span> etcdserver: saved snapshot at index <span class=m>98166</span>
+
+
+
+
+</code></pre></td></tr></table></div></div><h3 id=write测试>write测试</h3><p>With this configuration, etcd can approximately write:</p><table><thead><tr><th style=text-align:right>Number of keys</th><th style=text-align:right>Key size in bytes</th><th style=text-align:right>Value size in bytes</th><th style=text-align:right>Number of connections</th><th style=text-align:right>Number of clients</th><th>Target etcd server</th><th style=text-align:right>Average write QPS</th><th style=text-align:right>Average latency per request</th><th style=text-align:right>Average server RSS</th></tr></thead><tbody><tr><td style=text-align:right>10,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>1</td><td style=text-align:right>1</td><td>leader only</td><td style=text-align:right>1359</td><td style=text-align:right>0.7ms</td><td style=text-align:right>24 MB</td></tr><tr><td style=text-align:right>100,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>100</td><td style=text-align:right>1000</td><td>leader only</td><td style=text-align:right>27507</td><td style=text-align:right>36ms</td><td style=text-align:right>75MB</td></tr><tr><td style=text-align:right>100,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>100</td><td style=text-align:right>1000</td><td>all members</td><td style=text-align:right>27206</td><td style=text-align:right>36.3ms</td><td style=text-align:right>89MB</td></tr></tbody></table><p><strong>说明：这里只有一个etcd节点，所以表格第3行的集群raft测试结果参考意义不大。</strong></p><p>Sample commands are:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh><span class=nv>HOST_1</span><span class=o>=</span>http://127.0.0.1:2379
+<span class=nv>HOST_2</span><span class=o>=</span>http://127.0.0.1:2379
+<span class=nv>HOST_3</span><span class=o>=</span>http://127.0.0.1:2379
+<span class=c1># include benchmark bin path</span>
+<span class=nv>current</span><span class=o>=</span><span class=sb>`</span><span class=nb>pwd</span><span class=sb>`</span>
+<span class=nb>export</span> <span class=nv>PATH</span><span class=o>=</span><span class=nv>$PATH</span>:<span class=nv>$current</span>
+
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh><span class=c1># write to leader</span>
+benchmark --endpoints<span class=o>=</span><span class=si>${</span><span class=nv>HOST_1</span><span class=si>}</span> --target-leader --conns<span class=o>=</span><span class=m>1</span> --clients<span class=o>=</span><span class=m>1</span> <span class=se>\
+</span><span class=se></span>    put --key-size<span class=o>=</span><span class=m>8</span> --sequential-keys --total<span class=o>=</span><span class=m>10000</span> --val-size<span class=o>=</span><span class=m>256</span>
+benchmark --endpoints<span class=o>=</span><span class=si>${</span><span class=nv>HOST_1</span><span class=si>}</span> --target-leader  --conns<span class=o>=</span><span class=m>100</span> --clients<span class=o>=</span><span class=m>1000</span> <span class=se>\
+</span><span class=se></span>    put --key-size<span class=o>=</span><span class=m>8</span> --sequential-keys --total<span class=o>=</span><span class=m>100000</span> --val-size<span class=o>=</span><span class=m>256</span>
+
+<span class=c1># write to all members</span>
+benchmark --endpoints<span class=o>=</span><span class=si>${</span><span class=nv>HOST_1</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_2</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_3</span><span class=si>}</span> --conns<span class=o>=</span><span class=m>100</span> --clients<span class=o>=</span><span class=m>1000</span> <span class=se>\
+</span><span class=se></span>    put --key-size<span class=o>=</span><span class=m>8</span> --sequential-keys --total<span class=o>=</span><span class=m>100000</span> --val-size<span class=o>=</span><span class=m>256</span>
+</code></pre></td></tr></table></div></div><h3 id=read测试>read测试</h3><p>Linearizable read requests go through a quorum of cluster members for consensus to fetch the most recent data. Serializable read requests are cheaper than linearizable reads since they are served by any single etcd member, instead of a quorum of members, in exchange for possibly serving stale data. etcd can read:</p><table><thead><tr><th style=text-align:right>Number of requests</th><th style=text-align:right>Key size in bytes</th><th style=text-align:right>Value size in bytes</th><th style=text-align:right>Number of connections</th><th style=text-align:right>Number of clients</th><th>Consistency</th><th style=text-align:right>Average read QPS</th><th style=text-align:right>Average latency per request</th></tr></thead><tbody><tr><td style=text-align:right>10,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>1</td><td style=text-align:right>1</td><td>Linearizable</td><td style=text-align:right>1110</td><td style=text-align:right>0.9ms</td></tr><tr><td style=text-align:right>10,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>1</td><td style=text-align:right>1</td><td>Serializable</td><td style=text-align:right>1251</td><td style=text-align:right>0.8ms</td></tr><tr><td style=text-align:right>100,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>100</td><td style=text-align:right>1000</td><td>Linearizable</td><td style=text-align:right>9532</td><td style=text-align:right>0.1044s</td></tr><tr><td style=text-align:right>100,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>100</td><td style=text-align:right>1000</td><td>Serializable</td><td style=text-align:right>11354</td><td style=text-align:right>0.0875s</td></tr></tbody></table><p><strong>说明</strong> 由于测试etcd为单节点，所以Linearizable和Serializable特性测试结果差别不大，参考意义不大。</p><p>Sample commands are:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh><span class=nv>HOST_1</span><span class=o>=</span>http://127.0.0.1:2379
+<span class=nv>HOST_2</span><span class=o>=</span>http://127.0.0.1:2379
+<span class=nv>HOST_3</span><span class=o>=</span>http://127.0.0.1:2379
+
+<span class=nv>current</span><span class=o>=</span><span class=sb>`</span><span class=nb>pwd</span><span class=sb>`</span>
+<span class=nb>export</span> <span class=nv>PATH</span><span class=o>=</span><span class=nv>$PATH</span>:<span class=nv>$current</span>
+
+</code></pre></td></tr></table></div></div><p>read前，先write一个测试key</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh><span class=nv>YOUR_KEY</span><span class=o>=</span>foo
+/tmp/etcd-download-test/etcdctl --endpoints<span class=o>=</span>localhost:2379 put <span class=nv>$YOUR_KEY</span> bar
+
+/tmp/etcd-download-test/etcdctl --endpoints<span class=o>=</span>localhost:2379 get <span class=nv>$YOUR_KEY</span>
+</code></pre></td></tr></table></div></div><h4 id=测试命令>测试命令</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh><span class=c1># Single connection read requests</span>
+benchmark --endpoints<span class=o>=</span><span class=si>${</span><span class=nv>HOST_1</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_2</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_3</span><span class=si>}</span> --conns<span class=o>=</span><span class=m>1</span> --clients<span class=o>=</span><span class=m>1</span> <span class=se>\
+</span><span class=se></span>    range <span class=nv>$YOUR_KEY</span> --consistency<span class=o>=</span>l --total<span class=o>=</span><span class=m>10000</span>
+benchmark --endpoints<span class=o>=</span><span class=si>${</span><span class=nv>HOST_1</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_2</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_3</span><span class=si>}</span> --conns<span class=o>=</span><span class=m>1</span> --clients<span class=o>=</span><span class=m>1</span> <span class=se>\
+</span><span class=se></span>    range <span class=nv>$YOUR_KEY</span> --consistency<span class=o>=</span>s --total<span class=o>=</span><span class=m>10000</span>
+
+<span class=c1># Many concurrent read requests</span>
+benchmark --endpoints<span class=o>=</span><span class=si>${</span><span class=nv>HOST_1</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_2</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_3</span><span class=si>}</span> --conns<span class=o>=</span><span class=m>100</span> --clients<span class=o>=</span><span class=m>1000</span> <span class=se>\
+</span><span class=se></span>    range <span class=nv>$YOUR_KEY</span> --consistency<span class=o>=</span>l --total<span class=o>=</span><span class=m>100000</span>
+benchmark --endpoints<span class=o>=</span><span class=si>${</span><span class=nv>HOST_1</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_2</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_3</span><span class=si>}</span> --conns<span class=o>=</span><span class=m>100</span> --clients<span class=o>=</span><span class=m>1000</span> <span class=se>\
+</span><span class=se></span>    range <span class=nv>$YOUR_KEY</span> --consistency<span class=o>=</span>s --total<span class=o>=</span><span class=m>100000</span>
+</code></pre></td></tr></table></div></div><h3 id=read-only-时间参数设置优化>read-only 时间参数设置优化</h3><p>read测试时的etcd打印信息</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>
+2021-01-18 14:54:58.315985 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (128.237385ms) to execute
+2021-01-18 14:54:58.316748 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (136.434995ms) to execute
+2021-01-18 14:54:58.317021 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (125.138823ms) to execute
+2021-01-18 14:54:58.327063 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (113.659252ms) to execute
+2021-01-18 14:54:58.327171 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (140.480071ms) to execute
+2021-01-18 14:54:58.328320 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (138.142424ms) to execute
+2021-01-18 14:54:58.329457 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (136.980041ms) to execute
+2021-01-18 14:54:58.330026 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (139.674614ms) to execute
+2021-01-18 14:54:58.330674 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (137.950461ms) to execute
+2021-01-18 14:54:58.330710 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (151.589201ms) to execute
+2021-01-18 14:54:58.338877 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (149.623303ms) to execute
+2021-01-18 14:54:58.339042 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (148.882374ms) to execute
+
+</code></pre></td></tr></table></div></div><p>上面的read测试时的etcd打印信息， 会一直输出告警打印信息（包括输出到系统日志中），因为read-only range request > 100ms，导致性能降低</p><p>代码中默认值设置为 100ms</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-golang data-lang=golang><span class=c1>//  v3.3 -&gt; v3.4.14
+</span><span class=c1></span><span class=kd>const</span> <span class=p>(</span>
+    <span class=nx>warnApplyDuration</span> <span class=p>=</span> <span class=mi>100</span> <span class=o>*</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Millisecond</span>
+<span class=p>)</span>
+
+
+<span class=c1>//  v3.4-master
+</span><span class=c1></span><span class=kd>const</span> <span class=p>(</span>
+<span class=nx>DefaultWarningApplyDuration</span>  <span class=p>=</span> <span class=mi>100</span> <span class=o>*</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Millisecond</span>
+<span class=p>)</span>
+</code></pre></td></tr></table></div></div><p>在etcd-v3.4最新版本(master)添加了参数优化设置，而v3.4.14以前，包括v3.4.14和etcd-v3.3没有办法消除该告警信息打印</p><p>同时etcd-3.4版本的模块目录有所调整，所以需要跟踪etcd版本</p><p>跟踪etcd版本，是否新增了配置变量<code>ExperimentalWarningApplyDuration</code>，而最新版本不再使用变量WarnApplyDuration，改为<code>WarningApplyDuration</code></p><p><a href=https://github.com/etcd-io/etcd/pull/12448 target=_blank rel="noopener noreffer">WarningApplyDuration 修改参考</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-golang data-lang=golang><span class=nx>srvcfg</span> <span class=o>:=</span> <span class=nx>etcdserver</span><span class=p>.</span><span class=nx>ServerConfig</span><span class=p>{</span>
+    <span class=nx>WarningApplyDuration</span><span class=p>:</span>        <span class=nx>cfg</span><span class=p>.</span><span class=nx>ExperimentalWarningApplyDuration</span><span class=p>,</span>
+<span class=p>}</span>
+
+</code></pre></td></tr></table></div></div><h3 id=benchmark测试条件>benchmark测试条件</h3><p><strong>We encourage running the benchmark test when setting up an etcd cluster for the first time in a new environment to ensure the cluster achieves adequate performance; cluster latency and throughput can be sensitive to minor environment differences.</strong></p><h2 id=磁盘io-参数调优>磁盘IO 参数调优</h2><p>Linux 中 etcd 的磁盘优先级可以使用 ionice 配置：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml>-<span class=l>c  class  指定调度类型，0代表none，1代表real time,2代表best effort, 3代表idle</span><span class=w>
+</span><span class=w>
+</span><span class=w></span>-<span class=kc>n</span><span class=w>  </span><span class=l>classdata   指定优先级  real time和best effor可以使用0-7</span><span class=w>
+</span><span class=w>
+</span><span class=w></span>-<span class=l>p  pid    查看或改变已经运行的进程的调度类型和优先级。</span><span class=w>
+</span><span class=w>
+</span><span class=w></span>-<span class=l>t  忽略设置指定优先级的错误信息</span><span class=w>
+</span></code></pre></td></tr></table></div></div><h3 id=查询命令>查询命令</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh>ionice  -p <span class=sb>`</span>pgrep etcd<span class=sb>`</span>
+</code></pre></td></tr></table></div></div><p>原有配置</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh><span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 ~<span class=o>]</span><span class=c1># ionice  -p `pgrep etcd`</span>
+unknown: prio <span class=m>4</span>
+
+</code></pre></td></tr></table></div></div><h3 id=设置命令>设置命令</h3><p>Best Effort策略，优先级为0（优先级最高）</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh><span class=c1># best effort, highest priority</span>
+ionice -c2 -n0 -p <span class=sb>`</span>pgrep etcd<span class=sb>`</span>
+
+ionice  -p <span class=sb>`</span>pgrep etcd<span class=sb>`</span>
+</code></pre></td></tr></table></div></div><p>优化配置</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh><span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 ~<span class=o>]</span><span class=c1># ionice -c2 -n0 -p `pgrep etcd`</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 ~<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 ~<span class=o>]</span><span class=c1># ionice  -p `pgrep etcd`</span>
+best-effort: prio <span class=m>0</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 ~<span class=o>]</span><span class=c1>#</span>
+
+</code></pre></td></tr></table></div></div><h3 id=优化后测试>优化后测试</h3><h4 id=说明-1>说明</h4><ul><li>为了在相同环境下对比测试，把之前测试数据文件etcdtest.etcd全部删除</li><li>read测试时，测试键值key，可以不预置，这样read测试为极限值</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh><span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1># ll</span>
+total <span class=m>19068</span>
+-rwxr-xr-x. <span class=m>1</span> root root <span class=m>19525385</span> Jan <span class=m>18</span> 11:36 benchmark
+drwxr-xr-x. <span class=m>3</span> root root      <span class=m>151</span> Jan <span class=m>18</span> 11:37 etcd-download-test
+drwx------. <span class=m>3</span> root root       <span class=m>28</span> Jan <span class=m>18</span> 13:46 etcdtest.etcd
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1># rm -rf etcdtest.etcd</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1>#</span>
+
+</code></pre></td></tr></table></div></div><h4 id=write测试-1>write测试</h4><p>Sample commands are:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh><span class=nv>HOST_1</span><span class=o>=</span>http://127.0.0.1:2379
+<span class=nv>HOST_2</span><span class=o>=</span>http://127.0.0.1:2379
+<span class=nv>HOST_3</span><span class=o>=</span>http://127.0.0.1:2379
+<span class=c1># include benchmark bin path</span>
+<span class=nv>current</span><span class=o>=</span><span class=sb>`</span><span class=nb>pwd</span><span class=sb>`</span>
+<span class=nb>export</span> <span class=nv>PATH</span><span class=o>=</span><span class=nv>$PATH</span>:<span class=nv>$current</span>
+
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh><span class=c1># write to leader</span>
+benchmark --endpoints<span class=o>=</span><span class=si>${</span><span class=nv>HOST_1</span><span class=si>}</span> --target-leader --conns<span class=o>=</span><span class=m>1</span> --clients<span class=o>=</span><span class=m>1</span> <span class=se>\
+</span><span class=se></span>    put --key-size<span class=o>=</span><span class=m>8</span> --sequential-keys --total<span class=o>=</span><span class=m>10000</span> --val-size<span class=o>=</span><span class=m>256</span>
+benchmark --endpoints<span class=o>=</span><span class=si>${</span><span class=nv>HOST_1</span><span class=si>}</span> --target-leader  --conns<span class=o>=</span><span class=m>100</span> --clients<span class=o>=</span><span class=m>1000</span> <span class=se>\
+</span><span class=se></span>    put --key-size<span class=o>=</span><span class=m>8</span> --sequential-keys --total<span class=o>=</span><span class=m>100000</span> --val-size<span class=o>=</span><span class=m>256</span>
+
+<span class=c1># write to all members</span>
+benchmark --endpoints<span class=o>=</span><span class=si>${</span><span class=nv>HOST_1</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_2</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_3</span><span class=si>}</span> --conns<span class=o>=</span><span class=m>100</span> --clients<span class=o>=</span><span class=m>1000</span> <span class=se>\
+</span><span class=se></span>    put --key-size<span class=o>=</span><span class=m>8</span> --sequential-keys --total<span class=o>=</span><span class=m>100000</span> --val-size<span class=o>=</span><span class=m>256</span>
+</code></pre></td></tr></table></div></div><p>With this configuration, etcd can approximately write:</p><table><thead><tr><th style=text-align:right>Number of keys</th><th style=text-align:right>Key size in bytes</th><th style=text-align:right>Value size in bytes</th><th style=text-align:right>Number of connections</th><th style=text-align:right>Number of clients</th><th>Target etcd server</th><th style=text-align:right>Average write QPS</th><th style=text-align:right>Average latency per request</th></tr></thead><tbody><tr><td style=text-align:right>10,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>1</td><td style=text-align:right>1</td><td>leader only</td><td style=text-align:right>1357</td><td style=text-align:right>0.7ms</td></tr><tr><td style=text-align:right>100,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>100</td><td style=text-align:right>1000</td><td>leader only</td><td style=text-align:right>28232</td><td style=text-align:right>35.1ms</td></tr><tr><td style=text-align:right>100,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>100</td><td style=text-align:right>1000</td><td>all members</td><td style=text-align:right>27620</td><td style=text-align:right>35.9ms</td></tr></tbody></table><h4 id=read测试-1>read测试</h4><h4 id=测试命令-1>测试命令</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh><span class=nv>HOST_1</span><span class=o>=</span>http://127.0.0.1:2379
+<span class=nv>HOST_2</span><span class=o>=</span>http://127.0.0.1:2379
+<span class=nv>HOST_3</span><span class=o>=</span>http://127.0.0.1:2379
+<span class=c1># include benchmark bin path</span>
+<span class=nv>current</span><span class=o>=</span><span class=sb>`</span><span class=nb>pwd</span><span class=sb>`</span>
+<span class=nb>export</span> <span class=nv>PATH</span><span class=o>=</span><span class=nv>$PATH</span>:<span class=nv>$current</span>
+
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh><span class=c1># Single connection read requests</span>
+benchmark --endpoints<span class=o>=</span><span class=si>${</span><span class=nv>HOST_1</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_2</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_3</span><span class=si>}</span> --conns<span class=o>=</span><span class=m>1</span> --clients<span class=o>=</span><span class=m>1</span> <span class=se>\
+</span><span class=se></span>    range <span class=nv>$YOUR_KEY</span> --consistency<span class=o>=</span>l --total<span class=o>=</span><span class=m>10000</span>
+benchmark --endpoints<span class=o>=</span><span class=si>${</span><span class=nv>HOST_1</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_2</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_3</span><span class=si>}</span> --conns<span class=o>=</span><span class=m>1</span> --clients<span class=o>=</span><span class=m>1</span> <span class=se>\
+</span><span class=se></span>    range <span class=nv>$YOUR_KEY</span> --consistency<span class=o>=</span>s --total<span class=o>=</span><span class=m>10000</span>
+
+<span class=c1># Many concurrent read requests</span>
+benchmark --endpoints<span class=o>=</span><span class=si>${</span><span class=nv>HOST_1</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_2</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_3</span><span class=si>}</span> --conns<span class=o>=</span><span class=m>100</span> --clients<span class=o>=</span><span class=m>1000</span> <span class=se>\
+</span><span class=se></span>    range <span class=nv>$YOUR_KEY</span> --consistency<span class=o>=</span>l --total<span class=o>=</span><span class=m>100000</span>
+benchmark --endpoints<span class=o>=</span><span class=si>${</span><span class=nv>HOST_1</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_2</span><span class=si>}</span>,<span class=si>${</span><span class=nv>HOST_3</span><span class=si>}</span> --conns<span class=o>=</span><span class=m>100</span> --clients<span class=o>=</span><span class=m>1000</span> <span class=se>\
+</span><span class=se></span>    range <span class=nv>$YOUR_KEY</span> --consistency<span class=o>=</span>s --total<span class=o>=</span><span class=m>100000</span>
+</code></pre></td></tr></table></div></div><table><thead><tr><th style=text-align:right>Number of requests</th><th style=text-align:right>Key size in bytes</th><th style=text-align:right>Value size in bytes</th><th style=text-align:right>Number of connections</th><th style=text-align:right>Number of clients</th><th>Consistency</th><th style=text-align:right>Average read QPS</th><th style=text-align:right>Average latency per request</th></tr></thead><tbody><tr><td style=text-align:right>10,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>1</td><td style=text-align:right>1</td><td>Linearizable</td><td style=text-align:right>1272</td><td style=text-align:right>0.8ms</td></tr><tr><td style=text-align:right>10,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>1</td><td style=text-align:right>1</td><td>Serializable</td><td style=text-align:right>1432</td><td style=text-align:right>0.7ms</td></tr><tr><td style=text-align:right>100,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>100</td><td style=text-align:right>1000</td><td>Linearizable</td><td style=text-align:right>13108</td><td style=text-align:right>0.0758s</td></tr><tr><td style=text-align:right>100,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>100</td><td style=text-align:right>1000</td><td>Serializable</td><td style=text-align:right>16088</td><td style=text-align:right>0.0617s</td></tr></tbody></table><h4 id=对比结果>对比结果</h4><ol><li>write对比</li></ol><table><thead><tr><th style=text-align:right>Number of keys</th><th style=text-align:right>Key size in bytes</th><th style=text-align:right>Value size in bytes</th><th style=text-align:right>Number of connections</th><th style=text-align:right>Number of clients</th><th>Target etcd server</th><th style=text-align:right>Average write QPS</th><th style=text-align:right>Average latency per request</th><th style=text-align:right>Tunning</th></tr></thead><tbody><tr><td style=text-align:right>10,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>1</td><td style=text-align:right>1</td><td>leader only</td><td style=text-align:right>1359</td><td style=text-align:right>0.7ms</td><td style=text-align:right>false</td></tr><tr><td style=text-align:right>10,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>1</td><td style=text-align:right>1</td><td>leader only</td><td style=text-align:right>1382</td><td style=text-align:right>0.7ms</td><td style=text-align:right>true</td></tr><tr><td style=text-align:right>100,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>100</td><td style=text-align:right>1000</td><td>leader only</td><td style=text-align:right>27507</td><td style=text-align:right>36ms</td><td style=text-align:right>false</td></tr><tr><td style=text-align:right>100,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>100</td><td style=text-align:right>1000</td><td>leader only</td><td style=text-align:right>28381</td><td style=text-align:right>34.8ms</td><td style=text-align:right>true</td></tr><tr><td style=text-align:right>100,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>100</td><td style=text-align:right>1000</td><td>all members</td><td style=text-align:right>27206</td><td style=text-align:right>36.3ms</td><td style=text-align:right>false</td></tr><tr><td style=text-align:right>100,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>100</td><td style=text-align:right>1000</td><td>all members</td><td style=text-align:right>27855</td><td style=text-align:right>35.6ms</td><td style=text-align:right>true</td></tr></tbody></table><ol start=2><li>read对比</li></ol><table><thead><tr><th style=text-align:right>Number of requests</th><th style=text-align:right>Key size in bytes</th><th style=text-align:right>Value size in bytes</th><th style=text-align:right>Number of connections</th><th style=text-align:right>Number of clients</th><th>Consistency</th><th style=text-align:right>Average read QPS</th><th style=text-align:right>Average latency per request</th><th style=text-align:right>Tunning</th></tr></thead><tbody><tr><td style=text-align:right>10,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>1</td><td style=text-align:right>1</td><td>Linearizable</td><td style=text-align:right>1110</td><td style=text-align:right>0.9ms</td><td style=text-align:right>false</td></tr><tr><td style=text-align:right>10,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>1</td><td style=text-align:right>1</td><td>Linearizable</td><td style=text-align:right>1272</td><td style=text-align:right>0.8ms</td><td style=text-align:right>true</td></tr><tr><td style=text-align:right>10,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>1</td><td style=text-align:right>1</td><td>Serializable</td><td style=text-align:right>1251</td><td style=text-align:right>0.8ms</td><td style=text-align:right>false</td></tr><tr><td style=text-align:right>10,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>1</td><td style=text-align:right>1</td><td>Serializable</td><td style=text-align:right>1432</td><td style=text-align:right>0.7ms</td><td style=text-align:right>true</td></tr><tr><td style=text-align:right>100,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>100</td><td style=text-align:right>1000</td><td>Linearizable</td><td style=text-align:right>9532</td><td style=text-align:right>0.1044s</td><td style=text-align:right>false</td></tr><tr><td style=text-align:right>100,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>100</td><td style=text-align:right>1000</td><td>Linearizable</td><td style=text-align:right>13108</td><td style=text-align:right>0.0758s</td><td style=text-align:right>true</td></tr><tr><td style=text-align:right>100,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>100</td><td style=text-align:right>1000</td><td>Serializable</td><td style=text-align:right>11354</td><td style=text-align:right>0.0875s</td><td style=text-align:right>false</td></tr><tr><td style=text-align:right>100,000</td><td style=text-align:right>8</td><td style=text-align:right>256</td><td style=text-align:right>100</td><td style=text-align:right>1000</td><td>Serializable</td><td style=text-align:right>16088</td><td style=text-align:right>0.0617s</td><td style=text-align:right>true</td></tr></tbody></table><h2 id=结论>结论</h2><ul><li>磁盘IO参数可以优化etcd性能，write和read接口指标改善</li><li>快照和数据压缩参数，可以减少etcd的内存和磁盘占用量</li></ul><h2 id=附录>附录</h2><ul><li><a href=https://etcd.io/docs/v3.4.0/benchmarks/ target=_blank rel="noopener noreffer">etcd benchmarks</a></li><li><a href=https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/performance.md#benchmarks target=_blank rel="noopener noreffer">etcd-3-demo-benchmarks</a></li></ul><h3 id=linearizability>Linearizability</h3><p>Linearizability (also known as Atomic Consistency or External Consistency) is a consistency level between strict consistency and sequential consistency.</p><p>For linearizability, suppose each operation receives a timestamp from a loosely synchronized global clock. Operations are linearized if and only if they always complete as though they were executed in a sequential order and each operation appears to complete in the order specified by the program. Likewise, if an operation’s timestamp precedes another, that operation must also precede the other operation in the sequence.</p><p>For example, consider a client completing a write at time point 1 (t1). A client issuing a read at t2 (for t2 > t1) should receive a value at least as recent as the previous write, completed at t1. However, the read might actually complete only by t3. Linearizability guarantees the read returns the most current value. Without linearizability guarantee, the returned value, current at t2 when the read began, might be &ldquo;stale&rdquo; by t3 because a concurrent write might happen between t2 and t3.</p><p>etcd does not ensure linearizability for watch operations. Users are expected to verify the revision of watch responses to ensure correct ordering.</p><p>etcd ensures linearizability for all other operations by default. Linearizability comes with a cost, however, because linearized requests must go through the Raft consensus process. To obtain lower latencies and higher throughput for read requests, clients can configure a request’s consistency mode to serializable, which may access stale data with respect to quorum, but removes the performance penalty of linearized accesses' reliance on live consensus.</p><p>线性化（也称为原子一致性或外部一致性）是严格一致性和顺序一致性之间的一致性级别。</p><p>对于线性化，假设每个操作从松散同步的全局时钟接收一个时间戳。当且仅当操作总是像按顺序执行一样完成，并且每个操作似乎按程序指定的顺序完成时，才线性化操作。同样，如果一个操作的时间戳先于另一个操作，那么该操作也必须先于序列中的另一个操作。</p><p>例如，假设客户机在时间点1（t1）完成写入。在t2发出read（对于t2>t1）的客户机应至少收到与在t1完成的上一次写入相同的最新值。然而，读取实际上可能只在t3之前完成。线性化保证读取返回最新值。如果没有线性化保证，返回值（读取开始时t2处的当前值）可能会被t3“过时”，因为t2和t3之间可能发生并发写入。</p><p>etcd不能确保监视操作的线性化。用户需要验证监视响应的修订，以确保正确排序。</p><p>默认情况下，etcd可确保所有其他操作的线性化。然而，线性化是有代价的，因为线性化的请求必须经过协商一致的过程。为了获得较低的延迟和较高的读请求吞吐量，客户机可以将请求的一致性模式配置为可串行化，这可能会访问有关仲裁的过时数据，但消除了线性化访问依赖实时一致性的性能损失。</p><h3 id=测试记录>测试记录</h3><h4 id=write测试-2>write测试</h4><p>表格第1行测试数据</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1># benchmark --endpoints=${HOST_1} --target-leader --conns=1 --clients=1 \</span>
+&gt;     put --key-size<span class=o>=</span><span class=m>8</span> --sequential-keys --total<span class=o>=</span><span class=m>10000</span> --val-size<span class=o>=</span><span class=m>256</span>
+ <span class=m>10000</span> / <span class=m>10000</span> Booooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo! 100.00% 7s
+
+Summary:
+  Total:        7.3535 secs.
+  Slowest:      0.0048 secs.
+  Fastest:      0.0003 secs.
+  Average:      0.0007 secs.
+  Stddev:       0.0003 secs.
+  Requests/sec: 1359.9057
+
+Response <span class=nb>time</span> histogram:
+  0.0003 <span class=o>[</span>1<span class=o>]</span>    <span class=p>|</span>
+  0.0008 <span class=o>[</span>7950<span class=o>]</span> <span class=p>|</span>∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+  0.0012 <span class=o>[</span>1535<span class=o>]</span> <span class=p>|</span>∎∎∎∎∎∎∎
+  0.0016 <span class=o>[</span>240<span class=o>]</span>  <span class=p>|</span>∎
+  0.0021 <span class=o>[</span>152<span class=o>]</span>  <span class=p>|</span>
+  0.0025 <span class=o>[</span>53<span class=o>]</span>   <span class=p>|</span>
+  0.0030 <span class=o>[</span>33<span class=o>]</span>   <span class=p>|</span>
+  0.0034 <span class=o>[</span>20<span class=o>]</span>   <span class=p>|</span>
+  0.0039 <span class=o>[</span>10<span class=o>]</span>   <span class=p>|</span>
+  0.0043 <span class=o>[</span>3<span class=o>]</span>    <span class=p>|</span>
+  0.0048 <span class=o>[</span>3<span class=o>]</span>    <span class=p>|</span>
+
+Latency distribution:
+  10% in 0.0006 secs.
+  25% in 0.0006 secs.
+  50% in 0.0006 secs.
+  75% in 0.0007 secs.
+  90% in 0.0010 secs.
+  95% in 0.0012 secs.
+  99% in 0.0022 secs.
+  99.9% in 0.0037 secs.
+
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1>#</span>
+
+
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1># ps aux |grep etcd</span>
+root      <span class=m>29017</span>  1.9  0.0 <span class=m>10616300</span> <span class=m>24752</span> pts/10 Sl+  13:46   0:14 /tmp/etcd-download-test/etcd --name<span class=o>=</span>etcdtest --heartbeat-interval<span class=o>=</span><span class=m>200</span> --election-timeout<span class=o>=</span><span class=m>2000</span> --snapshot-count<span class=o>=</span><span class=m>5000</span>
+
+
+</code></pre></td></tr></table></div></div><p>表格第2行测试数据</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1># benchmark --endpoints=${HOST_1} --target-leader  --conns=100 --clients=1000 \</span>
+&gt;     put --key-size<span class=o>=</span><span class=m>8</span> --sequential-keys --total<span class=o>=</span><span class=m>100000</span> --val-size<span class=o>=</span><span class=m>256</span>
+INFO: 2021/01/18 14:00:00 parsed scheme: <span class=s2>&#34;endpoint&#34;</span>
+
+INFO: 2021/01/18 14:00:00 ccResolverWrapper: sending new addresses to cc: <span class=o>[{</span>http://localhost:2379  &lt;nil&gt; <span class=m>0</span> &lt;nil&gt;<span class=o>}]</span>
+ <span class=m>100000</span> / <span class=m>100000</span> Booooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo! 100.00% 3s
+
+Summary:
+  Total:        3.5391 secs.
+  Slowest:      0.0837 secs.
+  Fastest:      0.0035 secs.
+  Average:      0.0351 secs.
+  Stddev:       0.0109 secs.
+  Requests/sec: 28255.6626
+
+Response <span class=nb>time</span> histogram:
+  0.0035 <span class=o>[</span>1<span class=o>]</span>    <span class=p>|</span>
+  0.0116 <span class=o>[</span>1<span class=o>]</span>    <span class=p>|</span>
+  0.0196 <span class=o>[</span>1298<span class=o>]</span> <span class=p>|</span>∎
+  0.0276 <span class=o>[</span>25892<span class=o>]</span>        <span class=p>|</span>∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+  0.0356 <span class=o>[</span>34394<span class=o>]</span>        <span class=p>|</span>∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+  0.0436 <span class=o>[</span>15557<span class=o>]</span>        <span class=p>|</span>∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+  0.0517 <span class=o>[</span>14631<span class=o>]</span>        <span class=p>|</span>∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+  0.0597 <span class=o>[</span>5577<span class=o>]</span> <span class=p>|</span>∎∎∎∎∎∎
+  0.0677 <span class=o>[</span>1873<span class=o>]</span> <span class=p>|</span>∎∎
+  0.0757 <span class=o>[</span>428<span class=o>]</span>  <span class=p>|</span>
+  0.0837 <span class=o>[</span>348<span class=o>]</span>  <span class=p>|</span>
+
+Latency distribution:
+  10% in 0.0235 secs.
+  25% in 0.0272 secs.
+  50% in 0.0318 secs.
+  75% in 0.0424 secs.
+  90% in 0.0504 secs.
+  95% in 0.0550 secs.
+  99% in 0.0665 secs.
+  99.9% in 0.0812 secs.
+
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1>#</span>
+
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1># ps aux |grep etcd</span>
+root      <span class=m>29017</span>  6.6  0.2 <span class=m>10687728</span> <span class=m>75552</span> pts/10 Sl+  13:46   0:56 /tmp/etcd-download-test/etcd --name<span class=o>=</span>etcdtest --heartbeat-interval<span class=o>=</span><span class=m>200</span> --election-timeout<span class=o>=</span><span class=m>2000</span> --snapshot-count<span class=o>=</span><span class=m>5000</span>
+
+</code></pre></td></tr></table></div></div><p>表格第3行测试数据</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1># benchmark --endpoints=${HOST_1},${HOST_2},${HOST_3} --conns=100 --clients=1000 \</span>
+&gt;     put --key-size<span class=o>=</span><span class=m>8</span> --sequential-keys --total<span class=o>=</span><span class=m>100000</span> --val-size<span class=o>=</span><span class=m>256</span>
+
+INFO: 2021/01/18 14:11:16 ccResolverWrapper: sending new addresses to cc: <span class=o>[{</span>http://127.0.0.1:2379  &lt;nil&gt; <span class=m>0</span> &lt;nil&gt;<span class=o>}]</span>
+ <span class=m>100000</span> / <span class=m>100000</span> Booooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo! 100.00% 3s
+
+Summary:
+  Total:        3.5622 secs.
+  Slowest:      0.0836 secs.
+  Fastest:      0.0123 secs.
+  Average:      0.0353 secs.
+  Stddev:       0.0109 secs.
+  Requests/sec: 28072.8070
+
+Response <span class=nb>time</span> histogram:
+  0.0123 <span class=o>[</span>1<span class=o>]</span>    <span class=p>|</span>
+  0.0194 <span class=o>[</span>1105<span class=o>]</span> <span class=p>|</span>∎
+  0.0266 <span class=o>[</span>23001<span class=o>]</span>        <span class=p>|</span>∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+  0.0337 <span class=o>[</span>30319<span class=o>]</span>        <span class=p>|</span>∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+  0.0408 <span class=o>[</span>13738<span class=o>]</span>        <span class=p>|</span>∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+  0.0480 <span class=o>[</span>17523<span class=o>]</span>        <span class=p>|</span>∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+  0.0551 <span class=o>[</span>9420<span class=o>]</span> <span class=p>|</span>∎∎∎∎∎∎∎∎∎∎∎∎
+  0.0622 <span class=o>[</span>3625<span class=o>]</span> <span class=p>|</span>∎∎∎∎
+  0.0693 <span class=o>[</span>506<span class=o>]</span>  <span class=p>|</span>
+  0.0765 <span class=o>[</span>597<span class=o>]</span>  <span class=p>|</span>
+  0.0836 <span class=o>[</span>165<span class=o>]</span>  <span class=p>|</span>
+
+Latency distribution:
+  10% in 0.0235 secs.
+  25% in 0.0268 secs.
+  50% in 0.0319 secs.
+  75% in 0.0437 secs.
+  90% in 0.0501 secs.
+  95% in 0.0548 secs.
+  99% in 0.0649 secs.
+  99.9% in 0.0791 secs.
+
+
+
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1># ps aux |grep etcd</span>
+root      <span class=m>29017</span>  6.2  0.2 <span class=m>10687728</span> <span class=m>89612</span> pts/10 Sl+  13:46   1:41 /tmp/etcd-download-test/etcd --name<span class=o>=</span>etcdtest --heartbeat-interval<span class=o>=</span><span class=m>200</span> --election-timeout<span class=o>=</span><span class=m>2000</span> --snapshot-count<span class=o>=</span><span class=m>5000</span>
+
+</code></pre></td></tr></table></div></div><h4 id=read测试-2>read测试</h4><p>测试数据 Single connection read requests</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh><span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1># # Single connection read requests</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1># benchmark --endpoints=${HOST_1},${HOST_2},${HOST_3} --conns=1 --clients=1 \</span>
+&gt;     range <span class=nv>$YOUR_KEY</span> --consistency<span class=o>=</span>l --total<span class=o>=</span><span class=m>10000</span>
+bench with linearizable range
+ <span class=m>10000</span> / <span class=m>10000</span> Booooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo! 100.00% 9s
+
+Summary:
+  Total:        9.0010 secs.
+  Slowest:      0.0064 secs.
+  Fastest:      0.0004 secs.
+  Average:      0.0009 secs.
+  Stddev:       0.0005 secs.
+  Requests/sec: 1110.9827
+
+Response <span class=nb>time</span> histogram:
+  0.0004 <span class=o>[</span>1<span class=o>]</span>    <span class=p>|</span>
+  0.0010 <span class=o>[</span>9102<span class=o>]</span> <span class=p>|</span>∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+  0.0016 <span class=o>[</span>432<span class=o>]</span>  <span class=p>|</span>∎
+  0.0022 <span class=o>[</span>76<span class=o>]</span>   <span class=p>|</span>
+  0.0028 <span class=o>[</span>144<span class=o>]</span>  <span class=p>|</span>
+  0.0034 <span class=o>[</span>101<span class=o>]</span>  <span class=p>|</span>
+  0.0040 <span class=o>[</span>54<span class=o>]</span>   <span class=p>|</span>
+  0.0046 <span class=o>[</span>36<span class=o>]</span>   <span class=p>|</span>
+  0.0052 <span class=o>[</span>29<span class=o>]</span>   <span class=p>|</span>
+  0.0058 <span class=o>[</span>21<span class=o>]</span>   <span class=p>|</span>
+  0.0064 <span class=o>[</span>4<span class=o>]</span>    <span class=p>|</span>
+
+Latency distribution:
+  10% in 0.0007 secs.
+  25% in 0.0007 secs.
+  50% in 0.0008 secs.
+  75% in 0.0008 secs.
+  90% in 0.0009 secs.
+  95% in 0.0014 secs.
+  99% in 0.0039 secs.
+  99.9% in 0.0055 secs.
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1># benchmark --endpoints=${HOST_1},${HOST_2},${HOST_3} --conns=1 --clients=1 \</span>
+&gt;     range <span class=nv>$YOUR_KEY</span> --consistency<span class=o>=</span>s --total<span class=o>=</span><span class=m>10000</span>
+bench with serializable range
+ <span class=m>10000</span> / <span class=m>10000</span> Booooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo! 100.00% 7s
+
+Summary:
+  Total:        7.9876 secs.
+  Slowest:      0.0095 secs.
+  Fastest:      0.0004 secs.
+  Average:      0.0008 secs.
+  Stddev:       0.0005 secs.
+  Requests/sec: 1251.9368
+
+Response <span class=nb>time</span> histogram:
+  0.0004 <span class=o>[</span>1<span class=o>]</span>    <span class=p>|</span>
+  0.0013 <span class=o>[</span>9485<span class=o>]</span> <span class=p>|</span>∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+  0.0022 <span class=o>[</span>161<span class=o>]</span>  <span class=p>|</span>
+  0.0031 <span class=o>[</span>207<span class=o>]</span>  <span class=p>|</span>
+  0.0040 <span class=o>[</span>83<span class=o>]</span>   <span class=p>|</span>
+  0.0050 <span class=o>[</span>48<span class=o>]</span>   <span class=p>|</span>
+  0.0059 <span class=o>[</span>11<span class=o>]</span>   <span class=p>|</span>
+  0.0068 <span class=o>[</span>3<span class=o>]</span>    <span class=p>|</span>
+  0.0077 <span class=o>[</span>0<span class=o>]</span>    <span class=p>|</span>
+  0.0086 <span class=o>[</span>0<span class=o>]</span>    <span class=p>|</span>
+  0.0095 <span class=o>[</span>1<span class=o>]</span>    <span class=p>|</span>
+
+Latency distribution:
+  10% in 0.0006 secs.
+  25% in 0.0006 secs.
+  50% in 0.0007 secs.
+  75% in 0.0007 secs.
+  90% in 0.0008 secs.
+  95% in 0.0014 secs.
+  99% in 0.0037 secs.
+  99.9% in 0.0054 secs.
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1>#</span>
+</code></pre></td></tr></table></div></div><p>测试数据 Many concurrent read requests</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span><span class=lnt>73
+</span><span class=lnt>74
+</span><span class=lnt>75
+</span><span class=lnt>76
+</span><span class=lnt>77
+</span><span class=lnt>78
+</span><span class=lnt>79
+</span><span class=lnt>80
+</span><span class=lnt>81
+</span><span class=lnt>82
+</span><span class=lnt>83
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh><span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1># # Many concurrent read requests</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1># benchmark --endpoints=${HOST_1},${HOST_2},${HOST_3} --conns=100 --clients=1000 \</span>
+&gt;     range <span class=nv>$YOUR_KEY</span> --consistency<span class=o>=</span>l --total<span class=o>=</span><span class=m>100000</span>
+bench with linearizable range
+INFO: 2021/01/18 14:54:38 parsed scheme: <span class=s2>&#34;endpoint&#34;</span>
+INFO: 2021/01/18 14:54:38 ccResolverWrapper: sending new addresses to cc: <span class=o>[{</span>http://127.0.0.1:2379  &lt;nil&gt; <span class=m>0</span> &lt;nil&gt;<span class=o>}]</span>
+ <span class=m>100000</span> / <span class=m>100000</span> Boooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo! 100.00% 10s
+
+Summary:
+  Total:        10.4905 secs.
+  Slowest:      1.1881 secs.
+  Fastest:      0.0004 secs.
+  Average:      0.1044 secs.
+  Stddev:       0.1186 secs.
+  Requests/sec: 9532.4514
+
+Response <span class=nb>time</span> histogram:
+  0.0004 <span class=o>[</span>1<span class=o>]</span>    <span class=p>|</span>
+  0.1192 <span class=o>[</span>67345<span class=o>]</span>        <span class=p>|</span>∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+  0.2380 <span class=o>[</span>21111<span class=o>]</span>        <span class=p>|</span>∎∎∎∎∎∎∎∎∎∎∎∎
+  0.3567 <span class=o>[</span>6188<span class=o>]</span> <span class=p>|</span>∎∎∎
+  0.4755 <span class=o>[</span>3418<span class=o>]</span> <span class=p>|</span>∎∎
+  0.5943 <span class=o>[</span>1527<span class=o>]</span> <span class=p>|</span>
+  0.7130 <span class=o>[</span>232<span class=o>]</span>  <span class=p>|</span>
+  0.8318 <span class=o>[</span>123<span class=o>]</span>  <span class=p>|</span>
+  0.9505 <span class=o>[</span>48<span class=o>]</span>   <span class=p>|</span>
+  1.0693 <span class=o>[</span>5<span class=o>]</span>    <span class=p>|</span>
+  1.1881 <span class=o>[</span>2<span class=o>]</span>    <span class=p>|</span>
+
+Latency distribution:
+  10% in 0.0074 secs.
+  25% in 0.0189 secs.
+  50% in 0.0634 secs.
+  75% in 0.1471 secs.
+  90% in 0.2604 secs.
+  95% in 0.3664 secs.
+  99% in 0.5222 secs.
+  99.9% in 0.7631 secs.
+
+
+
+
+
+
+
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@yuyuan211 /home/wangb/etcd-test<span class=o>]</span><span class=c1># benchmark --endpoints=${HOST_1},${HOST_2},${HOST_3} --conns=100 --clients=1000 \</span>
+&gt;     range <span class=nv>$YOUR_KEY</span> --consistency<span class=o>=</span>s --total<span class=o>=</span><span class=m>100000</span>
+bench with serializable range
+INFO: 2021/01/18 14:54:49 parsed scheme: <span class=s2>&#34;endpoint&#34;</span>
+INFO: 2021/01/18 14:54:49 ccResolverWrapper: sending new addresses to cc: <span class=o>[{</span>http://127.0.0.1:2379  &lt;nil&gt; <span class=m>0</span> &lt;nil&gt;<span class=o>}]</span>
+ <span class=m>100000</span> / <span class=m>100000</span> Booooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo! 100.00% 8s
+
+Summary:
+  Total:        8.8068 secs.
+  Slowest:      1.0424 secs.
+  Fastest:      0.0005 secs.
+  Average:      0.0875 secs.
+  Stddev:       0.0995 secs.
+  Requests/sec: 11354.9122
+
+Response <span class=nb>time</span> histogram:
+  0.0005 <span class=o>[</span>1<span class=o>]</span>    <span class=p>|</span>
+  0.1047 <span class=o>[</span>67942<span class=o>]</span>        <span class=p>|</span>∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+  0.2089 <span class=o>[</span>21128<span class=o>]</span>        <span class=p>|</span>∎∎∎∎∎∎∎∎∎∎∎∎
+  0.3131 <span class=o>[</span>7264<span class=o>]</span> <span class=p>|</span>∎∎∎∎
+  0.4172 <span class=o>[</span>2300<span class=o>]</span> <span class=p>|</span>∎
+  0.5214 <span class=o>[</span>797<span class=o>]</span>  <span class=p>|</span>
+  0.6256 <span class=o>[</span>367<span class=o>]</span>  <span class=p>|</span>
+  0.7298 <span class=o>[</span>154<span class=o>]</span>  <span class=p>|</span>
+  0.8340 <span class=o>[</span>33<span class=o>]</span>   <span class=p>|</span>
+  0.9382 <span class=o>[</span>12<span class=o>]</span>   <span class=p>|</span>
+  1.0424 <span class=o>[</span>2<span class=o>]</span>    <span class=p>|</span>
+
+Latency distribution:
+  10% in 0.0052 secs.
+  25% in 0.0137 secs.
+  50% in 0.0518 secs.
+  75% in 0.1290 secs.
+  90% in 0.2170 secs.
+  95% in 0.2829 secs.
+  99% in 0.4543 secs.
+  99.9% in 0.6792 secs.
+
+</code></pre></td></tr></table></div></div><p>read测试时的etcd打印信息</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>09072ms) to execute
+2021-01-18 14:54:58.315985 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (128.237385ms) to execute
+2021-01-18 14:54:58.316748 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (136.434995ms) to execute
+2021-01-18 14:54:58.317021 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (125.138823ms) to execute
+2021-01-18 14:54:58.327063 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (113.659252ms) to execute
+2021-01-18 14:54:58.327171 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (140.480071ms) to execute
+2021-01-18 14:54:58.328320 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (138.142424ms) to execute
+2021-01-18 14:54:58.329457 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (136.980041ms) to execute
+2021-01-18 14:54:58.330026 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (139.674614ms) to execute
+2021-01-18 14:54:58.330674 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (137.950461ms) to execute
+2021-01-18 14:54:58.330710 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (151.589201ms) to execute
+2021-01-18 14:54:58.338877 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (149.623303ms) to execute
+2021-01-18 14:54:58.339042 W | etcdserver: read-only range request &#34;key:\&#34;foo\&#34; serializable:true &#34; with result &#34;range_response_count:1 size:30&#34; took too long (148.882374ms) to execute
+
+</code></pre></td></tr></table></div></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2021-01-19</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/etcd/>Etcd</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E5%B8%B8%E7%94%A8%E5%92%8C%E4%B8%80%E4%BA%9B%E8%AE%B0%E4%B8%8D%E4%BD%8F%E7%9A%84%E5%91%BD%E4%BB%A4/ class=prev rel=prev title="[转载]一些 git 常用和一些记不住的命令"><i class="fas fa-angle-left fa-fw"></i>[转载]一些 git 常用和一些记不住的命令</a></div></div><div id=comments></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2021</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
+<script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i></a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css><script type=text/javascript src=https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script><script type=text/javascript>window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type=text/javascript src=/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-81425808-1',{'anonymize_ip':true});</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script><script src=https://libs.baidu.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js></script><script type=text/javascript src=/js/custom.js></script><script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script></body></html>
