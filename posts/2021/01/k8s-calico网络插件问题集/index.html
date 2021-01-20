@@ -1,0 +1,197 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>K8S calico网络插件问题集 - 斌哥的小站|Binge Blog</title><meta name=Description content="K8S calico网络插件问题集，持续更新"><meta property="og:title" content="K8S calico网络插件问题集"><meta property="og:description" content="K8S calico网络插件问题集，持续更新"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2021/01/k8s-calico%E7%BD%91%E7%BB%9C%E6%8F%92%E4%BB%B6%E9%97%AE%E9%A2%98%E9%9B%86/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2021-01-13T08:43:17+08:00"><meta property="article:modified_time" content="2021-01-13T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="K8S calico网络插件问题集"><meta name=twitter:description content="K8S calico网络插件问题集，持续更新"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2021/01/k8s-calico%E7%BD%91%E7%BB%9C%E6%8F%92%E4%BB%B6%E9%97%AE%E9%A2%98%E9%9B%86/><link rel=prev href=http://bingerambo.com/posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E5%B8%B8%E7%94%A8%E5%92%8C%E4%B8%80%E4%BA%9B%E8%AE%B0%E4%B8%8D%E4%BD%8F%E7%9A%84%E5%91%BD%E4%BB%A4/><link rel=next href=http://bingerambo.com/posts/2021/01/etcd%E8%B0%83%E4%BC%98%E5%92%8C%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"K8S calico网络插件问题集","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2021\/01\/k8s-calico%E7%BD%91%E7%BB%9C%E6%8F%92%E4%BB%B6%E9%97%AE%E9%A2%98%E9%9B%86\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":1198,"url":"http:\/\/bingerambo.com\/posts\/2021\/01\/k8s-calico%E7%BD%91%E7%BB%9C%E6%8F%92%E4%BB%B6%E9%97%AE%E9%A2%98%E9%9B%86\/","datePublished":"2021-01-13T08:43:17+08:00","dateModified":"2021-01-13T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":"K8S calico网络插件问题集，持续更新"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">K8S calico网络插件问题集</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2021-01-13>2021-01-13</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 1198 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 3 分钟&nbsp;
+<i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#calico-node-pod一直没有起来>calico node pod一直没有起来</a></li><li><a href=#calico-node-pod异常>calico node pod异常</a></li><li><a href=#附录>附录</a><ul><li><a href=#检查当前节点的calico网络状态>检查当前节点的calico网络状态</a></li><li><a href=#获取k8s-node命令>获取k8s node命令</a></li><li><a href=#获取ippool命令>获取ipPool命令</a></li></ul></li></ul></nav></div></div><div class=content id=content><p>K8S calico网络插件问题集，持续更新</p><h2 id=calico-node-pod一直没有起来>calico node pod一直没有起来</h2><p>Number of node(s) with BGP peering established = 0</p><p>网上解决方法如下：
+<a href=https://blog.csdn.net/qq_36783142/article/details/107912407>https://blog.csdn.net/qq_36783142/article/details/107912407</a></p><ul><li>name: IP_AUTODETECTION_METHOD
+value: &ldquo;interface=enp26s0f3&rdquo;
+但此方式不能解决自己环境所遇问题。
+分析应该是网络路由问题（原来环境残留的脏路由导致），做下清理处理</li></ul><p>执行下面命令解决</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>systemctl stop kubelet
+systemctl stop docker
+iptables --flush
+iptables -tnat --flush
+systemctl start docker
+systemctl start kubelet
+</code></pre></td></tr></table></div></div><h2 id=calico-node-pod异常>calico node pod异常</h2><p>Readiness probe failed: container is not running</p><p>现象如下</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@node2 ~<span class=o>]</span><span class=c1># kubectl get po -A -owide</span>
+NAMESPACE     NAME                                          READY   STATUS    RESTARTS   AGE   IP             NODE    NOMINATED NODE   READINESS GATES
+kube-system   calico-kube-controllers-67f55f8858-5cgpg      1/1     Running   <span class=m>2</span>          14d   10.151.11.53   gpu53   &lt;none&gt;           &lt;none&gt;
+kube-system   calico-node-l6crs                             0/1     Running   <span class=m>3</span>          18d   10.151.11.61   node2   &lt;none&gt;           &lt;none&gt;
+kube-system   calico-node-vb7s5                             0/1     Running   <span class=m>1</span>          57m   10.151.11.53   gpu53   &lt;none&gt;           &lt;none&gt;
+</code></pre></td></tr></table></div></div><p>calico node 异常现象跟上面类似，但是探针检查失败</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>Events:
+  Type     Reason          Age                    From     Message
+  ----     ------          ----                   ----     -------
+  Warning  Unhealthy       69m <span class=o>(</span>x2936 over 12d<span class=o>)</span>   kubelet  Readiness probe errored: rpc error: <span class=nv>code</span> <span class=o>=</span> Unknown <span class=nv>desc</span> <span class=o>=</span> operation timeout: context deadline exceeded
+  Warning  Unhealthy       57m <span class=o>(</span>x2938 over 12d<span class=o>)</span>   kubelet  Liveness probe errored: rpc error: <span class=nv>code</span> <span class=o>=</span> Unknown <span class=nv>desc</span> <span class=o>=</span> operation timeout: context deadline exceeded
+  Warning  Unhealthy       12m <span class=o>(</span>x6 over 13m<span class=o>)</span>      kubelet  Liveness probe failed: container is not running
+  Normal   SandboxChanged  11m <span class=o>(</span>x2 over 13m<span class=o>)</span>      kubelet  Pod sandbox changed, it will be killed and re-created.
+  Normal   Killing         11m <span class=o>(</span>x2 over 13m<span class=o>)</span>      kubelet  Stopping container calico-node
+  Warning  Unhealthy       8m3s <span class=o>(</span>x32 over 13m<span class=o>)</span>    kubelet  Readiness probe failed: container is not running
+  Warning  Unhealthy       4m45s <span class=o>(</span>x6 over 5m35s<span class=o>)</span>  kubelet  Liveness probe failed: container is not running
+  Normal   SandboxChanged  3m42s <span class=o>(</span>x2 over 5m42s<span class=o>)</span>  kubelet  Pod sandbox changed, it will be killed and re-created.
+  Normal   Killing         3m42s <span class=o>(</span>x2 over 5m42s<span class=o>)</span>  kubelet  Stopping container calico-node
+  Warning  Unhealthy       42s <span class=o>(</span>x31 over 5m42s<span class=o>)</span>   kubelet  Readiness probe failed: container is not running
+
+</code></pre></td></tr></table></div></div><p>查看异常pod日志信息，发现进程端口被占用。通过netstat命令查看端口占用进程，发现下面进程一直残留</p><img src=calico.png><p>删除calico-node组件，包括kill，上面进程仍然残留</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># 删除calico-node组件</span>
+<span class=nb>cd</span> /etc/kubernetes/
+kubectl delete -f calico-node.yml
+</code></pre></td></tr></table></div></div><p>这些进程为docker启动，但未回收，此时21881进程状态为D - 不可中断的睡眠状态。</p><p>通过重启服务器节点，解除calico服务端口占用。问题解决。</p><p>有时进程可以进行删除，如下残留进程<code>/usr/local/bin/runsvdir -P /etc/service/enabled</code>，状态为S，其子进程包含了calico相关服务，通过kill命令清理，然后再启动calico-node组件</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@node2 kubernetes<span class=o>]</span><span class=c1># ps -ef |grep 175885</span>
+root      <span class=m>24910</span>  <span class=m>36399</span>  <span class=m>0</span> 16:04 pts/6    00:00:00 grep --color<span class=o>=</span>auto <span class=m>175885</span>
+root     <span class=m>175885</span> <span class=m>175862</span>  <span class=m>0</span> 15:12 ?        00:00:00 /usr/local/bin/runsvdir -P /etc/service/enabled
+root     <span class=m>201783</span> <span class=m>175885</span>  <span class=m>0</span> 15:29 ?        00:00:00 runsv felix
+root     <span class=m>201784</span> <span class=m>175885</span>  <span class=m>0</span> 15:29 ?        00:00:00 runsv monitor-addresses
+root     <span class=m>201785</span> <span class=m>175885</span>  <span class=m>0</span> 15:29 ?        00:00:00 runsv allocate-tunnel-addrs
+root     <span class=m>201786</span> <span class=m>175885</span>  <span class=m>0</span> 15:29 ?        00:00:00 runsv bird
+root     <span class=m>201787</span> <span class=m>175885</span>  <span class=m>0</span> 15:29 ?        00:00:00 runsv bird6
+root     <span class=m>201788</span> <span class=m>175885</span>  <span class=m>0</span> 15:29 ?        00:00:00 runsv confd
+<span class=o>[</span>root@node2 kubernetes<span class=o>]</span><span class=c1># ps aux |grep 175885</span>
+root      <span class=m>25633</span>  0.0  0.0 <span class=m>112712</span>   <span class=m>960</span> pts/6    S+   16:05   0:00 grep --color<span class=o>=</span>auto <span class=m>175885</span>
+root     <span class=m>175885</span>  0.0  0.0   <span class=m>4356</span>   <span class=m>372</span> ?        Ss   15:12   0:00 /usr/local/bin/runsvdir -P /etc/service/enabled
+<span class=o>[</span>root@node2 kubernetes<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node2 kubernetes<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node2 kubernetes<span class=o>]</span><span class=c1># kill 175885</span>
+<span class=o>[</span>root@node2 kubernetes<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node2 kubernetes<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node2 kubernetes<span class=o>]</span><span class=c1># ps -ef |grep calico</span>
+root      <span class=m>33242</span>  <span class=m>36399</span>  <span class=m>0</span> 16:11 pts/6    00:00:00 grep --color<span class=o>=</span>auto calico
+<span class=o>[</span>root@node2 kubernetes<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node2 kubernetes<span class=o>]</span><span class=c1>#</span>
+
+</code></pre></td></tr></table></div></div><p>所以删除calico-node组件时，需要通过<code>ps -ef |grep calico</code>确认节点上是否还有calico相关进程</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell> <span class=o>[</span>root@node2 net.d<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node2 net.d<span class=o>]</span><span class=c1># ps -ef |grep calico</span>
+root      <span class=m>57982</span>  <span class=m>18990</span>  <span class=m>0</span> 10:54 pts/8    00:00:00 grep --color<span class=o>=</span>auto calico
+root     <span class=m>219142</span> <span class=m>219137</span>  <span class=m>0</span>  <span class=m>2020</span> ?        00:01:11 calico-node -allocate-tunnel-addrs
+root     <span class=m>219143</span> <span class=m>219135</span>  <span class=m>0</span>  <span class=m>2020</span> ?        02:25:07 calico-node -felix
+root     <span class=m>219144</span> <span class=m>219136</span>  <span class=m>0</span>  <span class=m>2020</span> ?        00:01:51 calico-node -monitor-addresses
+root     <span class=m>219145</span> <span class=m>219140</span>  <span class=m>0</span>  <span class=m>2020</span> ?        00:01:13 calico-node -confd
+root     <span class=m>219407</span> <span class=m>219138</span>  <span class=m>0</span>  <span class=m>2020</span> ?        00:11:20 bird -R -s /var/run/calico/bird.ctl -d -c /etc/calico/confd/config/bird.cfg
+root     <span class=m>219408</span> <span class=m>219139</span>  <span class=m>0</span>  <span class=m>2020</span> ?        00:10:59 bird6 -R -s /var/run/calico/bird6.ctl -d -c /etc/calico/confd/config/bird6.cfg
+
+</code></pre></td></tr></table></div></div><h2 id=附录>附录</h2><h3 id=检查当前节点的calico网络状态>检查当前节点的calico网络状态</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>calicoctl node status
+</code></pre></td></tr></table></div></div><p>calico网络成功配置示例：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+<span class=o>[</span>root@node2 kubernetes<span class=o>]</span><span class=c1># calicoctl node status</span>
+Calico process is running.
+
+IPv4 BGP status
++--------------+-------------------+-------+----------+-------------+
+<span class=p>|</span> PEER ADDRESS <span class=p>|</span>     PEER TYPE     <span class=p>|</span> STATE <span class=p>|</span>  SINCE   <span class=p>|</span>    INFO     <span class=p>|</span>
++--------------+-------------------+-------+----------+-------------+
+<span class=p>|</span> 192.168.1.11 <span class=p>|</span> node-to-node mesh <span class=p>|</span> up    <span class=p>|</span> 08:13:23 <span class=p>|</span> Established <span class=p>|</span>
++--------------+-------------------+-------+----------+-------------+
+
+IPv6 BGP status
+No IPv6 peers found.
+
+
+</code></pre></td></tr></table></div></div><h3 id=获取k8s-node命令>获取k8s node命令</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># run in master node</span>
+<span class=nv>DATASTORE_TYPE</span><span class=o>=</span>kubernetes <span class=nv>KUBECONFIG</span><span class=o>=</span>~/.kube/config calicoctl get nodes
+
+</code></pre></td></tr></table></div></div><p>示例</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@node2 kubernetes<span class=o>]</span><span class=c1># DATASTORE_TYPE=kubernetes KUBECONFIG=~/.kube/config calicoctl get nodes</span>
+NAME
+gpu53
+node2
+
+</code></pre></td></tr></table></div></div><h3 id=获取ippool命令>获取ipPool命令</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># run in master node</span>
+<span class=nv>DATASTORE_TYPE</span><span class=o>=</span>kubernetes <span class=nv>KUBECONFIG</span><span class=o>=</span>~/.kube/config calicoctl get ipPool -o yaml
+
+</code></pre></td></tr></table></div></div><p>示例</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@node2 kubernetes<span class=o>]</span><span class=c1># DATASTORE_TYPE=kubernetes KUBECONFIG=~/.kube/config calicoctl get ipPool -o yaml</span>
+apiVersion: projectcalico.org/v3
+items: <span class=o>[]</span>
+kind: IPPoolList
+metadata: <span class=o>{}</span>
+
+</code></pre></td></tr></table></div></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2021-01-13</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/k8s/>K8S</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E5%B8%B8%E7%94%A8%E5%92%8C%E4%B8%80%E4%BA%9B%E8%AE%B0%E4%B8%8D%E4%BD%8F%E7%9A%84%E5%91%BD%E4%BB%A4/ class=prev rel=prev title="[转载]一些 git 常用和一些记不住的命令"><i class="fas fa-angle-left fa-fw"></i>[转载]一些 git 常用和一些记不住的命令</a>
+<a href=/posts/2021/01/etcd%E8%B0%83%E4%BC%98%E5%92%8C%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95/ class=next rel=next title=Etcd调优和性能测试>Etcd调优和性能测试<i class="fas fa-angle-right fa-fw"></i></a></div></div><div id=comments></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2021</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
+<script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i></a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css><script type=text/javascript src=https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script><script type=text/javascript>window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type=text/javascript src=/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-81425808-1',{'anonymize_ip':true});</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script><script src=https://libs.baidu.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js></script><script type=text/javascript src=/js/custom.js></script><script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script></body></html>
