@@ -1,0 +1,1199 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>k8s dynamic provisioning and storage的nfs-server-provisioner - 斌哥的小站|Binge Blog</title><meta name=Description content="k8s dynamic provisioning and storage的nfs-server-provisioner"><meta property="og:title" content="k8s dynamic provisioning and storage的nfs-server-provisioner"><meta property="og:description" content="k8s dynamic provisioning and storage的nfs-server-provisioner"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2021/02/k8s-dynamic-provisioning-and-storage%E7%9A%84nfs-server-provisioner/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2021-02-08T08:43:17+08:00"><meta property="article:modified_time" content="2021-02-08T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="k8s dynamic provisioning and storage的nfs-server-provisioner"><meta name=twitter:description content="k8s dynamic provisioning and storage的nfs-server-provisioner"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2021/02/k8s-dynamic-provisioning-and-storage%E7%9A%84nfs-server-provisioner/><link rel=prev href=http://bingerambo.com/posts/2021/02/k8s%E7%9A%84%E4%B8%9A%E5%8A%A1pod%E7%BB%84%E4%BB%B6%E7%9A%84invalid-token%E9%97%AE%E9%A2%98/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"k8s dynamic provisioning and storage的nfs-server-provisioner","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2021\/02\/k8s-dynamic-provisioning-and-storage%E7%9A%84nfs-server-provisioner\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":5490,"url":"http:\/\/bingerambo.com\/posts\/2021\/02\/k8s-dynamic-provisioning-and-storage%E7%9A%84nfs-server-provisioner\/","datePublished":"2021-02-08T08:43:17+08:00","dateModified":"2021-02-08T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":"k8s dynamic provisioning and storage的nfs-server-provisioner"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">k8s dynamic provisioning and storage的nfs-server-provisioner</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2021-02-08>2021-02-08</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 5490 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 11 分钟&nbsp;
+<i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#设计说明>设计说明</a><ul><li><a href=#whats-new>What’s New?</a></li><li><a href=#nfs-provisioner项目>nfs-provisioner项目</a></li></ul></li><li><a href=#nfs-provisioner镜像>nfs-provisioner镜像</a></li><li><a href=#arguments>Arguments</a></li><li><a href=#存储配额>存储配额</a></li><li><a href=#nfs-provisioner-deploy说明>nfs-provisioner deploy说明</a></li><li><a href=#部署>部署</a></li><li><a href=#卸载删除>卸载删除</a></li><li><a href=#测试验证>测试验证</a><ul><li><a href=#存储写操作>存储写操作</a></li><li><a href=#存储读操作>存储读操作</a><ul><li><a href=#pod运行情况>pod运行情况</a></li></ul></li><li><a href=#业务pod使用pvc时删除pvc>业务pod使用pvc时，删除pvc</a><ul><li><a href=#无业务pod使用pvc时删除pvc>无业务pod使用pvc时，删除pvc</a></li></ul></li><li><a href=#配额测试>配额测试</a><ul><li><a href=#部署pod>部署pod</a></li><li><a href=#考虑开启配额参数>考虑开启配额参数</a></li><li><a href=#卸载删除-1>卸载删除</a></li><li><a href=#删除pod>删除pod</a></li></ul></li></ul></li><li><a href=#nfs-client-provisioner>nfs-client-provisioner</a></li><li><a href=#参考>参考</a></li><li><a href=#附录>附录</a><ul><li><a href=#配置>配置</a><ul><li><a href=#storageclass>StorageClass</a></li><li><a href=#persistentvolumeclaim>PersistentVolumeClaim</a></li></ul></li><li><a href=#dd命令-构造指定大小文件>dd命令 构造指定大小文件</a></li><li><a href=#开启xfs的quota特性>开启xfs的quota特性</a><ul><li><a href=#编辑etcfstab>编辑/etc/fstab</a></li><li><a href=#卸载并重新挂载>卸载并重新挂载</a></li></ul></li><li><a href=#错误>错误</a><ul><li><a href=#新项目代码无法进行镜像制作>新项目代码无法进行镜像制作</a></li><li><a href=#开启配额参数-nfs-provisioner-启动报错>开启配额参数， nfs provisioner 启动报错</a></li></ul></li></ul></li></ul></nav></div></div><div class=content id=content><p>k8s dynamic provisioning and storage的nfs-server-provisioner 原理介绍和功能验证</p><h2 id=设计说明>设计说明</h2><blockquote><p>Storage is a critical part of running containers, and Kubernetes offers some powerful primitives for managing it. Dynamic volume provisioning, a feature unique to Kubernetes, allows storage volumes to be created on-demand. Without dynamic provisioning, cluster administrators have to manually make calls to their cloud or storage provider to create new storage volumes, and then create PersistentVolume objects to represent them in Kubernetes. <strong>The dynamic provisioning feature eliminates the need for cluster administrators to pre-provision storage. Instead, it automatically provisions storage when it is requested by users.</strong> This feature was introduced as alpha in Kubernetes 1.2, and has been improved and promoted to beta in the latest release, 1.4. This release makes dynamic provisioning far more flexible and useful.</p></blockquote><h3 id=whats-new>What’s New?</h3><p>The alpha version of dynamic provisioning only allowed a single, hard-coded provisioner to be used in a cluster at once. This meant that when Kubernetes determined storage needed to be dynamically provisioned, it always used the same volume plugin to do provisioning, even if multiple storage systems were available on the cluster. The provisioner to use was inferred based on the cloud environment - EBS for AWS, Persistent Disk for Google Cloud, Cinder for OpenStack, and vSphere Volumes on vSphere. Furthermore, the parameters used to provision new storage volumes were fixed: only the storage size was configurable. This meant that all dynamically provisioned volumes would be identical, except for their storage size, even if the storage system exposed other parameters (such as disk type) for configuration during provisioning.</p><p>Although the alpha version of the feature was limited in utility, it allowed us to “get some miles” on the idea, and helped determine the direction we wanted to take.</p><p>The beta version of dynamic provisioning, new in Kubernetes 1.4, introduces a new API object, StorageClass. Multiple StorageClass objects can be defined each specifying a volume plugin (aka provisioner) to use to provision a volume and the set of parameters to pass to that provisioner when provisioning. This design allows cluster administrators to define and expose multiple flavors of storage (from the same or different storage systems) within a cluster, each with a custom set of parameters. This design also ensures that end users don’t have to worry about the complexity and nuances of how storage is provisioned, but still have the ability to select from multiple storage options.</p><p><a href=https://kubernetes.io/blog/2016/10/dynamic-provisioning-and-storage-in-kubernetes/ target=_blank rel="noopener noreffer">Dynamic Provisioning and Storage Classes in Kubernetes</a></p><p>说明：</p><ul><li>管理员只需要按存储类型，预置一些strorage class资源配置（可以理解为创建pv的模板），不需要为每个pvc声明手动创建pv</li><li>用户按所需strorage class，创建pvc，则系统（nfs provisoner）会根据pvc信息，自动创建pv并进行绑定</li><li>当用户pod删除时，根据需要删除pvc，则绑定的pv会自动关联删除</li></ul><h3 id=nfs-provisioner项目>nfs-provisioner项目</h3><p>新代码项目地址：https://github.com/kubernetes-sigs/nfs-ganesha-server-and-external-provisioner</p><p>老项目地址（不再使用）https://github.com/kubernetes-retired/external-storage/tree/master/nfs</p><p>可使用quay.io/kubernetes_incubator/nfs-provisioner镜像</p><h2 id=nfs-provisioner镜像>nfs-provisioner镜像</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>docker pull quay.io/kubernetes_incubator/nfs-provisioner
+docker save quay.io/kubernetes_incubator/nfs-provisioner:latest -o nfs-provisioner.img.tar
+</code></pre></td></tr></table></div></div><h2 id=arguments>Arguments</h2><ul><li>provisioner - Name of the provisioner. The provisioner will only provision volumes for claims that request a StorageClass with a provisioner field set equal to this name.</li><li>master - Master URL to build a client config from. Either this or kubeconfig needs to be set if the provisioner is being run out of cluster.
+kubeconfig - Absolute path to the kubeconfig file. Either this or master needs to be set if the provisioner is being run out of cluster.</li><li>run-server - If the provisioner is responsible for running the NFS server, i.e. starting and stopping NFS Ganesha. Default true.</li><li>use-ganesha - If the provisioner will create volumes using NFS Ganesha (D-Bus method calls) as opposed to using the kernel NFS server (&lsquo;exportfs&rsquo;). If run-server is true, this must be true. Default true.</li><li>grace-period - NFS Ganesha grace period to use in seconds, from 0-180. If the server is not expected to survive restarts, i.e. it is running as a pod & its export directory is not persisted, this can be set to 0. Can only be set if both run-server and use-ganesha are true. Default 90.</li><li>enable-xfs-quota - If the provisioner will set xfs quotas for each volume it provisions. Requires that the directory it creates volumes in ('/export') is xfs mounted with option prjquota/pquota, and that it has the privilege to run xfs_quota. Default false.</li><li>failed-retry-threshold - If the number of retries on provisioning failure need to be limited to a set number of attempts. Default 10</li><li>server-hostname - The hostname for the NFS server to export from. Only applicable when running out-of-cluster i.e. it can only be set if either master or kubeconfig are set. If unset, the first IP output by hostname -i is used.</li><li>device-based-fsids - If file system handles created by NFS Ganesha should be based on major/minor device IDs of the backing storage volume ('/export'). When running a cloud based kubernetes service (like Googles GKE service) set this to false as it might affect client connections on restarts of the nfs provisioner pod. Default true.</li></ul><h2 id=存储配额>存储配额</h2><p>通过添加project到目标目录的方式来设置配额大小</p><p>实际上还是通过xfsQuotaer 实现</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-golang data-lang=golang>
+<span class=c1>// createQuota creates a quota for the directory by adding a project to
+</span><span class=c1>// represent the directory and setting a quota on it
+</span><span class=c1></span><span class=kd>func</span> <span class=p>(</span><span class=nx>p</span> <span class=o>*</span><span class=nx>nfsProvisioner</span><span class=p>)</span> <span class=nf>createQuota</span><span class=p>(</span><span class=nx>directory</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>capacity</span> <span class=nx>resource</span><span class=p>.</span><span class=nx>Quantity</span><span class=p>)</span> <span class=p>(</span><span class=kt>string</span><span class=p>,</span> <span class=kt>uint16</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+    <span class=nx>path</span> <span class=o>:=</span> <span class=nx>path</span><span class=p>.</span><span class=nf>Join</span><span class=p>(</span><span class=nx>p</span><span class=p>.</span><span class=nx>exportDir</span><span class=p>,</span> <span class=nx>directory</span><span class=p>)</span>
+
+    <span class=nx>limit</span> <span class=o>:=</span> <span class=nx>strconv</span><span class=p>.</span><span class=nf>FormatInt</span><span class=p>(</span><span class=nx>capacity</span><span class=p>.</span><span class=nf>Value</span><span class=p>(),</span> <span class=mi>10</span><span class=p>)</span>
+
+    <span class=nx>block</span><span class=p>,</span> <span class=nx>projectID</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>p</span><span class=p>.</span><span class=nx>quotaer</span><span class=p>.</span><span class=nf>AddProject</span><span class=p>(</span><span class=nx>path</span><span class=p>,</span> <span class=nx>limit</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=s>&#34;&#34;</span><span class=p>,</span> <span class=mi>0</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;error adding project for path %s: %v&#34;</span><span class=p>,</span> <span class=nx>path</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=nx>err</span> <span class=p>=</span> <span class=nx>p</span><span class=p>.</span><span class=nx>quotaer</span><span class=p>.</span><span class=nf>SetQuota</span><span class=p>(</span><span class=nx>projectID</span><span class=p>,</span> <span class=nx>path</span><span class=p>,</span> <span class=nx>limit</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=nx>p</span><span class=p>.</span><span class=nx>quotaer</span><span class=p>.</span><span class=nf>RemoveProject</span><span class=p>(</span><span class=nx>block</span><span class=p>,</span> <span class=nx>projectID</span><span class=p>)</span>
+        <span class=k>return</span> <span class=s>&#34;&#34;</span><span class=p>,</span> <span class=mi>0</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;error setting quota for path %s: %v&#34;</span><span class=p>,</span> <span class=nx>path</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=k>return</span> <span class=nx>block</span><span class=p>,</span> <span class=nx>projectID</span><span class=p>,</span> <span class=kc>nil</span>
+<span class=p>}</span>
+
+
+</code></pre></td></tr></table></div></div><p>XfsQuotaer 需要系统配置 xfs文件系统挂载参数 prjquota 或则 prjquota 参数</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span><span class=lnt>73
+</span><span class=lnt>74
+</span><span class=lnt>75
+</span><span class=lnt>76
+</span><span class=lnt>77
+</span><span class=lnt>78
+</span><span class=lnt>79
+</span><span class=lnt>80
+</span><span class=lnt>81
+</span><span class=lnt>82
+</span><span class=lnt>83
+</span><span class=lnt>84
+</span><span class=lnt>85
+</span><span class=lnt>86
+</span><span class=lnt>87
+</span><span class=lnt>88
+</span><span class=lnt>89
+</span><span class=lnt>90
+</span><span class=lnt>91
+</span><span class=lnt>92
+</span><span class=lnt>93
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-golang data-lang=golang>
+<span class=kd>type</span> <span class=nx>xfsQuotaer</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=nx>xfsPath</span> <span class=kt>string</span>
+
+    <span class=c1>// The file where we store mappings between project ids and directories, and
+</span><span class=c1></span>    <span class=c1>// each project&#39;s quota limit information, for backup.
+</span><span class=c1></span>    <span class=c1>// Similar to http://man7.org/linux/man-pages/man5/projects.5.html
+</span><span class=c1></span>    <span class=nx>projectsFile</span> <span class=kt>string</span>
+
+    <span class=nx>projectIDs</span> <span class=kd>map</span><span class=p>[</span><span class=kt>uint16</span><span class=p>]</span><span class=kt>bool</span>
+
+    <span class=nx>mapMutex</span>  <span class=o>*</span><span class=nx>sync</span><span class=p>.</span><span class=nx>Mutex</span>
+    <span class=nx>fileMutex</span> <span class=o>*</span><span class=nx>sync</span><span class=p>.</span><span class=nx>Mutex</span>
+<span class=p>}</span>
+
+
+<span class=c1>// NewNFSProvisioner creates a Provisioner that provisions NFS PVs backed by
+</span><span class=c1>// the given directory.
+</span><span class=c1></span><span class=kd>func</span> <span class=nf>NewNFSProvisioner</span><span class=p>(</span><span class=nx>exportDir</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>client</span> <span class=nx>kubernetes</span><span class=p>.</span><span class=nx>Interface</span><span class=p>,</span> <span class=nx>outOfCluster</span> <span class=kt>bool</span><span class=p>,</span> <span class=nx>useGanesha</span> <span class=kt>bool</span><span class=p>,</span> <span class=nx>ganeshaConfig</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>enableXfsQuota</span> <span class=kt>bool</span><span class=p>,</span> <span class=nx>serverHostname</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>maxExports</span> <span class=kt>int</span><span class=p>,</span> <span class=nx>exportSubnet</span> <span class=kt>string</span><span class=p>)</span> <span class=nx>controller</span><span class=p>.</span><span class=nx>Provisioner</span> <span class=p>{</span>
+
+    <span class=kd>var</span> <span class=nx>quotaer</span> <span class=nx>quotaer</span>
+    <span class=kd>var</span> <span class=nx>err</span> <span class=kt>error</span>
+    <span class=c1>// 当XfsQuota功能开启时，才能进行配额
+</span><span class=c1></span>    <span class=k>if</span> <span class=nx>enableXfsQuota</span> <span class=p>{</span>
+        <span class=nx>quotaer</span><span class=p>,</span> <span class=nx>err</span> <span class=p>=</span> <span class=nf>newXfsQuotaer</span><span class=p>(</span><span class=nx>exportDir</span><span class=p>)</span>
+        <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+            <span class=nx>glog</span><span class=p>.</span><span class=nf>Fatalf</span><span class=p>(</span><span class=s>&#34;Error creating xfs quotaer! %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+        <span class=p>}</span>
+    <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+        <span class=nx>quotaer</span> <span class=p>=</span> <span class=nf>newDummyQuotaer</span><span class=p>()</span>
+    <span class=p>}</span>
+
+<span class=p>}</span>
+
+
+<span class=c1>// 构造XfsQuotaer
+</span><span class=c1></span><span class=nx>unc</span> <span class=nf>newXfsQuotaer</span><span class=p>(</span><span class=nx>xfsPath</span> <span class=kt>string</span><span class=p>)</span> <span class=p>(</span><span class=o>*</span><span class=nx>xfsQuotaer</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+    <span class=k>if</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>os</span><span class=p>.</span><span class=nf>Stat</span><span class=p>(</span><span class=nx>xfsPath</span><span class=p>);</span> <span class=nx>os</span><span class=p>.</span><span class=nf>IsNotExist</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;xfs path %s does not exist&#34;</span><span class=p>,</span> <span class=nx>xfsPath</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=nx>isXfs</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nf>isXfs</span><span class=p>(</span><span class=nx>xfsPath</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;error checking if xfs path %s is an XFS filesystem: %v&#34;</span><span class=p>,</span> <span class=nx>xfsPath</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+    <span class=p>}</span>
+    <span class=k>if</span> <span class=p>!</span><span class=nx>isXfs</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;xfs path %s is not an XFS filesystem&#34;</span><span class=p>,</span> <span class=nx>xfsPath</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=nx>entry</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nf>getMountEntry</span><span class=p>(</span><span class=nx>path</span><span class=p>.</span><span class=nf>Clean</span><span class=p>(</span><span class=nx>xfsPath</span><span class=p>),</span> <span class=s>&#34;xfs&#34;</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>err</span>
+    <span class=p>}</span>
+
+    <span class=c1>// XfsQuotaer 需要系统配置 xfs文件系统挂载参数 prjquota 或则 prjquota 参数
+</span><span class=c1></span>    <span class=k>if</span> <span class=p>!</span><span class=nx>strings</span><span class=p>.</span><span class=nf>Contains</span><span class=p>(</span><span class=nx>entry</span><span class=p>.</span><span class=nx>VfsOpts</span><span class=p>,</span> <span class=s>&#34;pquota&#34;</span><span class=p>)</span> <span class=o>&amp;&amp;</span> <span class=p>!</span><span class=nx>strings</span><span class=p>.</span><span class=nf>Contains</span><span class=p>(</span><span class=nx>entry</span><span class=p>.</span><span class=nx>VfsOpts</span><span class=p>,</span> <span class=s>&#34;prjquota&#34;</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;xfs path %s was not mounted with pquota nor prjquota&#34;</span><span class=p>,</span> <span class=nx>xfsPath</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=nx>_</span><span class=p>,</span> <span class=nx>err</span> <span class=p>=</span> <span class=nx>exec</span><span class=p>.</span><span class=nf>LookPath</span><span class=p>(</span><span class=s>&#34;xfs_quota&#34;</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>err</span>
+    <span class=p>}</span>
+
+    <span class=nx>projectsFile</span> <span class=o>:=</span> <span class=nx>path</span><span class=p>.</span><span class=nf>Join</span><span class=p>(</span><span class=nx>xfsPath</span><span class=p>,</span> <span class=s>&#34;projects&#34;</span><span class=p>)</span>
+    <span class=nx>projectIDs</span> <span class=o>:=</span> <span class=kd>map</span><span class=p>[</span><span class=kt>uint16</span><span class=p>]</span><span class=kt>bool</span><span class=p>{}</span>
+    <span class=nx>_</span><span class=p>,</span> <span class=nx>err</span> <span class=p>=</span> <span class=nx>os</span><span class=p>.</span><span class=nf>Stat</span><span class=p>(</span><span class=nx>projectsFile</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>os</span><span class=p>.</span><span class=nf>IsNotExist</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span> <span class=p>{</span>
+        <span class=nx>file</span><span class=p>,</span> <span class=nx>cerr</span> <span class=o>:=</span> <span class=nx>os</span><span class=p>.</span><span class=nf>Create</span><span class=p>(</span><span class=nx>projectsFile</span><span class=p>)</span>
+        <span class=k>if</span> <span class=nx>cerr</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+            <span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;error creating xfs projects file %s: %v&#34;</span><span class=p>,</span> <span class=nx>projectsFile</span><span class=p>,</span> <span class=nx>cerr</span><span class=p>)</span>
+        <span class=p>}</span>
+        <span class=nx>file</span><span class=p>.</span><span class=nf>Close</span><span class=p>()</span>
+    <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+        <span class=nx>re</span> <span class=o>:=</span> <span class=nx>regexp</span><span class=p>.</span><span class=nf>MustCompile</span><span class=p>(</span><span class=s>&#34;(?m:^([0-9]+):/.+$)&#34;</span><span class=p>)</span>
+        <span class=nx>projectIDs</span><span class=p>,</span> <span class=nx>err</span> <span class=p>=</span> <span class=nf>getExistingIDs</span><span class=p>(</span><span class=nx>projectsFile</span><span class=p>,</span> <span class=nx>re</span><span class=p>)</span>
+        <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+            <span class=nx>glog</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;error while populating projectIDs map, there may be errors setting quotas later if projectIDs are reused: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+
+    <span class=nx>xfsQuotaer</span> <span class=o>:=</span> <span class=o>&amp;</span><span class=nx>xfsQuotaer</span><span class=p>{</span>
+        <span class=nx>xfsPath</span><span class=p>:</span>      <span class=nx>xfsPath</span><span class=p>,</span>
+        <span class=nx>projectsFile</span><span class=p>:</span> <span class=nx>projectsFile</span><span class=p>,</span>
+        <span class=nx>projectIDs</span><span class=p>:</span>   <span class=nx>projectIDs</span><span class=p>,</span>
+        <span class=nx>mapMutex</span><span class=p>:</span>     <span class=o>&amp;</span><span class=nx>sync</span><span class=p>.</span><span class=nx>Mutex</span><span class=p>{},</span>
+        <span class=nx>fileMutex</span><span class=p>:</span>    <span class=o>&amp;</span><span class=nx>sync</span><span class=p>.</span><span class=nx>Mutex</span><span class=p>{},</span>
+    <span class=p>}</span>
+
+
+    <span class=k>return</span> <span class=nx>xfsQuotaer</span><span class=p>,</span> <span class=kc>nil</span>
+<span class=p>}</span>
+
+</code></pre></td></tr></table></div></div><h2 id=nfs-provisioner-deploy说明>nfs-provisioner deploy说明</h2><p><a href=https://github.com/kubernetes-sigs/nfs-ganesha-server-and-external-provisioner/blob/master/docs/deployment.md target=_blank rel="noopener noreffer">deployment说明</a></p><h2 id=部署>部署</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>kubectl create -f deploy/kubernetes_incubator_nfs_provisioner/rbac.yaml
+
+kubectl create -f deploy/kubernetes_incubator_nfs_provisioner/deployment.yaml
+
+kubectl create -f deploy/kubernetes_incubator_nfs_provisioner/class.yaml
+
+kubectl create -f deploy/kubernetes_incubator_nfs_provisioner/claim.yaml
+
+kubectl get pv
+kubectl get pvc
+</code></pre></td></tr></table></div></div><p>部署信息</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1># kubectl create -f deploy/kubernetes_incubator_nfs_provisioner/deployment.yaml</span>
+serviceaccount/nfs-provisioner created
+service/nfs-provisioner created
+deployment.apps/nfs-provisioner created
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1># ls</span>
+custom-nfs-busybox-rc.yaml  custom-nfs-pv.yaml         nfs-busybox-rc.yaml  nfs-pvc.yaml  nfs-server-rc.yaml       nfs-web-service.yaml  <span class=nb>test</span>
+custom-nfs-centos-rc.yaml   custom-nfs-server-rc.yaml  nfs-data             nfs-pv.png    nfs-server-service.yaml  provisioner
+custom-nfs-pvc.yaml         deploy                     nfsmount.conf        nfs-pv.yaml   nfs-web-rc.yaml          README.md
+
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1># kubectl create -f deploy/kubernetes_incubator_nfs_provisioner/class.yaml</span>
+storageclass.storage.k8s.io/example-nfs created
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1># kubectl get sc</span>
+NAME          PROVISIONER       RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
+example-nfs   example.com/nfs   Delete          Immediate           <span class=nb>false</span>                  43s
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1># kubectl describe sc</span>
+Name:                  example-nfs
+IsDefaultClass:        No
+Annotations:           &lt;none&gt;
+Provisioner:           example.com/nfs
+Parameters:            &lt;none&gt;
+AllowVolumeExpansion:  &lt;unset&gt;
+MountOptions:
+  <span class=nv>vers</span><span class=o>=</span>4.1
+ReclaimPolicy:      Delete
+VolumeBindingMode:  Immediate
+Events:             &lt;none&gt;
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1># kubectl get pv</span>
+No resources found
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1># kubectl get pvc</span>
+No resources found in default namespace.
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1># kubectl create -f deploy/kubernetes_incubator_nfs_provisioner/claim.yaml</span>
+persistentvolumeclaim/nfs created
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1># kubectl get pvc</span>
+NAME   STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+nfs    Bound    pvc-26703096-84df-4c18-88f5-16d0b09be156   1Mi        RWX            example-nfs    3s
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1># kubectl get pv</span>
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM         STORAGECLASS   REASON   AGE
+pvc-26703096-84df-4c18-88f5-16d0b09be156   1Mi        RWX            Delete           Bound    default/nfs   example-nfs             5s
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1># kubectl get pvc</span>
+NAME   STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+nfs    Bound    pvc-26703096-84df-4c18-88f5-16d0b09be156   1Mi        RWX            example-nfs    20s
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1># kubectl describe pvc</span>
+Name:          nfs
+Namespace:     default
+StorageClass:  example-nfs
+Status:        Bound
+Volume:        pvc-26703096-84df-4c18-88f5-16d0b09be156
+Labels:        &lt;none&gt;
+Annotations:   pv.kubernetes.io/bind-completed: yes
+               pv.kubernetes.io/bound-by-controller: yes
+               volume.beta.kubernetes.io/storage-provisioner: example.com/nfs
+Finalizers:    <span class=o>[</span>kubernetes.io/pvc-protection<span class=o>]</span>
+Capacity:      1Mi
+Access Modes:  RWX
+VolumeMode:    Filesystem
+Used By:       &lt;none&gt;
+Events:
+  Type    Reason                 Age                From                                                                                   Message
+  ----    ------                 ----               ----                                                                                   -------
+  Normal  ExternalProvisioning   27s <span class=o>(</span>x2 over 27s<span class=o>)</span>  persistentvolume-controller                                                            waiting <span class=k>for</span> a volume to be created, either by external provisioner <span class=s2>&#34;example.com/nfs&#34;</span> or manually created by system administrator
+  Normal  Provisioning           27s                example.com/nfs_nfs-provisioner-66ccf9bc7b-jpm2w_9633218c-812f-4e94-b77e-9f922ec2edb6  External provisioner is provisioning volume <span class=k>for</span> claim <span class=s2>&#34;default/nfs&#34;</span>
+  Normal  ProvisioningSucceeded  27s                example.com/nfs_nfs-provisioner-66ccf9bc7b-jpm2w_9633218c-812f-4e94-b77e-9f922ec2edb6  Successfully provisioned volume pvc-26703096-84df-4c18-88f5-16d0b09be156
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1># kubectl describe pv</span>
+Name:            pvc-26703096-84df-4c18-88f5-16d0b09be156
+Labels:          &lt;none&gt;
+Annotations:     EXPORT_block:
+
+                   EXPORT
+                   <span class=o>{</span>
+                     <span class=nv>Export_Id</span> <span class=o>=</span> 1<span class=p>;</span>
+                     <span class=nv>Path</span> <span class=o>=</span> /export/pvc-26703096-84df-4c18-88f5-16d0b09be156<span class=p>;</span>
+                     <span class=nv>Pseudo</span> <span class=o>=</span> /export/pvc-26703096-84df-4c18-88f5-16d0b09be156<span class=p>;</span>
+                     <span class=nv>Access_Type</span> <span class=o>=</span> RW<span class=p>;</span>
+                     <span class=nv>Squash</span> <span class=o>=</span> no_root_squash<span class=p>;</span>
+                     <span class=nv>SecType</span> <span class=o>=</span> sys<span class=p>;</span>
+                     <span class=nv>Filesystem_id</span> <span class=o>=</span> 1.1<span class=p>;</span>
+                     FSAL <span class=o>{</span>
+                       <span class=nv>Name</span> <span class=o>=</span> VFS<span class=p>;</span>
+                     <span class=o>}</span>
+                   <span class=o>}</span>
+                 Export_Id: <span class=m>1</span>
+                 Project_Id: <span class=m>0</span>
+                 Project_block:
+                 Provisioner_Id: 1dbb40c3-3fd8-412d-94d8-a7b832bd98d3
+                 kubernetes.io/createdby: nfs-dynamic-provisioner
+                 pv.kubernetes.io/provisioned-by: example.com/nfs
+Finalizers:      <span class=o>[</span>kubernetes.io/pv-protection<span class=o>]</span>
+StorageClass:    example-nfs
+Status:          Bound
+Claim:           default/nfs
+Reclaim Policy:  Delete
+Access Modes:    RWX
+VolumeMode:      Filesystem
+Capacity:        1Mi
+Node Affinity:   &lt;none&gt;
+Message:
+Source:
+    Type:      NFS <span class=o>(</span>an NFS mount that lasts the lifetime of a pod<span class=o>)</span>
+    Server:    10.233.14.76
+    Path:      /export/pvc-26703096-84df-4c18-88f5-16d0b09be156
+    ReadOnly:  <span class=nb>false</span>
+Events:        &lt;none&gt;
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 ~<span class=o>]</span><span class=c1># kubectl get po -A</span>
+NAMESPACE     NAME                                       READY   STATUS    RESTARTS   AGE
+default       nfs-provisioner-66ccf9bc7b-jpm2w           1/1     Running   <span class=m>0</span>          2m49s
+kube-system   calico-kube-controllers-65b86747bd-c4qsp   1/1     Running   <span class=m>16</span>         47d
+kube-system   calico-node-lglh4                          1/1     Running   <span class=m>18</span>         47d
+kube-system   coredns-8677555d68-jwggm                   1/1     Running   <span class=m>4</span>          6d
+kube-system   kube-apiserver-node131                     1/1     Running   <span class=m>16</span>         47d
+kube-system   kube-controller-manager-node131            1/1     Running   <span class=m>17</span>         47d
+kube-system   kube-proxy-mktp9                           1/1     Running   <span class=m>16</span>         47d
+kube-system   kube-scheduler-node131                     1/1     Running   <span class=m>17</span>         47d
+kube-system   nodelocaldns-lfjzs                         1/1     Running   <span class=m>16</span>         47d
+<span class=o>[</span>root@node131 ~<span class=o>]</span><span class=c1>#</span>
+
+
+
+</code></pre></td></tr></table></div></div><p>查看下nfs挂载目录信息</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+<span class=o>[</span>root@node131 k8s_pv_pvc<span class=o>]</span><span class=c1># ll /srv/</span>
+总用量 <span class=m>16</span>
+-rw-r--r--. <span class=m>1</span> root root <span class=m>4960</span> 2月   <span class=m>8</span> 10:48 ganesha.log
+-rw-------. <span class=m>1</span> root root   <span class=m>36</span> 2月   <span class=m>8</span> 10:46 nfs-provisioner.identity
+drwxrwsrwx. <span class=m>2</span> root root    <span class=m>6</span> 2月   <span class=m>8</span> 10:51 pvc-26703096-84df-4c18-88f5-16d0b09be156
+drwxr-xr-x. <span class=m>3</span> root root   <span class=m>19</span> 2月   <span class=m>8</span> 10:46 v4old
+drwxr-xr-x. <span class=m>3</span> root root   <span class=m>19</span> 2月   <span class=m>8</span> 10:46 v4recov
+-rw-------. <span class=m>1</span> root root  <span class=m>921</span> 2月   <span class=m>8</span> 10:51 vfs.conf
+
+
+</code></pre></td></tr></table></div></div><h2 id=卸载删除>卸载删除</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+kubectl delete -f deploy/kubernetes_incubator_nfs_provisioner/claim.yaml
+
+kubectl delete -f deploy/kubernetes_incubator_nfs_provisioner/class.yaml
+
+kubectl delete -f deploy/kubernetes_incubator_nfs_provisioner/deployment.yaml
+
+kubectl delete -f deploy/kubernetes_incubator_nfs_provisioner/rbac.yaml
+
+
+</code></pre></td></tr></table></div></div><h2 id=测试验证>测试验证</h2><h3 id=存储写操作>存储写操作</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>write-pod</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>write-pod</span><span class=w>
+</span><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>busybox</span><span class=w>
+</span><span class=w>    </span><span class=nt>imagePullPolicy</span><span class=p>:</span><span class=w> </span><span class=l>IfNotPresent</span><span class=w>
+</span><span class=w>    </span><span class=nt>command</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=s2>&#34;/bin/sh&#34;</span><span class=w>
+</span><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=s2>&#34;-c&#34;</span><span class=w>
+</span><span class=w>      </span>- <span class=s2>&#34;touch /mnt/SUCCESS &amp;&amp; exit 0 || exit 1&#34;</span><span class=w>
+</span><span class=w>    </span><span class=nt>volumeMounts</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nfs-pvc</span><span class=w>
+</span><span class=w>        </span><span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;/mnt&#34;</span><span class=w>
+</span><span class=w>  </span><span class=nt>restartPolicy</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;Never&#34;</span><span class=w>
+</span><span class=w>  </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nfs-pvc</span><span class=w>
+</span><span class=w>      </span><span class=nt>persistentVolumeClaim</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>claimName</span><span class=p>:</span><span class=w> </span><span class=l>nfs</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><p>pod使用nfs pvc写操作，即往挂载路径/srv/pvc-idxxxxx/ 写</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>kubectl create -f deploy/kubernetes_incubator_nfs_provisioner/write-pod.yaml
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>[root@node131 srv]# cd pvc-26703096-84df-4c18-88f5-16d0b09be156/
+[root@node131 pvc-26703096-84df-4c18-88f5-16d0b09be156]# ll
+总用量 0
+-rw-r--r--. 1 root root 0 2月   8 11:16 SUCCESS
+
+</code></pre></td></tr></table></div></div><h3 id=存储读操作>存储读操作</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>read-pod</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>read-pod</span><span class=w>
+</span><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>busybox</span><span class=w>
+</span><span class=w>    </span><span class=nt>imagePullPolicy</span><span class=p>:</span><span class=w> </span><span class=l>IfNotPresent</span><span class=w>
+</span><span class=w>    </span><span class=nt>command</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=s2>&#34;/bin/sh&#34;</span><span class=w>
+</span><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=s2>&#34;-c&#34;</span><span class=w>
+</span><span class=w>      </span>- <span class=s2>&#34;test -f /mnt/SUCCESS &amp;&amp; exit 0 || exit 1&#34;</span><span class=w>
+</span><span class=w>    </span><span class=nt>volumeMounts</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nfs-pvc</span><span class=w>
+</span><span class=w>        </span><span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;/mnt&#34;</span><span class=w>
+</span><span class=w>  </span><span class=nt>restartPolicy</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;Never&#34;</span><span class=w>
+</span><span class=w>  </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nfs-pvc</span><span class=w>
+</span><span class=w>      </span><span class=nt>persistentVolumeClaim</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>claimName</span><span class=p>:</span><span class=w> </span><span class=l>nfs</span><span class=w>
+</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><p>pod使用nfs pvc读操作，即往挂载路径/srv/pvc-idxxxxx/ 读</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>kubectl create -f deploy/kubernetes_incubator_nfs_provisioner/read-pod.yaml
+</code></pre></td></tr></table></div></div><h4 id=pod运行情况>pod运行情况</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@node131 pvc-26703096-84df-4c18-88f5-16d0b09be156<span class=o>]</span><span class=c1># kubectl get po -A</span>
+NAMESPACE     NAME                                       READY   STATUS      RESTARTS   AGE
+default       nfs-provisioner-66ccf9bc7b-jpm2w           1/1     Running     <span class=m>0</span>          38m
+default       read-pod                                   0/1     Completed   <span class=m>0</span>          7s
+default       write-pod                                  0/1     Completed   <span class=m>0</span>          8m43s
+kube-system   calico-kube-controllers-65b86747bd-c4qsp   1/1     Running     <span class=m>16</span>         47d
+kube-system   calico-node-lglh4                          1/1     Running     <span class=m>18</span>         47d
+kube-system   coredns-8677555d68-jwggm                   1/1     Running     <span class=m>4</span>          6d1h
+kube-system   kube-apiserver-node131                     1/1     Running     <span class=m>16</span>         47d
+kube-system   kube-controller-manager-node131            1/1     Running     <span class=m>17</span>         47d
+kube-system   kube-proxy-mktp9                           1/1     Running     <span class=m>16</span>         47d
+kube-system   kube-scheduler-node131                     1/1     Running     <span class=m>17</span>         47d
+kube-system   nodelocaldns-lfjzs                         1/1     Running     <span class=m>16</span>         47d
+
+</code></pre></td></tr></table></div></div><h3 id=业务pod使用pvc时删除pvc>业务pod使用pvc时，删除pvc</h3><p>业务pod状态为complete状态，进行delete pvc操作</p><p>此时命令会阻塞，pvc状态为保护过程中的Terminating</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1># kubectl delete -f deploy/kubernetes_incubator_nfs_provisioner/claim.yaml</span>
+persistentvolumeclaim <span class=s2>&#34;nfs&#34;</span> deleted
+^C
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1># kubectl get pvc</span>
+NAME   STATUS        VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+nfs    Terminating   pvc-26703096-84df-4c18-88f5-16d0b09be156   1Mi        RWX            example-nfs    39m
+
+
+</code></pre></td></tr></table></div></div><h4 id=无业务pod使用pvc时删除pvc>无业务pod使用pvc时，删除pvc</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>[root@node131 nfs]# kubectl delete po write-pod
+pod &#34;write-pod&#34; deleted
+[root@node131 nfs]#
+[root@node131 nfs]# kubectl get pvc
+NAME   STATUS        VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+nfs    Terminating   pvc-26703096-84df-4c18-88f5-16d0b09be156   1Mi        RWX            example-nfs    41m
+[root@node131 nfs]#
+[root@node131 nfs]#
+[root@node131 nfs]# kubectl delete po read-pod
+pod &#34;read-pod&#34; deleted
+[root@node131 nfs]#
+[root@node131 nfs]#
+[root@node131 nfs]# kubectl get pvc
+No resources found in default namespace.
+[root@node131 nfs]#
+
+</code></pre></td></tr></table></div></div><p>上面阻塞的delete pvc操作，会删除pvc，同时由于pv的delete回收策略，该pvc对应的存储挂载目录也会删除</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>[root@node131 nfs]# kubectl get pvc
+No resources found in default namespace.
+[root@node131 nfs]#
+[root@node131 nfs]#
+[root@node131 nfs]# kubectl get pv
+No resources found
+[root@node131 nfs]#
+[root@node131 srv]# ll
+总用量 16
+-rw-r--r--. 1 root root 5140 2月   8 11:32 ganesha.log
+-rw-------. 1 root root   36 2月   8 10:46 nfs-provisioner.identity
+drwxr-xr-x. 3 root root   19 2月   8 10:46 v4old
+drwxr-xr-x. 3 root root   19 2月   8 10:46 v4recov
+-rw-------. 1 root root  667 2月   8 11:32 vfs.conf
+[root@node131 srv]#
+
+</code></pre></td></tr></table></div></div><h3 id=配额测试>配额测试</h3><h4 id=部署pod>部署pod</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+kubectl create -f deploy/kubernetes_incubator_nfs_provisioner/test_pod/custom-nfs-busybox-rc.yaml
+
+kubectl create -f deploy/kubernetes_incubator_nfs_provisioner/test_pod/nfs-web-rc.yaml
+
+kubectl create -f deploy/kubernetes_incubator_nfs_provisioner/test_pod/nfs-web-service.yaml
+
+</code></pre></td></tr></table></div></div><p>挂载目录下的数据情况，新增了index.html</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>[root@node131 pvc-4f32a250-f6da-4534-80fd-196221b555d9]# ll -h
+总用量 4.0K
+-rw-r--r--. 1 root root 611 2月   8 14:15 index.html
+-rw-r--r--. 1 root root   0 2月   8 11:57 SUCCESS
+[root@node131 pvc-4f32a250-f6da-4534-80fd-196221b555d9]#
+[root@node131 pvc-4f32a250-f6da-4534-80fd-196221b555d9]#
+[root@node131 pvc-4f32a250-f6da-4534-80fd-196221b555d9]#
+[root@node131 pvc-4f32a250-f6da-4534-80fd-196221b555d9]# cat index.html
+Mon Feb  8 06:14:38 UTC 2021
+nfs-busybox-54846
+Mon Feb  8 06:14:39 UTC 2021
+nfs-busybox-8fqcr
+Mon Feb  8 06:14:44 UTC 2021
+
+
+</code></pre></td></tr></table></div></div><p>测试pvc的容量为1M，在挂载目录/srv/pvc-4f32a250-f6da-4534-80fd-196221b555d9下，写入个2M大小的文件。查看测试pod是否还能继续写入数据，观察可知，在nfs provisoner的默认参数下，测试pod还能继续往挂载目录中写入数据。index.html大小由11k新增到了14k并继续增加</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@node131 pvc-4f32a250-f6da-4534-80fd-196221b555d9<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 pvc-4f32a250-f6da-4534-80fd-196221b555d9<span class=o>]</span><span class=c1># ll -h</span>
+总用量 2.1M
+-rw-r--r--. <span class=m>1</span> root root  11K 2月   <span class=m>8</span> 14:28 index.html
+-rw-r--r--. <span class=m>1</span> root root    <span class=m>0</span> 2月   <span class=m>8</span> 11:57 SUCCESS
+-rw-r--r--. <span class=m>1</span> root root 2.0M 2月   <span class=m>8</span> 14:25 tmp.2M
+<span class=o>[</span>root@node131 pvc-4f32a250-f6da-4534-80fd-196221b555d9<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 pvc-4f32a250-f6da-4534-80fd-196221b555d9<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 pvc-4f32a250-f6da-4534-80fd-196221b555d9<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 pvc-4f32a250-f6da-4534-80fd-196221b555d9<span class=o>]</span><span class=c1># pwd</span>
+/srv/pvc-4f32a250-f6da-4534-80fd-196221b555d9
+<span class=o>[</span>root@node131 pvc-4f32a250-f6da-4534-80fd-196221b555d9<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 pvc-4f32a250-f6da-4534-80fd-196221b555d9<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node131 pvc-4f32a250-f6da-4534-80fd-196221b555d9<span class=o>]</span><span class=c1># ll -h</span>
+总用量 2.1M
+-rw-r--r--. <span class=m>1</span> root root  14K 2月   <span class=m>8</span> 14:31 index.html
+-rw-r--r--. <span class=m>1</span> root root    <span class=m>0</span> 2月   <span class=m>8</span> 11:57 SUCCESS
+-rw-r--r--. <span class=m>1</span> root root 2.0M 2月   <span class=m>8</span> 14:25 tmp.2M
+<span class=o>[</span>root@node131 pvc-4f32a250-f6da-4534-80fd-196221b555d9<span class=o>]</span><span class=c1>#</span>
+
+
+</code></pre></td></tr></table></div></div><p>目录挂载情况，有2个写pod和2个读pod共4个业务pod在运行</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+<span class=o>[</span>root@node131 2129b202-2d91-400f-b04e-5e57f9c105b6<span class=o>]</span><span class=c1># mount |grep pvc</span>
+10.233.14.76:/export/pvc-4f32a250-f6da-4534-80fd-196221b555d9 on /var/lib/kubelet/pods/69448210-b1c1-4444-8c24-29024770acff/volumes/kubernetes.io~nfs/pvc-4f32a250-f6da-4534-80fd-196221b555d9 <span class=nb>type</span> nfs4 <span class=o>(</span>rw,relatime,vers<span class=o>=</span>4.1,rsize<span class=o>=</span>1048576,wsize<span class=o>=</span>1048576,namlen<span class=o>=</span>255,hard,proto<span class=o>=</span>tcp,timeo<span class=o>=</span>600,retrans<span class=o>=</span>2,sec<span class=o>=</span>sys,clientaddr<span class=o>=</span>10.233.14.76,local_lock<span class=o>=</span>none,addr<span class=o>=</span>10.233.14.76<span class=o>)</span>
+10.233.14.76:/export/pvc-4f32a250-f6da-4534-80fd-196221b555d9 on /var/lib/kubelet/pods/337827e0-4924-4afb-b41e-a19c522d59d6/volumes/kubernetes.io~nfs/pvc-4f32a250-f6da-4534-80fd-196221b555d9 <span class=nb>type</span> nfs4 <span class=o>(</span>rw,relatime,vers<span class=o>=</span>4.1,rsize<span class=o>=</span>1048576,wsize<span class=o>=</span>1048576,namlen<span class=o>=</span>255,hard,proto<span class=o>=</span>tcp,timeo<span class=o>=</span>600,retrans<span class=o>=</span>2,sec<span class=o>=</span>sys,clientaddr<span class=o>=</span>10.233.14.76,local_lock<span class=o>=</span>none,addr<span class=o>=</span>10.233.14.76<span class=o>)</span>
+10.233.14.76:/export/pvc-4f32a250-f6da-4534-80fd-196221b555d9 on /var/lib/kubelet/pods/888dd122-e529-4f36-bca4-828667c997dd/volumes/kubernetes.io~nfs/pvc-4f32a250-f6da-4534-80fd-196221b555d9 <span class=nb>type</span> nfs4 <span class=o>(</span>rw,relatime,vers<span class=o>=</span>4.1,rsize<span class=o>=</span>1048576,wsize<span class=o>=</span>1048576,namlen<span class=o>=</span>255,hard,proto<span class=o>=</span>tcp,timeo<span class=o>=</span>600,retrans<span class=o>=</span>2,sec<span class=o>=</span>sys,clientaddr<span class=o>=</span>10.233.14.76,local_lock<span class=o>=</span>none,addr<span class=o>=</span>10.233.14.76<span class=o>)</span>
+10.233.14.76:/export/pvc-4f32a250-f6da-4534-80fd-196221b555d9 on /var/lib/kubelet/pods/0298070d-66e2-43e1-947c-d4ae0f5fab4b/volumes/kubernetes.io~nfs/pvc-4f32a250-f6da-4534-80fd-196221b555d9 <span class=nb>type</span> nfs4 <span class=o>(</span>rw,relatime,vers<span class=o>=</span>4.1,rsize<span class=o>=</span>1048576,wsize<span class=o>=</span>1048576,namlen<span class=o>=</span>255,hard,proto<span class=o>=</span>tcp,timeo<span class=o>=</span>600,retrans<span class=o>=</span>2,sec<span class=o>=</span>sys,clientaddr<span class=o>=</span>10.233.14.76,local_lock<span class=o>=</span>none,addr<span class=o>=</span>10.233.14.76<span class=o>)</span>
+<span class=o>[</span>root@node131 2129b202-2d91-400f-b04e-5e57f9c105b6<span class=o>]</span><span class=c1>#</span>
+
+
+
+</code></pre></td></tr></table></div></div><p>删除测试pod，保留pv和pvc，检查挂载目录仍然存在。此时挂载目录大小>2M</p><p>再重新部署测试pod，发现部署成功，说明pod使用pvc请求容量大小时并不检查挂载目录pvc要求数据大小。
+实际上挂载了整个容量大小，如下图。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+<span class=o>[</span>root@node131 srv<span class=o>]</span><span class=c1># df -hT |grep pvc</span>
+文件系统                                                      类型      容量  已用  可用 已用% 挂载点
+10.233.14.76:/export/pvc-4f32a250-f6da-4534-80fd-196221b555d9 nfs4       17G   11G  6.8G   61% /var/lib/kubelet/pods/06940ab3-4d60-4015-8c39-3bb15b331e7f/volumes/kubernetes.io~nfs/pvc-4f32a250-f6da-4534-80fd-196221b555d9
+
+</code></pre></td></tr></table></div></div><h4 id=考虑开启配额参数>考虑开启配额参数</h4><p>删除原有 nfs_provisioner，修改 nfs_provisioner参数后，部署</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>kubectl create -f deploy/kubernetes_incubator_nfs_provisioner/rbac.yaml
+
+kubectl create -f deploy/kubernetes_incubator_nfs_provisioner/xfs_deployment.yaml
+
+kubectl create -f deploy/kubernetes_incubator_nfs_provisioner/class.yaml
+
+kubectl create -f deploy/kubernetes_incubator_nfs_provisioner/claim.yaml
+
+sleep 10s
+kubectl get pv
+
+kubectl get pvc
+
+</code></pre></td></tr></table></div></div><p>nfs_provisioner启动失败，需要系统开启xfs配额功能</p><p>在本地虚拟机环境未操作生效成功。。。</p><h4 id=卸载删除-1>卸载删除</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+kubectl delete -f deploy/kubernetes_incubator_nfs_provisioner/claim.yaml
+
+kubectl delete -f deploy/kubernetes_incubator_nfs_provisioner/class.yaml
+
+kubectl delete -f deploy/kubernetes_incubator_nfs_provisioner/xfs_deployment.yaml
+
+kubectl delete -f deploy/kubernetes_incubator_nfs_provisioner/rbac.yaml
+
+
+
+
+</code></pre></td></tr></table></div></div><h4 id=删除pod>删除pod</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+kubectl delete -f deploy/kubernetes_incubator_nfs_provisioner/test_pod/nfs-web-service.yaml
+
+kubectl delete -f deploy/kubernetes_incubator_nfs_provisioner/test_pod/nfs-web-rc.yaml
+
+kubectl delete -f deploy/kubernetes_incubator_nfs_provisioner/test_pod/custom-nfs-busybox-rc.yaml
+
+</code></pre></td></tr></table></div></div><h2 id=nfs-client-provisioner>nfs-client-provisioner</h2><p>如果集群系统中已有存储系统服务，则可使用nfs-subdir-external-provisioner项目组件来提供动态pv支持</p><p>Kubernetes NFS-Client Provisioner
+NFS subdir external provisioner is an automatic provisioner that use your existing and already configured NFS server to support dynamic provisioning of Kubernetes Persistent Volumes via Persistent Volume Claims. Persistent volumes are provisioned as ${namespace}-${pvcName}-${pvName}.</p><p><a href=https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner target=_blank rel="noopener noreffer">nfs-subdir-external-provisioner</a></p><h2 id=参考>参考</h2><ul><li><a href=https://github.com/kubernetes/community/blob/master/contributors/design-proposals/storage/persistent-storage.md target=_blank rel="noopener noreffer">持久存储设计文档</a></li><li><a href=https://kubernetes.io/zh/docs/concepts/storage/storage-classes/ target=_blank rel="noopener noreffer">存储类StorageClass</a></li><li><a href=https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner target=_blank rel="noopener noreffer">nfs-subdir-external-provisioner</a></li></ul><h2 id=附录>附录</h2><h3 id=配置>配置</h3><h4 id=storageclass>StorageClass</h4><p>class.yaml</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>StorageClass</span><span class=w>
+</span><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>storage.k8s.io/v1</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>example-nfs</span><span class=w>
+</span><span class=w></span><span class=nt>provisioner</span><span class=p>:</span><span class=w> </span><span class=l>example.com/nfs</span><span class=w>
+</span><span class=w></span><span class=nt>mountOptions</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=l>vers=4.1</span><span class=w>
+</span></code></pre></td></tr></table></div></div><h4 id=persistentvolumeclaim>PersistentVolumeClaim</h4><p>claim.yaml</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>PersistentVolumeClaim</span><span class=w>
+</span><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nfs</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>storageClassName</span><span class=p>:</span><span class=w> </span><span class=l>example-nfs</span><span class=w>
+</span><span class=w>  </span><span class=nt>accessModes</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=l>ReadWriteMany</span><span class=w>
+</span><span class=w>  </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>storage</span><span class=p>:</span><span class=w> </span><span class=l>1Mi</span><span class=w>
+</span></code></pre></td></tr></table></div></div><h3 id=dd命令-构造指定大小文件>dd命令 构造指定大小文件</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># 从/dev/null每次读取1G数据，读5次，写入tmp.5G这个文件</span>
+<span class=c1># dd if=/dev/zero of=tmp.5G bs=1G count=5</span>
+
+dd <span class=k>if</span><span class=o>=</span>/dev/zero <span class=nv>of</span><span class=o>=</span>tmp.2M <span class=nv>bs</span><span class=o>=</span>1M <span class=nv>count</span><span class=o>=</span><span class=m>2</span>
+</code></pre></td></tr></table></div></div><ul><li>if=FILE : 指定输入文件，若不指定则从标注输入读取。这里指定为/dev/zero是Linux的一个伪文件，它可以产生连续不断的null流（二进制的0）</li><li>of=FILE : 指定输出文件，若不指定则输出到标准输出</li><li>bs=BYTES : 每次读写的字节数，可以使用单位K、M、G等等。另外输入输出可以分别用ibs、obs指定，若使用bs，则表示是ibs和obs都是用该参数</li><li>count=BLOCKS : 读取的block数，block的大小由ibs指定（只针对输入参数）</li></ul><h3 id=开启xfs的quota特性>开启xfs的quota特性</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1>#什么结果都没有，这个表示没有设置配额</span>
+xfs_quota -x -c <span class=s1>&#39;report&#39;</span>   /
+mount -o remount,rw,uquota,prjquota  /
+<span class=c1># 在开始划分分区的时候就要让分区的配额生效，添加一块硬盘作为docker的数据目录</span>
+
+<span class=c1>#fdisk -l | grep sdb</span>
+<span class=c1>#Disk /dev/sdb: 53.7 GB, 53687091200 bytes, 104857600 sector</span>
+
+</code></pre></td></tr></table></div></div><h4 id=编辑etcfstab>编辑/etc/fstab</h4><p>vi /etc/fstab</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@node131 nfs<span class=o>]</span><span class=c1># cat /etc/fstab</span>
+
+<span class=c1>#</span>
+<span class=c1># /etc/fstab</span>
+<span class=c1># Created by anaconda on Thu Dec 17 15:27:09 2020</span>
+<span class=c1>#</span>
+<span class=c1># Accessible filesystems, by reference, are maintained under &#39;/dev/disk&#39;</span>
+<span class=c1># See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info</span>
+<span class=c1>#</span>
+
+<span class=c1>#/dev/mapper/centos_master-root /                       xfs     defaults        0 0</span>
+/dev/mapper/centos_master-root /                       xfs     defaults,usrquota,grpquota        <span class=m>0</span> <span class=m>0</span>
+<span class=nv>UUID</span><span class=o>=</span>d13f3d45-3ac2-4cda-b1ce-715d3153a900 /boot                   xfs     defaults        <span class=m>0</span> <span class=m>0</span>
+
+</code></pre></td></tr></table></div></div><p>注，类型如下：</p><ul><li><p>根据用户(uquota/usrquota/quota)</p></li><li><p>根据组(gquota/grpquota)</p></li><li><p>根据目录(pquota/prjquota)(不能与grpquota同时设定)</p></li></ul><h4 id=卸载并重新挂载>卸载并重新挂载</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1>#umount  /home</span>
+<span class=c1>#mount  -a</span>
+
+<span class=c1>#由于挂载了 /目录，采用重启操作</span>
+
+rebot now
+</code></pre></td></tr></table></div></div><p>2.2.3 检查</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+<span class=c1># mount  |  grep  home</span>
+
+mount <span class=p>|</span> grep centos
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>[root@node131 ~]# mount | grep centos
+/dev/mapper/centos_master-root on / type xfs (rw,relatime,seclabel,attr2,inode64,noquota)
+[root@node131 ~]#
+
+</code></pre></td></tr></table></div></div><p>结果：在本地虚拟机环境未生效，操作未成功。。。</p><h3 id=错误>错误</h3><h4 id=新项目代码无法进行镜像制作>新项目代码无法进行镜像制作</h4><p>make container报错信息见下</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>[root@node1 nfs-ganesha-server-and-external-provisioner-master]# make container
+./release-tools/verify-go-version.sh &#34;go&#34;
+fatal: Not a git repository (or any parent up to mount point /home)
+Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
+mkdir -p bin
+echo &#39;&#39; | tr &#39;;&#39; &#39;\n&#39; | while read -r os arch suffix; do \
+        if ! (set -x; CGO_ENABLED=0 GOOS=&#34;$os&#34; GOARCH=&#34;$arch&#34; go build  -a -ldflags &#39; -X main.version=  -extldflags &#34;-static&#34;&#39; -o &#34;./bin/nfs-provisioner$suffix&#34; ./cmd/nfs-provisioner); then \
+                echo &#34;Building nfs-provisioner for GOOS=$os GOARCH=$arch failed, see error(s) above.&#34;; \
+                exit 1; \
+        fi; \
+done
++ CGO_ENABLED=0
++ GOOS=
++ GOARCH=
++ go build -a -ldflags &#39; -X main.version=  -extldflags &#34;-static&#34;&#39; -o ./bin/nfs-provisioner ./cmd/nfs-provisioner
+fatal: Not a git repository (or any parent up to mount point /home)
+Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
+docker build -t nfs-provisioner:latest -f Dockerfile --label revision= .
+Sending build context to Docker daemon  69.19MB
+Step 1/19 : FROM fedora:30 AS build
+30: Pulling from library/fedora
+401909e6e2aa: Pull complete
+Digest: sha256:3a0c8c86d8ac2d1bbcfd08d40d3b757337f7916fb14f40efcb1d1137a4edef45
+Status: Downloaded newer image for fedora:30
+ ---&gt; 177d5adf0c6c
+Step 2/19 : RUN dnf install -y tar gcc cmake-3.14.2-1.fc30 autoconf libtool bison flex make gcc-c++ krb5-devel dbus-devel jemalloc-devel libnfsidmap-devel libnsl2-devel userspace-rcu-devel patch libblkid-devel
+ ---&gt; Running in b6cb5632e5a4
+Fedora Modular 30 - x86_64                      0.0  B/s |   0  B     04:00
+Errors during downloading metadata for repository &#39;fedora-modular&#39;:
+  - Curl error (6): Couldn&#39;t resolve host name for https://mirrors.fedoraproject.org/metalink?repo=fedora-modular-30&amp;arch=x86_64 [Could not resolve host: mirrors.fedoraproject.org]
+Error: Failed to download metadata for repo &#39;fedora-modular&#39;: Cannot prepare internal mirrorlist: Curl error (6): Couldn&#39;t resolve host name for https://mirrors.fedoraproject.org/metalink?repo=fedora-modular-30&amp;arch=x86_64 [Could not resolve host: mirrors.fedoraproject.org]
+The command &#39;/bin/sh -c dnf install -y tar gcc cmake-3.14.2-1.fc30 autoconf libtool bison flex make gcc-c++ krb5-devel dbus-devel jemalloc-devel libnfsidmap-devel libnsl2-devel userspace-rcu-devel patch libblkid-devel&#39; returned a non-zero code: 1
+make: *** [container-nfs-provisioner] Error 1
+[root@node1 nfs-ganesha-server-and-external-provisioner-master]#
+
+</code></pre></td></tr></table></div></div><p>改用直接拉取镜像方式获得。</p><h4 id=开启配额参数-nfs-provisioner-启动报错>开启配额参数， nfs provisioner 启动报错</h4><p>报错信息</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>Error creating xfs quotaer! xfs path /export was not mounted with pquota nor prjquota
+</code></pre></td></tr></table></div></div><p>系统的挂载盘使用的是xfs文件系统的默认参数，没有开启配额功能</p><p>所以无法挂载成功</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>
+[root@node131 /]# mount | grep centos
+/dev/mapper/centos_master-root on / type xfs (rw,relatime,seclabel,attr2,inode64,noquota)
+
+
+[root@node131 /]# cat /etc/fstab
+
+#
+# /etc/fstab
+# Created by anaconda on Thu Dec 17 15:27:09 2020
+#
+# Accessible filesystems, by reference, are maintained under &#39;/dev/disk&#39;
+# See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info
+#
+/dev/mapper/centos_master-root /                       xfs     defaults        0 0
+UUID=d13f3d45-3ac2-4cda-b1ce-715d3153a900 /boot                   xfs     defaults        0 0
+
+
+</code></pre></td></tr></table></div></div><ul><li><p><a href=https://kim1024.github.io/2018/11/27/quota-with-xfs.html>https://kim1024.github.io/2018/11/27/quota-with-xfs.html</a></p></li><li><p><a href=https://blog.csdn.net/weixin_36458030/article/details/112232427>https://blog.csdn.net/weixin_36458030/article/details/112232427</a></p></li><li><p>CentOS关于quota的总结与实践 <a href=https://blog.csdn.net/mnasd/article/details/80766756>https://blog.csdn.net/mnasd/article/details/80766756</a></p></li></ul></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2021-02-08</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/k8s/>K8S</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2021/02/k8s%E7%9A%84%E4%B8%9A%E5%8A%A1pod%E7%BB%84%E4%BB%B6%E7%9A%84invalid-token%E9%97%AE%E9%A2%98/ class=prev rel=prev title="k8s的业务pod组件的invalid token问题"><i class="fas fa-angle-left fa-fw"></i>k8s的业务pod组件的invalid token问题</a></div></div><div id=comments></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2021</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
+<script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i></a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css><script type=text/javascript src=https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script><script type=text/javascript>window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type=text/javascript src=/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-81425808-1',{'anonymize_ip':true});</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script><script src=https://libs.baidu.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js></script><script type=text/javascript src=/js/custom.js></script><script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script></body></html>
