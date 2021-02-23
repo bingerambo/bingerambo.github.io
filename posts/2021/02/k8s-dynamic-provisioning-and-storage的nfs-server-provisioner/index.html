@@ -1,12 +1,12 @@
-<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>k8s dynamic provisioning and storage的nfs-server-provisioner - 斌哥的小站|Binge Blog</title><meta name=Description content="k8s dynamic provisioning and storage的nfs-server-provisioner"><meta property="og:title" content="k8s dynamic provisioning and storage的nfs-server-provisioner"><meta property="og:description" content="k8s dynamic provisioning and storage的nfs-server-provisioner"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2021/02/k8s-dynamic-provisioning-and-storage%E7%9A%84nfs-server-provisioner/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2021-02-08T08:43:17+08:00"><meta property="article:modified_time" content="2021-02-08T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="k8s dynamic provisioning and storage的nfs-server-provisioner"><meta name=twitter:description content="k8s dynamic provisioning and storage的nfs-server-provisioner"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2021/02/k8s-dynamic-provisioning-and-storage%E7%9A%84nfs-server-provisioner/><link rel=prev href=http://bingerambo.com/posts/2021/02/k8s%E7%9A%84pv%E5%92%8Cpvc%E4%BB%8B%E7%BB%8D/><link rel=next href=http://bingerambo.com/posts/2021/02/kubelet-volume-manager%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"k8s dynamic provisioning and storage的nfs-server-provisioner","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2021\/02\/k8s-dynamic-provisioning-and-storage%E7%9A%84nfs-server-provisioner\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":5746,"url":"http:\/\/bingerambo.com\/posts\/2021\/02\/k8s-dynamic-provisioning-and-storage%E7%9A%84nfs-server-provisioner\/","datePublished":"2021-02-08T08:43:17+08:00","dateModified":"2021-02-08T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":"k8s dynamic provisioning and storage的nfs-server-provisioner"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
-<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">k8s dynamic provisioning and storage的nfs-server-provisioner</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2021-02-08>2021-02-08</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 5746 字&nbsp;
-<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 12 分钟&nbsp;
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>k8s dynamic provisioning and storage的nfs-server-provisioner - 斌哥的小站|Binge Blog</title><meta name=Description content="k8s dynamic provisioning and storage的nfs-server-provisioner"><meta property="og:title" content="k8s dynamic provisioning and storage的nfs-server-provisioner"><meta property="og:description" content="k8s dynamic provisioning and storage的nfs-server-provisioner"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2021/02/k8s-dynamic-provisioning-and-storage%E7%9A%84nfs-server-provisioner/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2021-02-08T08:43:17+08:00"><meta property="article:modified_time" content="2021-02-08T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="k8s dynamic provisioning and storage的nfs-server-provisioner"><meta name=twitter:description content="k8s dynamic provisioning and storage的nfs-server-provisioner"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2021/02/k8s-dynamic-provisioning-and-storage%E7%9A%84nfs-server-provisioner/><link rel=prev href=http://bingerambo.com/posts/2021/02/k8s%E7%9A%84pv%E5%92%8Cpvc%E4%BB%8B%E7%BB%8D/><link rel=next href=http://bingerambo.com/posts/2021/02/kubelet-volume-manager%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"k8s dynamic provisioning and storage的nfs-server-provisioner","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2021\/02\/k8s-dynamic-provisioning-and-storage%E7%9A%84nfs-server-provisioner\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":8800,"url":"http:\/\/bingerambo.com\/posts\/2021\/02\/k8s-dynamic-provisioning-and-storage%E7%9A%84nfs-server-provisioner\/","datePublished":"2021-02-08T08:43:17+08:00","dateModified":"2021-02-08T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":"k8s dynamic provisioning and storage的nfs-server-provisioner"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">k8s dynamic provisioning and storage的nfs-server-provisioner</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2021-02-08>2021-02-08</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 8800 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 18 分钟&nbsp;
 <i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
-<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#设计说明>设计说明</a><ul><li><a href=#whats-new>What’s New?</a></li></ul></li><li><a href=#provisionerpvpvc-图>provisioner、pv、pvc 图</a><ul><li><a href=#资源视图>资源视图</a></li><li><a href=#交互视图>交互视图</a></li><li><a href=#nfs-provisioner项目>nfs-provisioner项目</a></li></ul></li><li><a href=#nfs-provisioner镜像>nfs-provisioner镜像</a></li><li><a href=#arguments>Arguments</a></li><li><a href=#存储配额>存储配额</a></li><li><a href=#nfs-provisioner-deploy说明>nfs-provisioner deploy说明</a></li><li><a href=#部署>部署</a></li><li><a href=#卸载删除>卸载删除</a></li><li><a href=#测试验证>测试验证</a><ul><li><a href=#存储写操作>存储写操作</a></li><li><a href=#存储读操作>存储读操作</a><ul><li><a href=#pod运行情况>pod运行情况</a></li></ul></li><li><a href=#业务pod使用pvc时删除pvc>业务pod使用pvc时，删除pvc</a><ul><li><a href=#无业务pod使用pvc时删除pvc>无业务pod使用pvc时，删除pvc</a></li></ul></li><li><a href=#配额测试>配额测试</a><ul><li><a href=#部署pod>部署pod</a></li><li><a href=#考虑开启配额参数>考虑开启配额参数</a></li><li><a href=#卸载删除-1>卸载删除</a></li><li><a href=#删除pod>删除pod</a></li></ul></li></ul></li><li><a href=#nfs-client-provisioner>nfs-client-provisioner</a></li><li><a href=#参考>参考</a></li><li><a href=#附录>附录</a><ul><li><a href=#配置>配置</a><ul><li><a href=#storageclass>StorageClass</a></li><li><a href=#persistentvolumeclaim>PersistentVolumeClaim</a></li></ul></li><li><a href=#dd命令-构造指定大小文件>dd命令 构造指定大小文件</a></li><li><a href=#开启xfs的quota特性>开启xfs的quota特性</a><ul><li><a href=#编辑etcfstab>编辑/etc/fstab</a></li><li><a href=#卸载并重新挂载>卸载并重新挂载</a></li></ul></li><li><a href=#错误>错误</a><ul><li><a href=#新项目代码无法进行镜像制作>新项目代码无法进行镜像制作</a></li><li><a href=#开启配额参数-nfs-provisioner-启动报错>开启配额参数， nfs provisioner 启动报错</a></li></ul></li></ul></li></ul></nav></div></div><div class=content id=content><p>k8s dynamic provisioning and storage的nfs-server-provisioner 原理介绍和功能验证</p><h2 id=设计说明>设计说明</h2><blockquote><p>Storage is a critical part of running containers, and Kubernetes offers some powerful primitives for managing it. Dynamic volume provisioning, a feature unique to Kubernetes, allows storage volumes to be created on-demand. Without dynamic provisioning, cluster administrators have to manually make calls to their cloud or storage provider to create new storage volumes, and then create PersistentVolume objects to represent them in Kubernetes. <strong>The dynamic provisioning feature eliminates the need for cluster administrators to pre-provision storage. Instead, it automatically provisions storage when it is requested by users.</strong> This feature was introduced as alpha in Kubernetes 1.2, and has been improved and promoted to beta in the latest release, 1.4. This release makes dynamic provisioning far more flexible and useful.</p></blockquote><h3 id=whats-new>What’s New?</h3><p>The alpha version of dynamic provisioning only allowed a single, hard-coded provisioner to be used in a cluster at once. This meant that when Kubernetes determined storage needed to be dynamically provisioned, it always used the same volume plugin to do provisioning, even if multiple storage systems were available on the cluster. The provisioner to use was inferred based on the cloud environment - EBS for AWS, Persistent Disk for Google Cloud, Cinder for OpenStack, and vSphere Volumes on vSphere. Furthermore, the parameters used to provision new storage volumes were fixed: only the storage size was configurable. This meant that all dynamically provisioned volumes would be identical, except for their storage size, even if the storage system exposed other parameters (such as disk type) for configuration during provisioning.</p><p>Although the alpha version of the feature was limited in utility, it allowed us to “get some miles” on the idea, and helped determine the direction we wanted to take.</p><p>The beta version of dynamic provisioning, new in Kubernetes 1.4, introduces a new API object, StorageClass. Multiple StorageClass objects can be defined each specifying a volume plugin (aka provisioner) to use to provision a volume and the set of parameters to pass to that provisioner when provisioning. This design allows cluster administrators to define and expose multiple flavors of storage (from the same or different storage systems) within a cluster, each with a custom set of parameters. This design also ensures that end users don’t have to worry about the complexity and nuances of how storage is provisioned, but still have the ability to select from multiple storage options.</p><p><a href=https://kubernetes.io/blog/2016/10/dynamic-provisioning-and-storage-in-kubernetes/ target=_blank rel="noopener noreffer">Dynamic Provisioning and Storage Classes in Kubernetes</a></p><p>说明：</p><ul><li>管理员只需要按存储类型，预置一些strorage class资源配置（可以理解为创建pv的模板），不需要为每个pvc声明手动创建pv</li><li>用户按所需strorage class，创建pvc，则系统（这里指的是nfs provisoner）会根据pvc信息，自动创建pv并进行绑定</li><li>当用户pod删除时，根据需要删除pvc，则绑定的pv会自动关联删除</li></ul><h2 id=provisionerpvpvc-图>provisioner、pv、pvc 图</h2><h3 id=资源视图>资源视图</h3><img src=pv-pvc.png><h3 id=交互视图>交互视图</h3><img src=pv-pvc-provisioner.png><p>搭建StorageClass+NFS,大致有以下几个步骤:</p><ol><li>创建一个可用的NFS Serve</li><li>创建Service Account.这是用来管控NFS provisioner在k8s集群中运行的权限</li><li>创建StorageClass.负责建立PVC并调用NFS provisioner进行预定的工作,并让PV与PVC建立管理</li><li>创建NFS provisioner.有两个功能,一个是在NFS共享目录下创建挂载点(volume),另一个则是建了PV并将PV与NFS的挂载点建立关联</li></ol><h3 id=nfs-provisioner项目>nfs-provisioner项目</h3><p>新代码项目地址：https://github.com/kubernetes-sigs/nfs-ganesha-server-and-external-provisioner</p><p>老项目地址（不再使用）https://github.com/kubernetes-retired/external-storage/tree/master/nfs</p><p>可使用quay.io/kubernetes_incubator/nfs-provisioner镜像</p><h2 id=nfs-provisioner镜像>nfs-provisioner镜像</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#设计说明>设计说明</a><ul><li><a href=#whats-new>What’s New?</a></li></ul></li><li><a href=#provisionerpvpvc-图>provisioner、pv、pvc 图</a><ul><li><a href=#资源视图>资源视图</a></li><li><a href=#交互视图>交互视图</a></li><li><a href=#nfs-provisioner项目>nfs-provisioner项目</a></li></ul></li><li><a href=#nfs-provisioner镜像>nfs-provisioner镜像</a></li><li><a href=#arguments>Arguments</a></li><li><a href=#存储配额>存储配额</a><ul><li><a href=#nfs-provisioner-xfsquotaer>nfs provisioner xfsQuotaer</a></li><li><a href=#配额扩容>配额扩容</a></li><li><a href=#apiserver-参数样例>apiserver 参数样例</a></li><li><a href=#参考代码>参考代码</a></li></ul></li><li><a href=#nfs-provisioner-deploy说明>nfs-provisioner deploy说明</a></li><li><a href=#部署>部署</a></li><li><a href=#卸载删除>卸载删除</a></li><li><a href=#测试验证>测试验证</a><ul><li><a href=#存储写操作>存储写操作</a></li><li><a href=#存储读操作>存储读操作</a><ul><li><a href=#pod运行情况>pod运行情况</a></li></ul></li><li><a href=#业务pod使用pvc时删除pvc>业务pod使用pvc时，删除pvc</a><ul><li><a href=#无业务pod使用pvc时删除pvc>无业务pod使用pvc时，删除pvc</a></li></ul></li><li><a href=#配额测试>配额测试</a><ul><li><a href=#部署pod>部署pod</a></li><li><a href=#考虑开启配额参数>考虑开启配额参数</a></li><li><a href=#卸载删除-1>卸载删除</a></li><li><a href=#删除pod>删除pod</a></li></ul></li></ul></li><li><a href=#nfs-client-provisioner>nfs-client-provisioner</a></li><li><a href=#问题结论>问题结论</a></li><li><a href=#参考>参考</a></li><li><a href=#附录>附录</a><ul><li><a href=#配置>配置</a><ul><li><a href=#storageclass>StorageClass</a></li><li><a href=#persistentvolumeclaim>PersistentVolumeClaim</a></li></ul></li><li><a href=#dd命令-构造指定大小文件>dd命令 构造指定大小文件</a></li><li><a href=#开启xfs的quota特性>开启xfs的quota特性</a><ul><li><a href=#编辑etcfstab>编辑/etc/fstab</a></li><li><a href=#卸载并重新挂载>卸载并重新挂载</a></li></ul></li><li><a href=#错误>错误</a><ul><li><a href=#新项目代码无法进行镜像制作>新项目代码无法进行镜像制作</a></li><li><a href=#开启配额参数-nfs-provisioner-启动报错>开启配额参数， nfs provisioner 启动报错</a></li></ul></li></ul></li></ul></nav></div></div><div class=content id=content><p>k8s dynamic provisioning and storage的nfs-server-provisioner 原理介绍和功能验证</p><h2 id=设计说明>设计说明</h2><blockquote><p>Storage is a critical part of running containers, and Kubernetes offers some powerful primitives for managing it. Dynamic volume provisioning, a feature unique to Kubernetes, allows storage volumes to be created on-demand. Without dynamic provisioning, cluster administrators have to manually make calls to their cloud or storage provider to create new storage volumes, and then create PersistentVolume objects to represent them in Kubernetes. <strong>The dynamic provisioning feature eliminates the need for cluster administrators to pre-provision storage. Instead, it automatically provisions storage when it is requested by users.</strong> This feature was introduced as alpha in Kubernetes 1.2, and has been improved and promoted to beta in the latest release, 1.4. This release makes dynamic provisioning far more flexible and useful.</p></blockquote><h3 id=whats-new>What’s New?</h3><p>The alpha version of dynamic provisioning only allowed a single, hard-coded provisioner to be used in a cluster at once. This meant that when Kubernetes determined storage needed to be dynamically provisioned, it always used the same volume plugin to do provisioning, even if multiple storage systems were available on the cluster. The provisioner to use was inferred based on the cloud environment - EBS for AWS, Persistent Disk for Google Cloud, Cinder for OpenStack, and vSphere Volumes on vSphere. Furthermore, the parameters used to provision new storage volumes were fixed: only the storage size was configurable. This meant that all dynamically provisioned volumes would be identical, except for their storage size, even if the storage system exposed other parameters (such as disk type) for configuration during provisioning.</p><p>Although the alpha version of the feature was limited in utility, it allowed us to “get some miles” on the idea, and helped determine the direction we wanted to take.</p><p>The beta version of dynamic provisioning, new in Kubernetes 1.4, introduces a new API object, StorageClass. Multiple StorageClass objects can be defined each specifying a volume plugin (aka provisioner) to use to provision a volume and the set of parameters to pass to that provisioner when provisioning. This design allows cluster administrators to define and expose multiple flavors of storage (from the same or different storage systems) within a cluster, each with a custom set of parameters. This design also ensures that end users don’t have to worry about the complexity and nuances of how storage is provisioned, but still have the ability to select from multiple storage options.</p><p><a href=https://kubernetes.io/blog/2016/10/dynamic-provisioning-and-storage-in-kubernetes/ target=_blank rel="noopener noreffer">Dynamic Provisioning and Storage Classes in Kubernetes</a></p><p>说明：</p><ul><li>管理员只需要按存储类型，预置一些strorage class资源配置（可以理解为创建pv的模板），不需要为每个pvc声明手动创建pv</li><li>用户按所需strorage class，创建pvc，则系统（这里指的是nfs provisoner）会根据pvc信息，自动创建pv并进行绑定</li><li>当用户pod删除时，根据需要删除pvc，则绑定的pv会自动关联删除</li></ul><h2 id=provisionerpvpvc-图>provisioner、pv、pvc 图</h2><h3 id=资源视图>资源视图</h3><img src=pv-pvc.png><h3 id=交互视图>交互视图</h3><img src=pv-pvc-provisioner.png><p>搭建StorageClass+NFS,大致有以下几个步骤:</p><ol><li>创建一个可用的NFS Serve</li><li>创建Service Account.这是用来管控NFS provisioner在k8s集群中运行的权限</li><li>创建StorageClass.负责建立PVC并调用NFS provisioner进行预定的工作,并让PV与PVC建立管理</li><li>创建NFS provisioner.有两个功能,一个是在NFS共享目录下创建挂载点(volume),另一个则是建了PV并将PV与NFS的挂载点建立关联</li></ol><h3 id=nfs-provisioner项目>nfs-provisioner项目</h3><p>新代码项目地址：https://github.com/kubernetes-sigs/nfs-ganesha-server-and-external-provisioner</p><p>老项目地址（不再使用）https://github.com/kubernetes-retired/external-storage/tree/master/nfs</p><p>可使用quay.io/kubernetes_incubator/nfs-provisioner镜像</p><h2 id=nfs-provisioner镜像>nfs-provisioner镜像</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
 </span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>docker pull quay.io/kubernetes_incubator/nfs-provisioner
 docker save quay.io/kubernetes_incubator/nfs-provisioner:latest -o nfs-provisioner.img.tar
-</code></pre></td></tr></table></div></div><h2 id=arguments>Arguments</h2><ul><li>provisioner - Name of the provisioner. The provisioner will only provision volumes for claims that request a StorageClass with a provisioner field set equal to this name.</li><li>master - Master URL to build a client config from. Either this or kubeconfig needs to be set if the provisioner is being run out of cluster.</li><li>kubeconfig - Absolute path to the kubeconfig file. Either this or master needs to be set if the provisioner is being run out of cluster.</li><li>run-server - If the provisioner is responsible for running the NFS server, i.e. starting and stopping NFS Ganesha. Default true.</li><li>use-ganesha - If the provisioner will create volumes using NFS Ganesha (D-Bus method calls) as opposed to using the kernel NFS server (&lsquo;exportfs&rsquo;). If run-server is true, this must be true. Default true.</li><li>grace-period - NFS Ganesha grace period to use in seconds, from 0-180. If the server is not expected to survive restarts, i.e. it is running as a pod & its export directory is not persisted, this can be set to 0. Can only be set if both run-server and use-ganesha are true. Default 90.</li><li>enable-xfs-quota - If the provisioner will set xfs quotas for each volume it provisions. Requires that the directory it creates volumes in ('/export') is xfs mounted with option prjquota/pquota, and that it has the privilege to run xfs_quota. Default false.</li><li>failed-retry-threshold - If the number of retries on provisioning failure need to be limited to a set number of attempts. Default 10</li><li>server-hostname - The hostname for the NFS server to export from. Only applicable when running out-of-cluster i.e. it can only be set if either master or kubeconfig are set. If unset, the first IP output by hostname -i is used.</li><li>device-based-fsids - If file system handles created by NFS Ganesha should be based on major/minor device IDs of the backing storage volume ('/export'). When running a cloud based kubernetes service (like Googles GKE service) set this to false as it might affect client connections on restarts of the nfs provisioner pod. Default true.</li></ul><h2 id=存储配额>存储配额</h2><p>通过添加project到目标目录的方式来设置配额大小</p><p>实际上还是通过xfsQuotaer 实现</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</code></pre></td></tr></table></div></div><h2 id=arguments>Arguments</h2><ul><li>provisioner - Name of the provisioner. The provisioner will only provision volumes for claims that request a StorageClass with a provisioner field set equal to this name.</li><li>master - Master URL to build a client config from. Either this or kubeconfig needs to be set if the provisioner is being run out of cluster.</li><li>kubeconfig - Absolute path to the kubeconfig file. Either this or master needs to be set if the provisioner is being run out of cluster.</li><li>run-server - If the provisioner is responsible for running the NFS server, i.e. starting and stopping NFS Ganesha. Default true.</li><li>use-ganesha - If the provisioner will create volumes using NFS Ganesha (D-Bus method calls) as opposed to using the kernel NFS server (&lsquo;exportfs&rsquo;). If run-server is true, this must be true. Default true.</li><li>grace-period - NFS Ganesha grace period to use in seconds, from 0-180. If the server is not expected to survive restarts, i.e. it is running as a pod & its export directory is not persisted, this can be set to 0. Can only be set if both run-server and use-ganesha are true. Default 90.</li><li>enable-xfs-quota - If the provisioner will set xfs quotas for each volume it provisions. Requires that the directory it creates volumes in ('/export') is xfs mounted with option prjquota/pquota, and that it has the privilege to run xfs_quota. Default false.</li><li>failed-retry-threshold - If the number of retries on provisioning failure need to be limited to a set number of attempts. Default 10</li><li>server-hostname - The hostname for the NFS server to export from. Only applicable when running out-of-cluster i.e. it can only be set if either master or kubeconfig are set. If unset, the first IP output by hostname -i is used.</li><li>device-based-fsids - If file system handles created by NFS Ganesha should be based on major/minor device IDs of the backing storage volume ('/export'). When running a cloud based kubernetes service (like Googles GKE service) set this to false as it might affect client connections on restarts of the nfs provisioner pod. Default true.</li></ul><h2 id=存储配额>存储配额</h2><h3 id=nfs-provisioner-xfsquotaer>nfs provisioner xfsQuotaer</h3><p>通过添加project到目标目录的方式来设置配额大小</p><p>实际上还是通过xfsQuotaer 实现</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
 </span><span class=lnt> 2
 </span><span class=lnt> 3
 </span><span class=lnt> 4
@@ -238,6 +238,422 @@ docker save quay.io/kubernetes_incubator/nfs-provisioner:latest -o nfs-provision
     <span class=k>return</span> <span class=nx>xfsQuotaer</span><span class=p>,</span> <span class=kc>nil</span>
 <span class=p>}</span>
 
+</code></pre></td></tr></table></div></div><h3 id=配额扩容>配额扩容</h3><p>在storageclass和k8s的默认配置下，通过修改pvc配置文件claim.yaml的配额大小，会报错，报错信息如下。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>[root@node131 nfs]# vi deploy/kubernetes_incubator_nfs_provisioner/claim.yaml
+[root@node131 nfs]# 编辑size大小
+[root@node131 nfs]#
+[root@node131 nfs]# kubectl apply -f  deploy/kubernetes_incubator_nfs_provisioner/claim.yaml
+Warning: resource persistentvolumeclaims/nfs is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply. kubectl apply should only be used on resources created declaratively by either kubectl create --save-config or kubectl apply. The missing annotation will be patched automatically.
+Error from server (Forbidden): error when applying patch:
+{&#34;metadata&#34;:{&#34;annotations&#34;:{&#34;kubectl.kubernetes.io/last-applied-configuration&#34;:&#34;{\&#34;apiVersion\&#34;:\&#34;v1\&#34;,\&#34;kind\&#34;:\&#34;PersistentVolumeClaim\&#34;,\&#34;metadata\&#34;:{\&#34;annotations\&#34;:{},\&#34;name\&#34;:\&#34;nfs\&#34;,\&#34;namespace\&#34;:\&#34;default\&#34;},\&#34;spec\&#34;:{\&#34;accessModes\&#34;:[\&#34;ReadWriteMany\&#34;],\&#34;resources\&#34;:{\&#34;requests\&#34;:{\&#34;storage\&#34;:\&#34;5Mi\&#34;}},\&#34;storageClassName\&#34;:\&#34;example-nfs\&#34;}}\n&#34;}},&#34;spec&#34;:{&#34;resources&#34;:{&#34;requests&#34;:{&#34;storage&#34;:&#34;5Mi&#34;}}}}
+to:
+Resource: &#34;/v1, Resource=persistentvolumeclaims&#34;, GroupVersionKind: &#34;/v1, Kind=PersistentVolumeClaim&#34;
+Name: &#34;nfs&#34;, Namespace: &#34;default&#34;
+for: &#34;deploy/kubernetes_incubator_nfs_provisioner/claim.yaml&#34;: persistentvolumeclaims &#34;nfs&#34; is forbidden: only dynamically provisioned pvc can be resized and the storageclass that provisions the pvc must support resize
+[root@node131 nfs]#
+
+</code></pre></td></tr></table></div></div><p>参考文档说明内容如下：</p><p>StorageClass允许卷扩容
+FEATURE STATE: Kubernetes v1.11 [beta]
+PersistentVolume 可以配置为可扩容。将此功能设置为 true 时，允许用户通过编辑相应的 PVC 对象来调整卷大小。</p><p>当下层 StorageClass 的 allowVolumeExpansion 字段设置为 true 时，以下类型的卷支持卷扩展。</p><p>此功能仅可用于扩容卷，不能用于缩小卷。</p><p><strong>注意，文档中没有说明nfs卷可以扩容，需要测试验证，测试验证如下</strong>
+编辑 StorageClass ，添加 allowVolumeExpansion</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>StorageClass</span><span class=w>
+</span><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>storage.k8s.io/v1</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>example-nfs</span><span class=w>
+</span><span class=w></span><span class=nt>provisioner</span><span class=p>:</span><span class=w> </span><span class=l>example.com/nfs</span><span class=w>
+</span><span class=w></span><span class=c># 允许卷扩容</span><span class=w>
+</span><span class=w></span><span class=nt>allowVolumeExpansion</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span><span class=w></span><span class=nt>mountOptions</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=l>vers=4.1</span><span class=w>
+</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><p>执行更新扩容为5M操作，发现pvc仍未更新
+查看pvc的打印，如下</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>[root@node131 nfs]# kubectl apply -f deploy/kubernetes_incubator_nfs_provisioner/claim.yaml
+persistentvolumeclaim/nfs unchanged
+
+[root@node131 nfs]# kubectl describe pvc
+Name:          nfs
+Namespace:     default
+StorageClass:  example-nfs
+Status:        Bound
+Volume:        pvc-1f9f7ceb-6ca8-453e-87a0-013e53841fad
+Labels:        <span class=p>&lt;</span><span class=nt>none</span><span class=p>&gt;</span>
+Annotations:   pv.kubernetes.io/bind-completed: yes
+               pv.kubernetes.io/bound-by-controller: yes
+               volume.beta.kubernetes.io/storage-provisioner: example.com/nfs
+Finalizers:    [kubernetes.io/pvc-protection]
+Capacity:      1Mi
+Access Modes:  RWX
+VolumeMode:    Filesystem
+Used By:       <span class=p>&lt;</span><span class=nt>none</span><span class=p>&gt;</span>
+Events:
+  Type     Reason             Age    From           Message
+  ----     ------             ----   ----           -------
+  Warning  ExternalExpanding  40m    volume_expand  Ignoring the PVC: didn&#39;t find a plugin capable of expanding the volume; waiting for an external controller to process this PVC.
+  Warning  ExternalExpanding  2m52s  volume_expand  Ignoring the PVC: didn&#39;t find a plugin capable of expanding the volume; waiting for an external controller to process this PVC.
+[root@node131 nfs]#
+
+
+</code></pre></td></tr></table></div></div><p>根据上面 提示，查看controller是否处理了pvc resize操作。</p><p>查看kube-controller的打印，如下</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-markdown data-lang=markdown>I0223 07:31:30.381326       1 expand_controller.go:277] Ignoring the PVC &#34;default/nfs&#34; (uid: &#34;1f9f7ceb-6ca8-453e-87a0-013e53841fad&#34;) : didn&#39;t find a plugin capable of expanding the volume; waiting for an external controller to process this PVC.
+I0223 07:31:30.381389       1 event.go:291] &#34;Event occurred&#34; object=&#34;default/nfs&#34; kind=&#34;PersistentVolumeClaim&#34; apiVersion=&#34;v1&#34; type=&#34;Warning&#34; reason=&#34;ExternalExpanding&#34; message=&#34;Ignoring the PVC: didn&#39;t find a plugin capable of expanding the volume; waiting for an external controller to process this PVC.&#34;
+
+</code></pre></td></tr></table></div></div><p><strong>原因 nfs并不支持在线动态扩容操作，即在storageclass条件下，通过修改pvc，同步联动修改pv</strong></p><p>说明：</p><p>k8s从1.8版本开始支持PV扩容操作。目前glusterfs、rbd等几种存储类型已经支持扩容操作，按官方文档并未包含nfs存储。</p><p>PV支持扩容需要满足两个条件：</p><ol><li>PersistentVolumeClaimResize插件使能，apiserver启动参数 &ndash;enable-admission-plugins中添加 PersistentVolumeClaimResize</li><li>StorageClass allowVolumeExpansion设置为true
+当这两个条件达到之后，用户可以修改PVC的大小从而驱动底层PV的扩容操作。对于包含文件系统的PV，只有当新Pod启动并且以读写模式挂载该PV时才完成文件系统扩容。也就是说，当PV已经挂载在某个Pod时，需要重启该Pod才能完成文件系统扩容。目前支持支持扩容的文件系统包括Ext3/Ext4、XFS。</li></ol><p>以上内容总结了k8s官方文档对PV扩容的描述。接下来我们研究PersistentVolumeClaimResize admission plugin。</p><p>从代码中分析PersistentVolumeClaimResize Plugin的Validate操作比较简单，分为以下几个步骤：</p><ol><li>验证PVC对象是否有效；</li><li>对比期望size和之前size，确认是否需要扩容；</li><li>确认当前PVC状态是否是bound状态；</li><li>检查PVC是否来自于StorageClass且StorageClass的AllowVolumeExpansion是否为true；</li><li>检查Volume后端是否支持Resize：判断pv的类型，目前包括Glusterfs、Cinder、RBD、GCEPersistentDisk、AWSElasticBlockStore、AzureFile。</li></ol><p>PersistentVolumeClaimResize只是验证了PVC Resize的有效性，如果K8S集群没有使用PersistentVolumeClaimResize认证，PVC的resize是否会直接造成底层的Resize？ 分析了ExpandController的代码，发现它只是监听PVC Update事件，并且判断了PVC size以及当前状态等，并没有判断是否通过了PersistentVolumeClaimResize Plugin。这可能造成直接Resize操作。</p><h3 id=apiserver-参数样例>apiserver 参数样例</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=w>
+</span><span class=w></span><span class=p>[</span><span class=l>root@node131 manifests]# cat kube-apiserver.yaml</span><span class=w>
+</span><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>annotations</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>kubeadm.kubernetes.io/kube-apiserver.advertise-address.endpoint</span><span class=p>:</span><span class=w> </span><span class=m>192.168.182.131</span><span class=p>:</span><span class=m>6443</span><span class=w>
+</span><span class=w>  </span><span class=nt>creationTimestamp</span><span class=p>:</span><span class=w> </span><span class=kc>null</span><span class=w>
+</span><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>component</span><span class=p>:</span><span class=w> </span><span class=l>kube-apiserver</span><span class=w>
+</span><span class=w>    </span><span class=nt>tier</span><span class=p>:</span><span class=w> </span><span class=l>control-plane</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>kube-apiserver</span><span class=w>
+</span><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>kube-system</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>command</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=l>kube-apiserver</span><span class=w>
+</span><span class=w>    </span>- --<span class=l>advertise-address=192.168.182.131</span><span class=w>
+</span><span class=w>    </span>- --<span class=l>allow-privileged=true</span><span class=w>
+</span><span class=w>    </span>- --<span class=l>anonymous-auth=True</span><span class=w>
+</span><span class=w>    </span>- --<span class=l>apiserver-count=1</span><span class=w>
+</span><span class=w>    </span>- --<span class=l>authorization-mode=Node,RBAC</span><span class=w>
+</span><span class=w>    </span>- --<span class=l>bind-address=0.0.0.0</span><span class=w>
+</span><span class=w>    </span>- --<span class=l>client-ca-file=/etc/kubernetes/ssl/ca.crt</span><span class=w>
+</span><span class=w>    </span><span class=c>#- --enable-admission-plugins=NodeRestriction</span><span class=w>
+</span><span class=w>    </span>- --<span class=l>enable-admission-plugins=&#34;NodeRestriction,PersistentVolumeClaimResize&#34;</span><span class=w>
+</span><span class=w>
+</span><span class=w>    </span><span class=l>...</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><h3 id=参考代码>参考代码</h3><p>kube apiserver 需要开启volume扩容插件
+resize.PluginName, // PersistentVolumeClaimResize</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-golang data-lang=golang>
+<span class=c1>// AllOrderedPlugins is the list of all the plugins in order.
+</span><span class=c1></span><span class=kd>var</span> <span class=nx>AllOrderedPlugins</span> <span class=p>=</span> <span class=p>[]</span><span class=kt>string</span><span class=p>{</span>
+    <span class=nx>admit</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                        <span class=c1>// AlwaysAdmit
+</span><span class=c1></span>    <span class=nx>autoprovision</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                <span class=c1>// NamespaceAutoProvision
+</span><span class=c1></span>    <span class=nx>lifecycle</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                    <span class=c1>// NamespaceLifecycle
+</span><span class=c1></span>    <span class=nx>exists</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                       <span class=c1>// NamespaceExists
+</span><span class=c1></span>    <span class=nx>scdeny</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                       <span class=c1>// SecurityContextDeny
+</span><span class=c1></span>    <span class=nx>antiaffinity</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                 <span class=c1>// LimitPodHardAntiAffinityTopology
+</span><span class=c1></span>    <span class=nx>limitranger</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                  <span class=c1>// LimitRanger
+</span><span class=c1></span>    <span class=nx>serviceaccount</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>               <span class=c1>// ServiceAccount
+</span><span class=c1></span>    <span class=nx>noderestriction</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>              <span class=c1>// NodeRestriction
+</span><span class=c1></span>    <span class=nx>nodetaint</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                    <span class=c1>// TaintNodesByCondition
+</span><span class=c1></span>    <span class=nx>alwayspullimages</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>             <span class=c1>// AlwaysPullImages
+</span><span class=c1></span>    <span class=nx>imagepolicy</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                  <span class=c1>// ImagePolicyWebhook
+</span><span class=c1></span>    <span class=nx>podsecuritypolicy</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>            <span class=c1>// PodSecurityPolicy
+</span><span class=c1></span>    <span class=nx>podnodeselector</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>              <span class=c1>// PodNodeSelector
+</span><span class=c1></span>    <span class=nx>podpriority</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                  <span class=c1>// Priority
+</span><span class=c1></span>    <span class=nx>defaulttolerationseconds</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>     <span class=c1>// DefaultTolerationSeconds
+</span><span class=c1></span>    <span class=nx>podtolerationrestriction</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>     <span class=c1>// PodTolerationRestriction
+</span><span class=c1></span>    <span class=nx>exec</span><span class=p>.</span><span class=nx>DenyEscalatingExec</span><span class=p>,</span>                 <span class=c1>// DenyEscalatingExec
+</span><span class=c1></span>    <span class=nx>exec</span><span class=p>.</span><span class=nx>DenyExecOnPrivileged</span><span class=p>,</span>               <span class=c1>// DenyExecOnPrivileged
+</span><span class=c1></span>    <span class=nx>eventratelimit</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>               <span class=c1>// EventRateLimit
+</span><span class=c1></span>    <span class=nx>extendedresourcetoleration</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>   <span class=c1>// ExtendedResourceToleration
+</span><span class=c1></span>    <span class=nx>label</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                        <span class=c1>// PersistentVolumeLabel
+</span><span class=c1></span>    <span class=nx>setdefault</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                   <span class=c1>// DefaultStorageClass
+</span><span class=c1></span>    <span class=nx>storageobjectinuseprotection</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span> <span class=c1>// StorageObjectInUseProtection
+</span><span class=c1></span>    <span class=nx>gc</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                           <span class=c1>// OwnerReferencesPermissionEnforcement
+</span><span class=c1></span>    <span class=nx>resize</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                       <span class=c1>// PersistentVolumeClaimResize
+</span><span class=c1></span>    <span class=nx>runtimeclass</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                 <span class=c1>// RuntimeClass
+</span><span class=c1></span>    <span class=nx>certapproval</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                 <span class=c1>// CertificateApproval
+</span><span class=c1></span>    <span class=nx>certsigning</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>                  <span class=c1>// CertificateSigning
+</span><span class=c1></span>    <span class=nx>certsubjectrestriction</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>       <span class=c1>// CertificateSubjectRestriction
+</span><span class=c1></span>    <span class=nx>defaultingressclass</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>          <span class=c1>// DefaultIngressClass
+</span><span class=c1></span>
+    <span class=c1>// new admission plugins should generally be inserted above here
+</span><span class=c1></span>    <span class=c1>// webhook, resourcequota, and deny plugins must go at the end
+</span><span class=c1></span>
+    <span class=nx>mutatingwebhook</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>   <span class=c1>// MutatingAdmissionWebhook
+</span><span class=c1></span>    <span class=nx>validatingwebhook</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span> <span class=c1>// ValidatingAdmissionWebhook
+</span><span class=c1></span>    <span class=nx>resourcequota</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>     <span class=c1>// ResourceQuota
+</span><span class=c1></span>    <span class=nx>deny</span><span class=p>.</span><span class=nx>PluginName</span><span class=p>,</span>              <span class=c1>// AlwaysDeny
+</span><span class=c1></span><span class=p>}</span>
+
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-golang data-lang=golang><span class=kd>const</span> <span class=p>(</span>
+    <span class=c1>// PluginName is the name of pvc resize admission plugin
+</span><span class=c1></span>    <span class=nx>PluginName</span> <span class=p>=</span> <span class=s>&#34;PersistentVolumeClaimResize&#34;</span>
+<span class=p>)</span>
+
+<span class=kd>func</span> <span class=p>(</span><span class=nx>pvcr</span> <span class=o>*</span><span class=nx>persistentVolumeClaimResize</span><span class=p>)</span> <span class=nf>Validate</span><span class=p>(</span><span class=nx>ctx</span> <span class=nx>context</span><span class=p>.</span><span class=nx>Context</span><span class=p>,</span> <span class=nx>a</span> <span class=nx>admission</span><span class=p>.</span><span class=nx>Attributes</span><span class=p>,</span> <span class=nx>o</span> <span class=nx>admission</span><span class=p>.</span><span class=nx>ObjectInterfaces</span><span class=p>)</span> <span class=kt>error</span> <span class=p>{</span>
+    <span class=k>if</span> <span class=nx>a</span><span class=p>.</span><span class=nf>GetResource</span><span class=p>().</span><span class=nf>GroupResource</span><span class=p>()</span> <span class=o>!=</span> <span class=nx>api</span><span class=p>.</span><span class=nf>Resource</span><span class=p>(</span><span class=s>&#34;persistentvolumeclaims&#34;</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>nil</span>
+    <span class=p>}</span>
+
+    <span class=k>if</span> <span class=nb>len</span><span class=p>(</span><span class=nx>a</span><span class=p>.</span><span class=nf>GetSubresource</span><span class=p>())</span> <span class=o>!=</span> <span class=mi>0</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>nil</span>
+    <span class=p>}</span>
+
+    <span class=nx>pvc</span><span class=p>,</span> <span class=nx>ok</span> <span class=o>:=</span> <span class=nx>a</span><span class=p>.</span><span class=nf>GetObject</span><span class=p>().(</span><span class=o>*</span><span class=nx>api</span><span class=p>.</span><span class=nx>PersistentVolumeClaim</span><span class=p>)</span>
+    <span class=c1>// if we can&#39;t convert then we don&#39;t handle this object so just return
+</span><span class=c1></span>    <span class=k>if</span> <span class=p>!</span><span class=nx>ok</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>nil</span>
+    <span class=p>}</span>
+    <span class=nx>oldPvc</span><span class=p>,</span> <span class=nx>ok</span> <span class=o>:=</span> <span class=nx>a</span><span class=p>.</span><span class=nf>GetOldObject</span><span class=p>().(</span><span class=o>*</span><span class=nx>api</span><span class=p>.</span><span class=nx>PersistentVolumeClaim</span><span class=p>)</span>
+    <span class=k>if</span> <span class=p>!</span><span class=nx>ok</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>nil</span>
+    <span class=p>}</span>
+
+    <span class=nx>oldSize</span> <span class=o>:=</span> <span class=nx>oldPvc</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Resources</span><span class=p>.</span><span class=nx>Requests</span><span class=p>[</span><span class=nx>api</span><span class=p>.</span><span class=nx>ResourceStorage</span><span class=p>]</span>
+    <span class=nx>newSize</span> <span class=o>:=</span> <span class=nx>pvc</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Resources</span><span class=p>.</span><span class=nx>Requests</span><span class=p>[</span><span class=nx>api</span><span class=p>.</span><span class=nx>ResourceStorage</span><span class=p>]</span>
+
+    <span class=k>if</span> <span class=nx>newSize</span><span class=p>.</span><span class=nf>Cmp</span><span class=p>(</span><span class=nx>oldSize</span><span class=p>)</span> <span class=o>&lt;=</span> <span class=mi>0</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>nil</span>
+    <span class=p>}</span>
+
+    <span class=k>if</span> <span class=nx>oldPvc</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>Phase</span> <span class=o>!=</span> <span class=nx>api</span><span class=p>.</span><span class=nx>ClaimBound</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>admission</span><span class=p>.</span><span class=nf>NewForbidden</span><span class=p>(</span><span class=nx>a</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Only bound persistent volume claims can be expanded&#34;</span><span class=p>))</span>
+    <span class=p>}</span>
+
+    <span class=c1>// Growing Persistent volumes is only allowed for PVCs for which their StorageClass
+</span><span class=c1></span>    <span class=c1>// explicitly allows it
+</span><span class=c1></span>    <span class=k>if</span> <span class=p>!</span><span class=nx>pvcr</span><span class=p>.</span><span class=nf>allowResize</span><span class=p>(</span><span class=nx>pvc</span><span class=p>,</span> <span class=nx>oldPvc</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>admission</span><span class=p>.</span><span class=nf>NewForbidden</span><span class=p>(</span><span class=nx>a</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;only dynamically provisioned pvc can be resized and &#34;</span><span class=o>+</span>
+            <span class=s>&#34;the storageclass that provisions the pvc must support resize&#34;</span><span class=p>))</span>
+    <span class=p>}</span>
+
+    <span class=k>return</span> <span class=kc>nil</span>
+<span class=p>}</span>
+
+<span class=c1>// Growing Persistent volumes is only allowed for PVCs for which their StorageClass
+</span><span class=c1>// explicitly allows it.
+</span><span class=c1></span><span class=kd>func</span> <span class=p>(</span><span class=nx>pvcr</span> <span class=o>*</span><span class=nx>persistentVolumeClaimResize</span><span class=p>)</span> <span class=nf>allowResize</span><span class=p>(</span><span class=nx>pvc</span><span class=p>,</span> <span class=nx>oldPvc</span> <span class=o>*</span><span class=nx>api</span><span class=p>.</span><span class=nx>PersistentVolumeClaim</span><span class=p>)</span> <span class=kt>bool</span> <span class=p>{</span>
+    <span class=nx>pvcStorageClass</span> <span class=o>:=</span> <span class=nx>apihelper</span><span class=p>.</span><span class=nf>GetPersistentVolumeClaimClass</span><span class=p>(</span><span class=nx>pvc</span><span class=p>)</span>
+    <span class=nx>oldPvcStorageClass</span> <span class=o>:=</span> <span class=nx>apihelper</span><span class=p>.</span><span class=nf>GetPersistentVolumeClaimClass</span><span class=p>(</span><span class=nx>oldPvc</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>pvcStorageClass</span> <span class=o>==</span> <span class=s>&#34;&#34;</span> <span class=o>||</span> <span class=nx>oldPvcStorageClass</span> <span class=o>==</span> <span class=s>&#34;&#34;</span> <span class=o>||</span> <span class=nx>pvcStorageClass</span> <span class=o>!=</span> <span class=nx>oldPvcStorageClass</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>false</span>
+    <span class=p>}</span>
+    <span class=nx>sc</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>pvcr</span><span class=p>.</span><span class=nx>scLister</span><span class=p>.</span><span class=nf>Get</span><span class=p>(</span><span class=nx>pvcStorageClass</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>false</span>
+    <span class=p>}</span>
+    <span class=k>if</span> <span class=nx>sc</span><span class=p>.</span><span class=nx>AllowVolumeExpansion</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=o>*</span><span class=nx>sc</span><span class=p>.</span><span class=nx>AllowVolumeExpansion</span>
+    <span class=p>}</span>
+    <span class=k>return</span> <span class=kc>false</span>
+<span class=p>}</span>
+
+
+</code></pre></td></tr></table></div></div><p>controller相关代码 didn&rsquo;t find a plugin capable of expanding the volume</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-golang data-lang=golang>
+<span class=nx>volumePlugin</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>expc</span><span class=p>.</span><span class=nx>volumePluginMgr</span><span class=p>.</span><span class=nf>FindExpandablePluginBySpec</span><span class=p>(</span><span class=nx>volumeSpec</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=o>||</span> <span class=nx>volumePlugin</span> <span class=o>==</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=nx>msg</span> <span class=o>:=</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;didn&#39;t find a plugin capable of expanding the volume; &#34;</span> <span class=o>+</span>
+            <span class=s>&#34;waiting for an external controller to process this PVC&#34;</span><span class=p>)</span>
+        <span class=nx>eventType</span> <span class=o>:=</span> <span class=nx>v1</span><span class=p>.</span><span class=nx>EventTypeNormal</span>
+        <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+            <span class=nx>eventType</span> <span class=p>=</span> <span class=nx>v1</span><span class=p>.</span><span class=nx>EventTypeWarning</span>
+        <span class=p>}</span>
+        <span class=nx>expc</span><span class=p>.</span><span class=nx>recorder</span><span class=p>.</span><span class=nf>Event</span><span class=p>(</span><span class=nx>pvc</span><span class=p>,</span> <span class=nx>eventType</span><span class=p>,</span> <span class=nx>events</span><span class=p>.</span><span class=nx>ExternalExpanding</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Sprintf</span><span class=p>(</span><span class=s>&#34;Ignoring the PVC: %v.&#34;</span><span class=p>,</span> <span class=nx>msg</span><span class=p>))</span>
+        <span class=nx>klog</span><span class=p>.</span><span class=nf>Infof</span><span class=p>(</span><span class=s>&#34;Ignoring the PVC %q (uid: %q) : %v.&#34;</span><span class=p>,</span> <span class=nx>util</span><span class=p>.</span><span class=nf>GetPersistentVolumeClaimQualifiedName</span><span class=p>(</span><span class=nx>pvc</span><span class=p>),</span> <span class=nx>pvc</span><span class=p>.</span><span class=nx>UID</span><span class=p>,</span> <span class=nx>msg</span><span class=p>)</span>
+        <span class=c1>// If we are expecting that an external plugin will handle resizing this volume then
+</span><span class=c1></span>        <span class=c1>// is no point in requeuing this PVC.
+</span><span class=c1></span>        <span class=k>return</span> <span class=kc>nil</span>
+    <span class=p>}</span>
 </code></pre></td></tr></table></div></div><h2 id=nfs-provisioner-deploy说明>nfs-provisioner deploy说明</h2><p><a href=https://github.com/kubernetes-sigs/nfs-ganesha-server-and-external-provisioner/blob/master/docs/deployment.md target=_blank rel="noopener noreffer">deployment说明</a></p><h2 id=部署>部署</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
 </span><span class=lnt> 2
 </span><span class=lnt> 3
@@ -970,7 +1386,7 @@ kubectl delete -f deploy/kubernetes_incubator_nfs_provisioner/test_pod/nfs-web-r
 kubectl delete -f deploy/kubernetes_incubator_nfs_provisioner/test_pod/custom-nfs-busybox-rc.yaml
 
 </code></pre></td></tr></table></div></div><h2 id=nfs-client-provisioner>nfs-client-provisioner</h2><p>如果集群系统中已有存储系统服务，则可使用nfs-subdir-external-provisioner项目组件来提供动态pv支持</p><p>Kubernetes NFS-Client Provisioner
-NFS subdir external provisioner is an automatic provisioner that use your existing and already configured NFS server to support dynamic provisioning of Kubernetes Persistent Volumes via Persistent Volume Claims. Persistent volumes are provisioned as ${namespace}-${pvcName}-${pvName}.</p><p><a href=https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner target=_blank rel="noopener noreffer">nfs-subdir-external-provisioner</a></p><h2 id=参考>参考</h2><ul><li><a href=https://github.com/kubernetes/community/blob/master/contributors/design-proposals/storage/persistent-storage.md target=_blank rel="noopener noreffer">持久存储设计文档</a></li><li><a href=https://kubernetes.io/zh/docs/concepts/storage/storage-classes/ target=_blank rel="noopener noreffer">存储类StorageClass</a></li><li><a href=https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner target=_blank rel="noopener noreffer">nfs-subdir-external-provisioner</a></li><li><a href=https://www.cnblogs.com/panwenbin-logs/p/12196286.html>https://www.cnblogs.com/panwenbin-logs/p/12196286.html</a></li></ul><h2 id=附录>附录</h2><h3 id=配置>配置</h3><h4 id=storageclass>StorageClass</h4><p>class.yaml</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+NFS subdir external provisioner is an automatic provisioner that use your existing and already configured NFS server to support dynamic provisioning of Kubernetes Persistent Volumes via Persistent Volume Claims. Persistent volumes are provisioned as ${namespace}-${pvcName}-${pvName}.</p><p><a href=https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner target=_blank rel="noopener noreffer">nfs-subdir-external-provisioner</a></p><h2 id=问题结论>问题结论</h2><ol><li>PV共用机制，是否可以做到超分？是否可以有用户的概念？</li></ol><ul><li><p>一个pv只能被一个pvc使用，pv实际上k8s的一直资源类型（类比node），没有用户的概念。用户可见并使用的是pvc，多个用户（pod）可以使用相同的pvc。</p></li><li><p>配额是依赖底层存储配置参数实现，如果使用pvc实现，则需要使用pv-provisioner封装存储组件来支持配额功能，此时由于对目录的配额限制会导致无法超分。</p></li></ul><ol start=2><li>nfs的pvc 能否控制住大小？</li></ol><ul><li>pvc可以request使用量大小，但不是pvc和k8s来控制大小，实际上通过nfs的配额参数和xfs文件系统的存储配额参数设置实现</li><li><strong>k8s只是通过pv和pvcg管理存储信息，并对存储目录进行挂载和卸载操作</strong></li></ul><ol start=3><li>PV对多个Pod使用时，能否控制总量？</li></ol><ul><li>目前，如果不通过storageclass方式，或者storageclass中nfs-provision不使用配额参数，则无法实现存储总量控制。</li></ul><ol start=4><li>pv是否能在线更新，比如扩容？</li></ol><ul><li><p>根据源码分析，通过storageclass方式可以实现pvc->pv的容量关联扩容。但是需要满足如下条件：</p><ol><li>API SERVER admission参数：PersistentVolumeClaimResize插件使能</li><li>StorageClass 配置yaml的allowVolumeExpansion设置为true</li><li>在官方文档对StorageClass扩容支持的存储类型范围内</li></ol></li><li><p>nfs无法通过通过pvc的resize扩容操作，来自动关联修改pv</p></li></ul><ol start=5><li>如果底层存储出问题，k8s是否能够感知管理，故障恢复。</li></ol><ul><li>底层存储依赖于具体存储组件（如：nfs）实现和异常处理。或考虑把nfs组件封装成nfs-server + nfs-provisioner 当做k8s集群中的pod管理起来。</li></ul><h2 id=参考>参考</h2><ul><li><a href=https://github.com/kubernetes/community/blob/master/contributors/design-proposals/storage/persistent-storage.md target=_blank rel="noopener noreffer">持久存储设计文档</a></li><li><a href=https://kubernetes.io/zh/docs/concepts/storage/storage-classes/ target=_blank rel="noopener noreffer">存储类StorageClass</a></li><li><a href=https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner target=_blank rel="noopener noreffer">nfs-subdir-external-provisioner</a></li><li><a href=https://www.cnblogs.com/panwenbin-logs/p/12196286.html>https://www.cnblogs.com/panwenbin-logs/p/12196286.html</a></li></ul><h2 id=附录>附录</h2><h3 id=配置>配置</h3><h4 id=storageclass>StorageClass</h4><p>class.yaml</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
 </span><span class=lnt>3
 </span><span class=lnt>4
