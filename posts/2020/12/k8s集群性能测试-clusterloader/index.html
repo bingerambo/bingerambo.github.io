@@ -1,8 +1,8 @@
-<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>K8S集群性能测试-clusterloader - 斌哥的小站|Binge Blog</title><meta name=Description content="如何使用perf-test的clusterloader进行性能测试"><meta property="og:title" content="K8S集群性能测试-clusterloader"><meta property="og:description" content="如何使用perf-test的clusterloader进行性能测试"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2020/12/k8s%E9%9B%86%E7%BE%A4%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95-clusterloader/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2020-12-15T08:43:17+08:00"><meta property="article:modified_time" content="2020-12-15T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="K8S集群性能测试-clusterloader"><meta name=twitter:description content="如何使用perf-test的clusterloader进行性能测试"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2020/12/k8s%E9%9B%86%E7%BE%A4%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95-clusterloader/><link rel=prev href=http://bingerambo.com/posts/2020/12/k8s%E9%9B%86%E7%BE%A4%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95-kubemark/><link rel=next href=http://bingerambo.com/posts/2020/12/%E8%84%9A%E6%9C%AC%E9%83%A8%E7%BD%B2python3/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"K8S集群性能测试-clusterloader","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2020\/12\/k8s%E9%9B%86%E7%BE%A4%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95-clusterloader\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":14783,"url":"http:\/\/bingerambo.com\/posts\/2020\/12\/k8s%E9%9B%86%E7%BE%A4%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95-clusterloader\/","datePublished":"2020-12-15T08:43:17+08:00","dateModified":"2020-12-15T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":"如何使用perf-test的clusterloader进行性能测试"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
-<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">K8S集群性能测试-clusterloader</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2020-12-15>2020-12-15</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 14783 字&nbsp;
-<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 30 分钟&nbsp;
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>K8S集群性能测试-clusterloader - 斌哥的小站|Binge Blog</title><meta name=Description content="如何使用perf-test的clusterloader进行性能测试"><meta property="og:title" content="K8S集群性能测试-clusterloader"><meta property="og:description" content="如何使用perf-test的clusterloader进行性能测试"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2020/12/k8s%E9%9B%86%E7%BE%A4%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95-clusterloader/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2020-12-15T08:43:17+08:00"><meta property="article:modified_time" content="2020-12-15T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="K8S集群性能测试-clusterloader"><meta name=twitter:description content="如何使用perf-test的clusterloader进行性能测试"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2020/12/k8s%E9%9B%86%E7%BE%A4%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95-clusterloader/><link rel=prev href=http://bingerambo.com/posts/2020/12/k8s%E9%9B%86%E7%BE%A4%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95-kubemark/><link rel=next href=http://bingerambo.com/posts/2020/12/%E8%84%9A%E6%9C%AC%E9%83%A8%E7%BD%B2python3/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"K8S集群性能测试-clusterloader","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2020\/12\/k8s%E9%9B%86%E7%BE%A4%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95-clusterloader\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":17628,"url":"http:\/\/bingerambo.com\/posts\/2020\/12\/k8s%E9%9B%86%E7%BE%A4%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95-clusterloader\/","datePublished":"2020-12-15T08:43:17+08:00","dateModified":"2020-12-15T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":"如何使用perf-test的clusterloader进行性能测试"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">K8S集群性能测试-clusterloader</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2020-12-15>2020-12-15</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 17628 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 36 分钟&nbsp;
 <i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
-<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#1-k8s的性能指标slisslos>1 K8S的性能指标：SLIs/SLOs</a></li><li><a href=#2-clusterloader准备>2 clusterloader准备</a></li><li><a href=#3-clusterloader测试>3 clusterloader测试</a><ul><li><a href=#1-运行命令>1. 运行命令</a></li><li><a href=#2-测试配置文件-test-config默认>2. 测试配置文件 test config（默认）</a><ul><li><a href=#test-configyaml默认配置>test config.yaml（默认配置）</a></li><li><a href=#rcyaml>rc.yaml</a></li><li><a href=#deploymentyaml>deployment.yaml</a></li></ul></li><li><a href=#3-clusterloader2-源码简析>3. clusterloader2 源码简析</a><ul><li><a href=#measurement处理>Measurement处理</a></li><li><a href=#phases处理>Phases处理</a></li></ul></li><li><a href=#4-部署测试>4. 部署测试</a><ul><li><a href=#1-k8s-2节点环境>.1 k8s-2节点环境</a><ul><li><a href=#1-部署configyaml>.1 部署config.yaml</a></li><li><a href=#2-部署rcyaml>.2 部署rc.yaml</a></li><li><a href=#3-部署测试信息>.3 部署测试信息</a></li><li><a href=#4-测试报告>.4 测试报告</a></li></ul></li><li><a href=#2-kubemark节点环境>.2 kubemark节点环境</a><ul><li><a href=#node-pod状态>node-pod状态</a></li><li><a href=#测试1>测试1</a></li><li><a href=#测试2>测试2</a></li><li><a href=#测试3>测试3</a></li><li><a href=#测试4>测试4</a></li></ul></li></ul></li></ul></li><li><a href=#4-对自定义调度器测试>4 对自定义调度器测试</a><ul><li><a href=#源码修改>源码修改</a></li><li><a href=#配置文件>配置文件</a></li><li><a href=#custom_clusterloader运行命令>custom_clusterloader运行命令</a></li></ul></li><li><a href=#5-问题>5 问题</a><ul><li><a href=#1-提示-getting-master-name-error-master-node-not-found和-getting-master-internal-ip-error-didnt-find-any-internalip-master-ips>1. 提示 Getting master name error: master node not found和 Getting master internal ip error: didn&rsquo;t find any InternalIP master IPs</a></li><li><a href=#2--errors-measurement-call-testmetrics---testmetrics-error-unexpected-error-code-0-in-ssh-connection-to-master-errorserrorstringserror-getting-signer-for-provider--getsigner-not-implemented-for->2. Errors: [measurement call TestMetrics - TestMetrics error: [unexpected error (code: 0) in ssh connection to master: &errors.errorString{s:&ldquo;error getting signer for provider : &lsquo;GetSigner(&mldr;) not implemented for &lsquo;"}]</a></li><li><a href=#3-告警提示master-node-is-not-registered-grabbing-metrics-from-scheduler-controllermanager-and-clusterautoscaler-is-disabled>3. 告警提示：Master node is not registered. Grabbing metrics from Scheduler, ControllerManager and ClusterAutoscaler is disabled.</a></li><li><a href=#4-etcdmetrics信息获取不到etcdmetrics-failed-to-collect-etcd-database-size>4. EtcdMetrics信息获取不到：EtcdMetrics: failed to collect etcd database size</a></li><li><a href=#5报错找不到资源--testmetrics-the-server-could-not-find-the-requested-resource-get-pods-kube-scheduler-19216818210110251>5.报错找不到资源 TestMetrics: [the server could not find the requested resource (get pods kube-scheduler-192.168.182.101:10251)]</a></li><li><a href=#6-测试结果指标异常输出>6. 测试结果指标异常输出</a></li></ul></li><li><a href=#6-总结>6 总结</a></li><li><a href=#7-附录>7 附录</a><ul><li><ul><li><a href=#k8s的sli-服务等级指标-和-slo-服务等级目标>K8S的SLI (服务等级指标) 和 SLO (服务等级目标)</a></li></ul></li><li><a href=#etcd监控指标>Etcd监控指标</a><ul><li><a href=#领导者相关>领导者相关</a></li><li><a href=#网络相关>网络相关</a></li><li><a href=#提案相关>提案相关</a></li><li><a href=#这些指标描述了磁盘操作的状态>这些指标描述了磁盘操作的状态。</a></li><li><a href=#快照>快照</a></li><li><a href=#文件>文件</a></li></ul></li></ul></li></ul></nav></div></div><div class=content id=content><p>如何使用perf-test的clusterloader进行性能测试</p><img src=/images/k8s/featured-image.jpg><h2 id=1-k8s的性能指标slisslos>1 K8S的性能指标：SLIs/SLOs</h2><p>K8S的SLI (服务等级指标) 和 SLO (服务等级目标)：
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#1-k8s的性能指标slisslos>1 K8S的性能指标：SLIs/SLOs</a></li><li><a href=#2-clusterloader准备>2 clusterloader准备</a></li><li><a href=#3-clusterloader测试>3 clusterloader测试</a><ul><li><a href=#1-运行命令>1. 运行命令</a></li><li><a href=#2-测试配置文件-test-config默认>2. 测试配置文件 test config（默认）</a><ul><li><a href=#test-configyaml默认配置>test config.yaml（默认配置）</a></li><li><a href=#rcyaml>rc.yaml</a></li><li><a href=#deploymentyaml>deployment.yaml</a></li></ul></li><li><a href=#3-clusterloader2-源码简析>3. clusterloader2 源码简析</a><ul><li><a href=#measurement处理>Measurement处理</a></li><li><a href=#phases处理>Phases处理</a></li></ul></li><li><a href=#4-部署测试>4. 部署测试</a><ul><li><a href=#1-k8s-2节点环境>.1 k8s-2节点环境</a><ul><li><a href=#1-部署configyaml>.1 部署config.yaml</a></li><li><a href=#2-部署rcyaml>.2 部署rc.yaml</a></li><li><a href=#3-部署测试信息>.3 部署测试信息</a></li><li><a href=#4-测试报告>.4 测试报告</a></li></ul></li><li><a href=#2-kubemark节点环境>.2 kubemark节点环境</a><ul><li><a href=#node-pod状态>node-pod状态</a></li><li><a href=#测试1>测试1</a></li><li><a href=#测试2>测试2</a></li><li><a href=#测试3>测试3</a></li><li><a href=#测试4>测试4</a></li></ul></li></ul></li></ul></li><li><a href=#4-对自定义调度器测试>4 对自定义调度器测试</a><ul><li><a href=#源码修改>源码修改</a></li><li><a href=#配置文件>配置文件</a></li><li><a href=#custom_clusterloader运行命令>custom_clusterloader运行命令</a></li></ul></li><li><a href=#5-压力测试配置和执行脚本>5 压力测试配置和执行脚本</a><ul><li><a href=#1-benchmark测试>1 benchmark测试</a><ul><li><a href=#config-benchmarkyaml>config-benchmark.yaml</a></li><li><a href=#rc-benchmarkyaml>rc-benchmark.yaml</a></li><li><a href=#执行脚本benchmark_clusterlodersh>执行脚本benchmark_clusterloder.sh</a></li></ul></li><li><a href=#2-batch测试>2 batch测试</a><ul><li><a href=#config-batchyaml>config-batch.yaml</a></li><li><a href=#rc-batchyaml>rc-batch.yaml</a></li><li><a href=#执行脚本custom_clusterloadersh>执行脚本custom_clusterloader.sh</a></li></ul></li></ul></li><li><a href=#6-问题>6 问题</a><ul><li><a href=#1-提示-getting-master-name-error-master-node-not-found和-getting-master-internal-ip-error-didnt-find-any-internalip-master-ips>1. 提示 Getting master name error: master node not found和 Getting master internal ip error: didn&rsquo;t find any InternalIP master IPs</a></li><li><a href=#2--errors-measurement-call-testmetrics---testmetrics-error-unexpected-error-code-0-in-ssh-connection-to-master-errorserrorstringserror-getting-signer-for-provider--getsigner-not-implemented-for->2. Errors: [measurement call TestMetrics - TestMetrics error: [unexpected error (code: 0) in ssh connection to master: &errors.errorString{s:&ldquo;error getting signer for provider : &lsquo;GetSigner(&mldr;) not implemented for &lsquo;"}]</a></li><li><a href=#3-告警提示master-node-is-not-registered-grabbing-metrics-from-scheduler-controllermanager-and-clusterautoscaler-is-disabled>3. 告警提示：Master node is not registered. Grabbing metrics from Scheduler, ControllerManager and ClusterAutoscaler is disabled.</a></li><li><a href=#4-etcdmetrics信息获取不到etcdmetrics-failed-to-collect-etcd-database-size>4. EtcdMetrics信息获取不到：EtcdMetrics: failed to collect etcd database size</a></li><li><a href=#5报错找不到资源--testmetrics-the-server-could-not-find-the-requested-resource-get-pods-kube-scheduler-19216818210110251>5.报错找不到资源 TestMetrics: [the server could not find the requested resource (get pods kube-scheduler-192.168.182.101:10251)]</a></li><li><a href=#6-测试结果指标异常输出>6. 测试结果指标异常输出</a></li></ul></li><li><a href=#7-总结>7 总结</a></li><li><a href=#8-附录>8 附录</a><ul><li><ul><li><a href=#k8s的sli-服务等级指标-和-slo-服务等级目标>K8S的SLI (服务等级指标) 和 SLO (服务等级目标)</a></li></ul></li><li><a href=#etcd监控指标>Etcd监控指标</a><ul><li><a href=#领导者相关>领导者相关</a></li><li><a href=#网络相关>网络相关</a></li><li><a href=#提案相关>提案相关</a></li><li><a href=#这些指标描述了磁盘操作的状态>这些指标描述了磁盘操作的状态。</a></li><li><a href=#快照>快照</a></li><li><a href=#文件>文件</a></li></ul></li></ul></li></ul></nav></div></div><div class=content id=content><p>如何使用perf-test的clusterloader进行性能测试</p><img src=/images/k8s/featured-image.jpg><h2 id=1-k8s的性能指标slisslos>1 K8S的性能指标：SLIs/SLOs</h2><p>K8S的SLI (服务等级指标) 和 SLO (服务等级目标)：
 Kubernetes 社区提供的K8S系统性能测试指标定义。</p><p>社区参考文档：<a href=https://github.com/kubernetes/community/blob/master/sig-scalability/slos/slos.md target=_blank rel="noopener noreffer">Kubernetes scalability and performance SLIs/SLOs</a></p><p>目前社区提供的<code>官方正式</code>的性能指标有3个，如下表：</p><table><thead><tr><th>Status</th><th>SLI</th><th>SLO</th></tr></thead><tbody><tr><td>Official</td><td>Latency of mutating API calls for single objects for every (resource, verb) pair, measured as 99th percentile over last 5 minutes</td><td>In default Kubernetes installation, for every (resource, verb) pair, excluding virtual and aggregated resources and Custom Resource Definitions, 99th percentile per cluster-day1 &lt;= 1s</td></tr><tr><td>Official</td><td>Latency of non-streaming read-only API calls for every (resource, scope pair, measured as 99th percentile over last 5 minutes</td><td>In default Kubernetes installation, for every (resource, scope) pair, excluding virtual and aggregated resources and Custom Resource Definitions, 99th percentile per cluster-day1 (a) &lt;= 1s if scope=resource (b) &lt;= 5s if scope=namespace (c) &lt;= 30s if scope=cluster</td></tr><tr><td>Official</td><td>Startup latency of schedulable stateless pods, excluding time to pull images and run init containers, measured from pod creation timestamp to when all its containers are reported as started and observed via watch, measured as 99th percentile over last 5 minutes</td><td>In default Kubernetes installation, 99th percentile per cluster-day1 &lt;= 5s</td></tr></tbody></table><h2 id=2-clusterloader准备>2 clusterloader准备</h2><ol><li>从github上拉取<a href=https://github.com/kubernetes/perf-tests target=_blank rel="noopener noreffer">perf-test项目</a>，其中包含clusterloader2。perf-tests位置为：$GOPATH/src/k8s.io/perf-tests<ul><li>需要选择与测试k8s集群匹配的版本，这里选择了1.14版本</li></ul></li><li>进入clusterloader2目录，进行编译</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
 </span><span class=lnt>3
@@ -2395,7 +2395,1305 @@ I1215 16:19:49.287954   <span class=m>32636</span> clusterloader.go:184<span cla
 </span><span class=se></span>    --testconfig<span class=o>=</span><span class=nv>$TEST_CONFIG</span> <span class=se>\
 </span><span class=se></span>    --report-dir<span class=o>=</span><span class=nv>$REPORT_DIR</span> <span class=se>\
 </span><span class=se></span>    --alsologtostderr 2&gt;<span class=p>&amp;</span><span class=m>1</span> <span class=p>|</span> tee <span class=nv>$LOG_FILE</span>
-</code></pre></td></tr></table></div></div><h2 id=5-问题>5 问题</h2><h3 id=1-提示-getting-master-name-error-master-node-not-found和-getting-master-internal-ip-error-didnt-find-any-internalip-master-ips>1. 提示 Getting master name error: master node not found和 Getting master internal ip error: didn&rsquo;t find any InternalIP master IPs</h3><p>mastername和 internalip 参数需要配置</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</code></pre></td></tr></table></div></div><h2 id=5-压力测试配置和执行脚本>5 压力测试配置和执行脚本</h2><h3 id=1-benchmark测试>1 benchmark测试</h3><p>benchmark测试是测试k8s调度器性能和pod延时指标</p><h4 id=config-benchmarkyaml>config-benchmark.yaml</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span><span class=lnt>140
+</span><span class=lnt>141
+</span><span class=lnt>142
+</span><span class=lnt>143
+</span><span class=lnt>144
+</span><span class=lnt>145
+</span><span class=lnt>146
+</span><span class=lnt>147
+</span><span class=lnt>148
+</span><span class=lnt>149
+</span><span class=lnt>150
+</span><span class=lnt>151
+</span><span class=lnt>152
+</span><span class=lnt>153
+</span><span class=lnt>154
+</span><span class=lnt>155
+</span><span class=lnt>156
+</span><span class=lnt>157
+</span><span class=lnt>158
+</span><span class=lnt>159
+</span><span class=lnt>160
+</span><span class=lnt>161
+</span><span class=lnt>162
+</span><span class=lnt>163
+</span><span class=lnt>164
+</span><span class=lnt>165
+</span><span class=lnt>166
+</span><span class=lnt>167
+</span><span class=lnt>168
+</span><span class=lnt>169
+</span><span class=lnt>170
+</span><span class=lnt>171
+</span><span class=lnt>172
+</span><span class=lnt>173
+</span><span class=lnt>174
+</span><span class=lnt>175
+</span><span class=lnt>176
+</span><span class=lnt>177
+</span><span class=lnt>178
+</span><span class=lnt>179
+</span><span class=lnt>180
+</span><span class=lnt>181
+</span><span class=lnt>182
+</span><span class=lnt>183
+</span><span class=lnt>184
+</span><span class=lnt>185
+</span><span class=lnt>186
+</span><span class=lnt>187
+</span><span class=lnt>188
+</span><span class=lnt>189
+</span><span class=lnt>190
+</span><span class=lnt>191
+</span><span class=lnt>192
+</span><span class=lnt>193
+</span><span class=lnt>194
+</span><span class=lnt>195
+</span><span class=lnt>196
+</span><span class=lnt>197
+</span><span class=lnt>198
+</span><span class=lnt>199
+</span><span class=lnt>200
+</span><span class=lnt>201
+</span><span class=lnt>202
+</span><span class=lnt>203
+</span><span class=lnt>204
+</span><span class=lnt>205
+</span><span class=lnt>206
+</span><span class=lnt>207
+</span><span class=lnt>208
+</span><span class=lnt>209
+</span><span class=lnt>210
+</span><span class=lnt>211
+</span><span class=lnt>212
+</span><span class=lnt>213
+</span><span class=lnt>214
+</span><span class=lnt>215
+</span><span class=lnt>216
+</span><span class=lnt>217
+</span><span class=lnt>218
+</span><span class=lnt>219
+</span><span class=lnt>220
+</span><span class=lnt>221
+</span><span class=lnt>222
+</span><span class=lnt>223
+</span><span class=lnt>224
+</span><span class=lnt>225
+</span><span class=lnt>226
+</span><span class=lnt>227
+</span><span class=lnt>228
+</span><span class=lnt>229
+</span><span class=lnt>230
+</span><span class=lnt>231
+</span><span class=lnt>232
+</span><span class=lnt>233
+</span><span class=lnt>234
+</span><span class=lnt>235
+</span><span class=lnt>236
+</span><span class=lnt>237
+</span><span class=lnt>238
+</span><span class=lnt>239
+</span><span class=lnt>240
+</span><span class=lnt>241
+</span><span class=lnt>242
+</span><span class=lnt>243
+</span><span class=lnt>244
+</span><span class=lnt>245
+</span><span class=lnt>246
+</span><span class=lnt>247
+</span><span class=lnt>248
+</span><span class=lnt>249
+</span><span class=lnt>250
+</span><span class=lnt>251
+</span><span class=lnt>252
+</span><span class=lnt>253
+</span><span class=lnt>254
+</span><span class=lnt>255
+</span><span class=lnt>256
+</span><span class=lnt>257
+</span><span class=lnt>258
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=c># ASSUMPTIONS:</span><span class=w>
+</span><span class=w></span><span class=c># - Underlying cluster should have 100+ nodes.</span><span class=w>
+</span><span class=w></span><span class=c># - Number of nodes should be divisible by NODES_PER_NAMESPACE (default 100).</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c># cnofig-benchmark 测试标准k8s调度器和其它k8s标准组件性能</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c>#Constants</span><span class=w>
+</span><span class=w></span><span class=c># {{$DENSITY_RESOURCE_CONSTRAINTS_FILE := DefaultParam .DENSITY_RESOURCE_CONSTRAINTS_FILE &#34;&#34;}}</span><span class=w>
+</span><span class=w></span><span class=c># 根据100节点规模，使用100_nodes/constraints.yaml进行测试</span><span class=w>
+</span><span class=w></span>{{<span class=l>$DENSITY_RESOURCE_CONSTRAINTS_FILE := DefaultParam .DENSITY_RESOURCE_CONSTRAINTS_FILE &#34;./100_nodes/constraints.yaml&#34;}}</span><span class=w>
+</span><span class=w></span><span class=c># {{$NODE_MODE := DefaultParam .NODE_MODE &#34;allnodes&#34;}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$NODE_MODE := DefaultParam .NODE_MODE &#34;master&#34;}}</span><span class=w>
+</span><span class=w></span><span class=c># 至少保证100个节点规模</span><span class=w>
+</span><span class=w></span><span class=c># 设置 NODES_PER_NAMESPACE 50，保证totalPods = 5000</span><span class=w>
+</span><span class=w></span>{{<span class=l>$NODES_PER_NAMESPACE := DefaultParam .NODES_PER_NAMESPACE 100}}</span><span class=w>
+</span><span class=w></span><span class=c># 设置 NODES_PER_NAMESPACE 100，保证totalPods = 10000</span><span class=w>
+</span><span class=w></span><span class=c># {{$NODES_PER_NAMESPACE := DefaultParam .NODES_PER_NAMESPACE 100}}</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c># PODS_PER_NODE 0 则禁用saturation</span><span class=w>
+</span><span class=w></span>{{<span class=l>$PODS_PER_NODE := DefaultParam .PODS_PER_NODE 10}}</span><span class=w>
+</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c># 并发数，目前aist 调度器 处理业务并发数20，会有阻塞。</span><span class=w>
+</span><span class=w></span><span class=c># DENSITY_TEST_THROUGHPUT 10 或 20 进行测试 注意跟下面tuningSets配置 qpsLoad: qps 保持一致</span><span class=w>
+</span><span class=w></span>{{<span class=l>$DENSITY_TEST_THROUGHPUT := DefaultParam .DENSITY_TEST_THROUGHPUT 5}}</span><span class=w>
+</span><span class=w></span><span class=c># LATENCY_POD_MEMORY and LATENCY_POD_CPU are calculated for 1-core 4GB node.</span><span class=w>
+</span><span class=w></span><span class=c># Increasing allocation of both memory and cpu by 10%</span><span class=w>
+</span><span class=w></span><span class=c># decreases the value of priority function in scheduler by one point.</span><span class=w>
+</span><span class=w></span><span class=c># This results in decreased probability of choosing the same node again.</span><span class=w>
+</span><span class=w></span><span class=c># {{$LATENCY_POD_CPU := DefaultParam .LATENCY_POD_CPU 10}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$LATENCY_POD_CPU := DefaultParam .LATENCY_POD_CPU 10}}</span><span class=w>
+</span><span class=w></span><span class=c># {{$LATENCY_POD_MEMORY := DefaultParam .LATENCY_POD_MEMORY 35}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$LATENCY_POD_MEMORY := DefaultParam .LATENCY_POD_MEMORY 10}}</span><span class=w>
+</span><span class=w></span><span class=c># MIN_LATENCY_PODS为0，则禁用latency</span><span class=w>
+</span><span class=w></span><span class=c># {{$MIN_LATENCY_PODS := 0}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$MIN_LATENCY_PODS := 0}}</span><span class=w>
+</span><span class=w>
+</span><span class=w></span>{{<span class=l>$MIN_SATURATION_PODS_TIMEOUT := 180}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$ENABLE_CHAOSMONKEY := DefaultParam .ENABLE_CHAOSMONKEY false}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$ENABLE_SYSTEM_POD_METRICS:= DefaultParam .ENABLE_SYSTEM_POD_METRICS false}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$ENABLE_RESTART_COUNT_CHECK := DefaultParam .ENABLE_RESTART_COUNT_CHECK false}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$RESTART_COUNT_THRESHOLD_OVERRIDES:= DefaultParam .RESTART_COUNT_THRESHOLD_OVERRIDES &#34;&#34;}}</span><span class=w>
+</span><span class=w></span><span class=c>#Variables</span><span class=w>
+</span><span class=w></span>{{<span class=l>$namespaces := DivideInt .Nodes $NODES_PER_NAMESPACE}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$podsPerNamespace := MultiplyInt $PODS_PER_NODE $NODES_PER_NAMESPACE}}</span><span class=w>
+</span><span class=w></span><span class=c># 总pod数量：ns数量*每个ns的pod数（ PODS_PER_NODE * NODES_PER_NAMESPACE ）</span><span class=w>
+</span><span class=w></span>{{<span class=l>$totalPods := MultiplyInt $podsPerNamespace $namespaces}}</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c># 如果 SATURATION, 设置 latencyReplicas = 0 则禁用latency</span><span class=w>
+</span><span class=w></span><span class=c># {{$latencyReplicas := 0}}</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c># if latency set latency</span><span class=w>
+</span><span class=w></span>{{<span class=l>$latencyReplicas := DivideInt (MaxInt $MIN_LATENCY_PODS .Nodes) $namespaces}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$totalLatencyPods := MultiplyInt $namespaces $latencyReplicas}}</span><span class=w>
+</span><span class=w></span><span class=c># {{$saturationRCTimeout := DivideFloat $totalPods $DENSITY_TEST_THROUGHPUT | AddInt $MIN_SATURATION_PODS_TIMEOUT}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$saturationRCTimeout := 3600}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$podsTimeout := DivideFloat $totalLatencyPods $DENSITY_TEST_THROUGHPUT | AddInt $MIN_SATURATION_PODS_TIMEOUT}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$latencyPodsTimeout := MaxInt $podsTimeout 7200}}</span><span class=w>
+</span><span class=w></span><span class=c># saturationRCHardTimeout must be at least 20m to make sure that ~10m node</span><span class=w>
+</span><span class=w></span><span class=c># failure won&#39;t fail the test. See https://github.com/kubernetes/kubernetes/issues/73461#issuecomment-467338711</span><span class=w>
+</span><span class=w></span><span class=c># 这里的超时 是wait_for_controlled_pods 时使用，一旦超过阈值，就会设置该pod为timeout</span><span class=w>
+</span><span class=w></span><span class=c># {{$saturationRCHardTimeout := MaxInt $saturationRCTimeout 1200}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$saturationRCHardTimeout := MaxInt $saturationRCTimeout 3600}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$latencyRCHardTimeout := MaxInt $latencyPodsTimeout 3600}}</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c># add by binge</span><span class=w>
+</span><span class=w></span><span class=c># SchedulingThroughput 默认是在saturation中添加，自定义又在latency添加</span><span class=w>
+</span><span class=w></span><span class=c># 为避免调度器2个场景中的调度器吞吐量混淆，每次只统计一种场景下的调度器吞吐量SchedulingThroughput</span><span class=w>
+</span><span class=w></span><span class=c># 可以通过设置某场景的pod副本数为0方式，禁用该场景</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>density</span><span class=w>
+</span><span class=w></span><span class=nt>automanagedNamespaces</span><span class=p>:</span><span class=w> </span>{{<span class=l>$namespaces}}</span><span class=w>
+</span><span class=w></span><span class=nt>tuningSets</span><span class=p>:</span><span class=w>
+</span><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Uniform5qps</span><span class=w>
+</span><span class=w>  </span><span class=nt>qpsLoad</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=c># qps: 5</span><span class=w>
+</span><span class=w>    </span><span class=c># custom value</span><span class=w>
+</span><span class=w>    </span><span class=nt>qps</span><span class=p>:</span><span class=w> </span>{{<span class=l>$DENSITY_TEST_THROUGHPUT}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>if $ENABLE_CHAOSMONKEY}}</span><span class=w>
+</span><span class=w></span><span class=nt>chaosMonkey</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>nodeFailure</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>failureRate</span><span class=p>:</span><span class=w> </span><span class=m>0.01</span><span class=w>
+</span><span class=w>    </span><span class=nt>interval</span><span class=p>:</span><span class=w> </span><span class=l>1m</span><span class=w>
+</span><span class=w>    </span><span class=nt>jitterFactor</span><span class=p>:</span><span class=w> </span><span class=m>10.0</span><span class=w>
+</span><span class=w>    </span><span class=nt>simulatedDowntime</span><span class=p>:</span><span class=w> </span><span class=l>10m</span><span class=w>
+</span><span class=w></span>{{<span class=l>end}}</span><span class=w>
+</span><span class=w></span><span class=nt>steps</span><span class=p>:</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>APIResponsiveness</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>APIResponsiveness</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>reset</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>TestMetrics</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>TestMetrics</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>start</span><span class=w>
+</span><span class=w>      </span><span class=nt>nodeMode</span><span class=p>:</span><span class=w> </span>{{<span class=l>$NODE_MODE}}</span><span class=w>
+</span><span class=w>      </span><span class=nt>resourceConstraints</span><span class=p>:</span><span class=w> </span>{{<span class=l>$DENSITY_RESOURCE_CONSTRAINTS_FILE}}</span><span class=w>
+</span><span class=w>      </span><span class=nt>systemPodMetricsEnabled</span><span class=p>:</span><span class=w> </span>{{<span class=l>$ENABLE_SYSTEM_POD_METRICS}}</span><span class=w>
+</span><span class=w>      </span><span class=nt>restartCountThresholdOverrides</span><span class=p>:</span><span class=w> </span>{{<span class=l>YamlQuote $RESTART_COUNT_THRESHOLD_OVERRIDES 4}}</span><span class=w>
+</span><span class=w>      </span><span class=nt>enableRestartCountCheck</span><span class=p>:</span><span class=w> </span>{{<span class=l>$ENABLE_RESTART_COUNT_CHECK}}</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c># Create saturation pods</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>SaturationPodStartupLatency</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>PodStartupLatency</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>start</span><span class=w>
+</span><span class=w>      </span><span class=nt>labelSelector</span><span class=p>:</span><span class=w> </span><span class=l>group = saturation</span><span class=w>
+</span><span class=w>      </span><span class=nt>threshold</span><span class=p>:</span><span class=w> </span>{{<span class=l>$saturationRCTimeout}}s</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>WaitForRunningSaturationRCs</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>WaitForControlledPodsRunning</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>start</span><span class=w>
+</span><span class=w>      </span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w>      </span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ReplicationController</span><span class=w>
+</span><span class=w>      </span><span class=nt>labelSelector</span><span class=p>:</span><span class=w> </span><span class=l>group = saturation</span><span class=w>
+</span><span class=w>      </span><span class=nt>operationTimeout</span><span class=p>:</span><span class=w> </span>{{<span class=l>$saturationRCHardTimeout}}s</span><span class=w>
+</span><span class=w></span>- <span class=nt>phases</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>namespaceRange</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>min</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>      </span><span class=nt>max</span><span class=p>:</span><span class=w> </span>{{<span class=l>$namespaces}}</span><span class=w>
+</span><span class=w>    </span><span class=nt>replicasPerNamespace</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>    </span><span class=nt>tuningSet</span><span class=p>:</span><span class=w> </span><span class=l>Uniform5qps</span><span class=w>
+</span><span class=w>    </span><span class=nt>objectBundle</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>basename</span><span class=p>:</span><span class=w> </span><span class=l>saturation-rc</span><span class=w>
+</span><span class=w>      </span><span class=nt>objectTemplatePath</span><span class=p>:</span><span class=w> </span><span class=l>rc-benchmark.yaml</span><span class=w>
+</span><span class=w>      </span><span class=nt>templateFillMap</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>Replicas</span><span class=p>:</span><span class=w> </span>{{<span class=l>$podsPerNamespace}}</span><span class=w>
+</span><span class=w>        </span><span class=nt>Group</span><span class=p>:</span><span class=w> </span><span class=l>saturation</span><span class=w>
+</span><span class=w>        </span><span class=nt>CpuRequest</span><span class=p>:</span><span class=w> </span><span class=l>10m</span><span class=w>
+</span><span class=w>        </span><span class=nt>MemoryRequest</span><span class=p>:</span><span class=w> </span><span class=l>10M</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>SchedulingThroughput</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>SchedulingThroughput</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>start</span><span class=w>
+</span><span class=w>      </span><span class=nt>labelSelector</span><span class=p>:</span><span class=w> </span><span class=l>group = saturation</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>WaitForRunningSaturationRCs</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>WaitForControlledPodsRunning</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>SaturationPodStartupLatency</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>PodStartupLatency</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>SchedulingThroughput</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>SchedulingThroughput</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Creating saturation pods</span><span class=w>
+</span><span class=w></span><span class=c># Create latency pods</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>PodStartupLatency</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>PodStartupLatency</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>start</span><span class=w>
+</span><span class=w>      </span><span class=nt>labelSelector</span><span class=p>:</span><span class=w> </span><span class=l>group = latency</span><span class=w>
+</span><span class=w>      </span><span class=nt>threshold</span><span class=p>:</span><span class=w> </span>{{<span class=l>$latencyPodsTimeout}}s</span><span class=w> </span><span class=c># custom threshold params == saturationRCTimeout</span><span class=w>
+</span><span class=w></span><span class=c># latency SchedulingThroughput add by binge</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>SchedulingThroughput</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>SchedulingThroughput</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>start</span><span class=w>
+</span><span class=w>      </span><span class=nt>labelSelector</span><span class=p>:</span><span class=w> </span><span class=l>group = latency</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>WaitForRunningLatencyRCs</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>WaitForControlledPodsRunning</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>start</span><span class=w>
+</span><span class=w>      </span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w>      </span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ReplicationController</span><span class=w>
+</span><span class=w>      </span><span class=nt>labelSelector</span><span class=p>:</span><span class=w> </span><span class=l>group = latency</span><span class=w>
+</span><span class=w>      </span><span class=c># operationTimeout: 15m</span><span class=w>
+</span><span class=w>      </span><span class=nt>operationTimeout</span><span class=p>:</span><span class=w> </span>{{<span class=l>$latencyRCHardTimeout}}s</span><span class=w>
+</span><span class=w></span>- <span class=nt>phases</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>namespaceRange</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>min</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>      </span><span class=nt>max</span><span class=p>:</span><span class=w> </span>{{<span class=l>$namespaces}}</span><span class=w>
+</span><span class=w>    </span><span class=nt>replicasPerNamespace</span><span class=p>:</span><span class=w> </span>{{<span class=l>$latencyReplicas}}</span><span class=w>
+</span><span class=w>    </span><span class=nt>tuningSet</span><span class=p>:</span><span class=w> </span><span class=l>Uniform5qps</span><span class=w>
+</span><span class=w>    </span><span class=nt>objectBundle</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>basename</span><span class=p>:</span><span class=w> </span><span class=l>latency-pod-rc</span><span class=w>
+</span><span class=w>      </span><span class=nt>objectTemplatePath</span><span class=p>:</span><span class=w> </span><span class=l>rc-benchmark.yaml</span><span class=w>
+</span><span class=w>      </span><span class=nt>templateFillMap</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>Replicas</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>        </span><span class=nt>Group</span><span class=p>:</span><span class=w> </span><span class=l>latency</span><span class=w>
+</span><span class=w>        </span><span class=nt>CpuRequest</span><span class=p>:</span><span class=w> </span>{{<span class=l>$LATENCY_POD_CPU}}m</span><span class=w>
+</span><span class=w>        </span><span class=nt>MemoryRequest</span><span class=p>:</span><span class=w> </span>{{<span class=l>$LATENCY_POD_MEMORY}}M</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>WaitForRunningLatencyRCs</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>WaitForControlledPodsRunning</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Creating latency pods</span><span class=w>
+</span><span class=w></span><span class=c># Remove latency pods</span><span class=w>
+</span><span class=w></span>- <span class=nt>phases</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>namespaceRange</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>min</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>      </span><span class=nt>max</span><span class=p>:</span><span class=w> </span>{{<span class=l>$namespaces}}</span><span class=w>
+</span><span class=w>    </span><span class=nt>replicasPerNamespace</span><span class=p>:</span><span class=w> </span><span class=m>0</span><span class=w>
+</span><span class=w>    </span><span class=nt>tuningSet</span><span class=p>:</span><span class=w> </span><span class=l>Uniform5qps</span><span class=w>
+</span><span class=w>    </span><span class=nt>objectBundle</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>basename</span><span class=p>:</span><span class=w> </span><span class=l>latency-pod-rc</span><span class=w>
+</span><span class=w>      </span><span class=nt>objectTemplatePath</span><span class=p>:</span><span class=w> </span><span class=l>rc-benchmark.yaml</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>WaitForRunningLatencyRCs</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>WaitForControlledPodsRunning</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>PodStartupLatency</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>PodStartupLatency</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>SchedulingThroughput</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>SchedulingThroughput</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Deleting latancy pods</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c># Delete pods</span><span class=w>
+</span><span class=w></span>- <span class=nt>phases</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>namespaceRange</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>min</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>      </span><span class=nt>max</span><span class=p>:</span><span class=w> </span>{{<span class=l>$namespaces}}</span><span class=w>
+</span><span class=w>    </span><span class=nt>replicasPerNamespace</span><span class=p>:</span><span class=w> </span><span class=m>0</span><span class=w>
+</span><span class=w>    </span><span class=nt>tuningSet</span><span class=p>:</span><span class=w> </span><span class=l>Uniform5qps</span><span class=w>
+</span><span class=w>    </span><span class=nt>objectBundle</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>basename</span><span class=p>:</span><span class=w> </span><span class=l>saturation-rc</span><span class=w>
+</span><span class=w>      </span><span class=nt>objectTemplatePath</span><span class=p>:</span><span class=w> </span><span class=l>rc-benchmark.yaml</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>WaitForRunningSaturationRCs</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>WaitForControlledPodsRunning</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Deleting saturation pods</span><span class=w>
+</span><span class=w></span><span class=c># Collect measurements</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>APIResponsiveness</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>APIResponsiveness</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>TestMetrics</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>TestMetrics</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w>      </span><span class=nt>systemPodMetricsEnabled</span><span class=p>:</span><span class=w> </span>{{<span class=l>$ENABLE_SYSTEM_POD_METRICS}}</span><span class=w>
+</span><span class=w>      </span><span class=nt>restartCountThresholdOverrides</span><span class=p>:</span><span class=w> </span>{{<span class=l>YamlQuote $RESTART_COUNT_THRESHOLD_OVERRIDES 4}}</span><span class=w>
+</span><span class=w>      </span><span class=nt>enableRestartCountCheck</span><span class=p>:</span><span class=w> </span>{{<span class=l>$ENABLE_RESTART_COUNT_CHECK}}</span><span class=w>
+</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><h4 id=rc-benchmarkyaml>rc-benchmark.yaml</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ReplicationController</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span>{{<span class=l>.Name}}</span><span class=w>
+</span><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>group</span><span class=p>:</span><span class=w> </span>{{<span class=l>.Group}}</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span>{{<span class=l>.Replicas}}</span><span class=w>
+</span><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>name</span><span class=p>:</span><span class=w> </span>{{<span class=l>.Name}}</span><span class=w>
+</span><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>name</span><span class=p>:</span><span class=w> </span>{{<span class=l>.Name}}</span><span class=w>
+</span><span class=w>        </span><span class=nt>group</span><span class=p>:</span><span class=w> </span>{{<span class=l>.Group}}</span><span class=w>
+</span><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=c># - image: 192.168.182.101:5000/com.inspur/pause-amd64:3.1</span><span class=w>
+</span><span class=w>      </span>- <span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=m>10.151.11.61</span><span class=p>:</span><span class=m>5000</span><span class=l>/com.inspur/pause-amd64:3.1</span><span class=w>
+</span><span class=w>        </span><span class=nt>imagePullPolicy</span><span class=p>:</span><span class=w> </span><span class=l>IfNotPresent</span><span class=w>
+</span><span class=w>        </span><span class=nt>name</span><span class=p>:</span><span class=w> </span>{{<span class=l>.Name}}</span><span class=w>
+</span><span class=w>        </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>          </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span><span class=w>            </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span>{{<span class=l>.CpuRequest}}</span><span class=w>
+</span><span class=w>            </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span>{{<span class=l>.MemoryRequest}}</span><span class=w>
+</span><span class=w>      </span><span class=c># Add not-ready/unreachable tolerations for 15 minutes so that node</span><span class=w>
+</span><span class=w>      </span><span class=c># failure doesn&#39;t trigger pod deletion.</span><span class=w>
+</span><span class=w>      </span><span class=nt>tolerations</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;node.kubernetes.io/not-ready&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>operator</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;Exists&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>effect</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;NoExecute&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>tolerationSeconds</span><span class=p>:</span><span class=w> </span><span class=m>900</span><span class=w>
+</span><span class=w>      </span>- <span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;node.kubernetes.io/unreachable&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>operator</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;Exists&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>effect</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;NoExecute&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>tolerationSeconds</span><span class=p>:</span><span class=w> </span><span class=m>900</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><h4 id=执行脚本benchmark_clusterlodersh>执行脚本benchmark_clusterloder.sh</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=cp>#!bash
+</span><span class=cp></span>
+<span class=nb>cd</span> /home/wangb/perf-test/clusterloader2
+<span class=c1># ssh访问参数</span>
+<span class=nb>export</span> <span class=nv>KUBE_SSH_KEY_PATH</span><span class=o>=</span>/root/.ssh/id_rsa
+<span class=c1># master节点信息</span>
+<span class=nv>MASTER_NAME</span><span class=o>=</span>node61
+<span class=nv>TEST_MASTER_IP</span><span class=o>=</span>10.151.11.61
+<span class=nv>TEST_MASTER_INTERNAL_IP</span><span class=o>=</span>10.151.11.61
+<span class=nv>KUBE_CONFIG</span><span class=o>=</span><span class=si>${</span><span class=nv>HOME</span><span class=si>}</span>/.kube/config
+<span class=c1># 测试配置文件</span>
+<span class=nv>TEST_CONFIG</span><span class=o>=</span><span class=s1>&#39;/home/wangb/perf-test/clusterloader2/testing/density/config-benchmark.yaml&#39;</span>
+<span class=c1># 测试报告目录位置</span>
+<span class=nv>REPORT_DIR</span><span class=o>=</span><span class=s1>&#39;./reports&#39;</span>
+<span class=c1># 测试日志打印文件</span>
+<span class=nv>LOG_FILE</span><span class=o>=</span><span class=s1>&#39;test.log&#39;</span>
+
+
+./clusterloader --kubeconfig<span class=o>=</span><span class=nv>$KUBE_CONFIG</span> <span class=se>\
+</span><span class=se></span>    --mastername<span class=o>=</span><span class=nv>$TEST_MASTER_IP</span> <span class=se>\
+</span><span class=se></span>    --masterip<span class=o>=</span><span class=nv>$MASTER_IP</span> <span class=se>\
+</span><span class=se></span>    --master-internal-ip<span class=o>=</span>TEST_MASTER_INTERNAL_IP <span class=se>\
+</span><span class=se></span>    --testconfig<span class=o>=</span><span class=nv>$TEST_CONFIG</span> <span class=se>\
+</span><span class=se></span>    --report-dir<span class=o>=</span><span class=nv>$REPORT_DIR</span> <span class=se>\
+</span><span class=se></span>    --alsologtostderr 2&gt;<span class=p>&amp;</span><span class=m>1</span> <span class=p>|</span> tee <span class=nv>$LOG_FILE</span>
+
+
+
+</code></pre></td></tr></table></div></div><h3 id=2-batch测试>2 batch测试</h3><p>batch测试是测试kube-batch调度器性能和pod延时指标</p><h4 id=config-batchyaml>config-batch.yaml</h4><p>测试kube-batch调度器的测试配置文件</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span><span class=lnt>140
+</span><span class=lnt>141
+</span><span class=lnt>142
+</span><span class=lnt>143
+</span><span class=lnt>144
+</span><span class=lnt>145
+</span><span class=lnt>146
+</span><span class=lnt>147
+</span><span class=lnt>148
+</span><span class=lnt>149
+</span><span class=lnt>150
+</span><span class=lnt>151
+</span><span class=lnt>152
+</span><span class=lnt>153
+</span><span class=lnt>154
+</span><span class=lnt>155
+</span><span class=lnt>156
+</span><span class=lnt>157
+</span><span class=lnt>158
+</span><span class=lnt>159
+</span><span class=lnt>160
+</span><span class=lnt>161
+</span><span class=lnt>162
+</span><span class=lnt>163
+</span><span class=lnt>164
+</span><span class=lnt>165
+</span><span class=lnt>166
+</span><span class=lnt>167
+</span><span class=lnt>168
+</span><span class=lnt>169
+</span><span class=lnt>170
+</span><span class=lnt>171
+</span><span class=lnt>172
+</span><span class=lnt>173
+</span><span class=lnt>174
+</span><span class=lnt>175
+</span><span class=lnt>176
+</span><span class=lnt>177
+</span><span class=lnt>178
+</span><span class=lnt>179
+</span><span class=lnt>180
+</span><span class=lnt>181
+</span><span class=lnt>182
+</span><span class=lnt>183
+</span><span class=lnt>184
+</span><span class=lnt>185
+</span><span class=lnt>186
+</span><span class=lnt>187
+</span><span class=lnt>188
+</span><span class=lnt>189
+</span><span class=lnt>190
+</span><span class=lnt>191
+</span><span class=lnt>192
+</span><span class=lnt>193
+</span><span class=lnt>194
+</span><span class=lnt>195
+</span><span class=lnt>196
+</span><span class=lnt>197
+</span><span class=lnt>198
+</span><span class=lnt>199
+</span><span class=lnt>200
+</span><span class=lnt>201
+</span><span class=lnt>202
+</span><span class=lnt>203
+</span><span class=lnt>204
+</span><span class=lnt>205
+</span><span class=lnt>206
+</span><span class=lnt>207
+</span><span class=lnt>208
+</span><span class=lnt>209
+</span><span class=lnt>210
+</span><span class=lnt>211
+</span><span class=lnt>212
+</span><span class=lnt>213
+</span><span class=lnt>214
+</span><span class=lnt>215
+</span><span class=lnt>216
+</span><span class=lnt>217
+</span><span class=lnt>218
+</span><span class=lnt>219
+</span><span class=lnt>220
+</span><span class=lnt>221
+</span><span class=lnt>222
+</span><span class=lnt>223
+</span><span class=lnt>224
+</span><span class=lnt>225
+</span><span class=lnt>226
+</span><span class=lnt>227
+</span><span class=lnt>228
+</span><span class=lnt>229
+</span><span class=lnt>230
+</span><span class=lnt>231
+</span><span class=lnt>232
+</span><span class=lnt>233
+</span><span class=lnt>234
+</span><span class=lnt>235
+</span><span class=lnt>236
+</span><span class=lnt>237
+</span><span class=lnt>238
+</span><span class=lnt>239
+</span><span class=lnt>240
+</span><span class=lnt>241
+</span><span class=lnt>242
+</span><span class=lnt>243
+</span><span class=lnt>244
+</span><span class=lnt>245
+</span><span class=lnt>246
+</span><span class=lnt>247
+</span><span class=lnt>248
+</span><span class=lnt>249
+</span><span class=lnt>250
+</span><span class=lnt>251
+</span><span class=lnt>252
+</span><span class=lnt>253
+</span><span class=lnt>254
+</span><span class=lnt>255
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=c># ASSUMPTIONS:</span><span class=w>
+</span><span class=w></span><span class=c># - Underlying cluster should have 100+ nodes.</span><span class=w>
+</span><span class=w></span><span class=c># - Number of nodes should be divisible by NODES_PER_NAMESPACE (default 100).</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c>#Constants</span><span class=w>
+</span><span class=w></span><span class=c># {{$DENSITY_RESOURCE_CONSTRAINTS_FILE := DefaultParam .DENSITY_RESOURCE_CONSTRAINTS_FILE &#34;&#34;}}</span><span class=w>
+</span><span class=w></span><span class=c># 根据100节点规模，使用100_nodes/constraints.yaml进行测试</span><span class=w>
+</span><span class=w></span>{{<span class=l>$DENSITY_RESOURCE_CONSTRAINTS_FILE := DefaultParam .DENSITY_RESOURCE_CONSTRAINTS_FILE &#34;./100_nodes/constraints.yaml&#34;}}</span><span class=w>
+</span><span class=w></span><span class=c># {{$NODE_MODE := DefaultParam .NODE_MODE &#34;allnodes&#34;}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$NODE_MODE := DefaultParam .NODE_MODE &#34;master&#34;}}</span><span class=w>
+</span><span class=w></span><span class=c># 至少保证100个节点规模</span><span class=w>
+</span><span class=w></span><span class=c># 设置 NODES_PER_NAMESPACE 50，保证totalPods = 5000</span><span class=w>
+</span><span class=w></span>{{<span class=l>$NODES_PER_NAMESPACE := DefaultParam .NODES_PER_NAMESPACE 100}}</span><span class=w>
+</span><span class=w></span><span class=c># 设置 NODES_PER_NAMESPACE 100，保证totalPods = 10000</span><span class=w>
+</span><span class=w></span><span class=c># {{$NODES_PER_NAMESPACE := DefaultParam .NODES_PER_NAMESPACE 100}}</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c># PODS_PER_NODE 0 则禁用saturation</span><span class=w>
+</span><span class=w></span>{{<span class=l>$PODS_PER_NODE := DefaultParam .PODS_PER_NODE 10}}</span><span class=w>
+</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c># 并发数，目前aist 调度器 处理业务并发数20，会有阻塞。</span><span class=w>
+</span><span class=w></span><span class=c># DENSITY_TEST_THROUGHPUT 10 或 20 进行测试 注意跟下面tuningSets配置 qpsLoad: qps 保持一致</span><span class=w>
+</span><span class=w></span>{{<span class=l>$DENSITY_TEST_THROUGHPUT := DefaultParam .DENSITY_TEST_THROUGHPUT 5}}</span><span class=w>
+</span><span class=w></span><span class=c># LATENCY_POD_MEMORY and LATENCY_POD_CPU are calculated for 1-core 4GB node.</span><span class=w>
+</span><span class=w></span><span class=c># Increasing allocation of both memory and cpu by 10%</span><span class=w>
+</span><span class=w></span><span class=c># decreases the value of priority function in scheduler by one point.</span><span class=w>
+</span><span class=w></span><span class=c># This results in decreased probability of choosing the same node again.</span><span class=w>
+</span><span class=w></span><span class=c># {{$LATENCY_POD_CPU := DefaultParam .LATENCY_POD_CPU 10}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$LATENCY_POD_CPU := DefaultParam .LATENCY_POD_CPU 10}}</span><span class=w>
+</span><span class=w></span><span class=c># {{$LATENCY_POD_MEMORY := DefaultParam .LATENCY_POD_MEMORY 35}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$LATENCY_POD_MEMORY := DefaultParam .LATENCY_POD_MEMORY 10}}</span><span class=w>
+</span><span class=w></span><span class=c># MIN_LATENCY_PODS为0，则禁用latency</span><span class=w>
+</span><span class=w></span><span class=c># {{$MIN_LATENCY_PODS := 0}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$MIN_LATENCY_PODS := 0}}</span><span class=w>
+</span><span class=w>
+</span><span class=w></span>{{<span class=l>$MIN_SATURATION_PODS_TIMEOUT := 180}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$ENABLE_CHAOSMONKEY := DefaultParam .ENABLE_CHAOSMONKEY false}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$ENABLE_SYSTEM_POD_METRICS:= DefaultParam .ENABLE_SYSTEM_POD_METRICS false}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$ENABLE_RESTART_COUNT_CHECK := DefaultParam .ENABLE_RESTART_COUNT_CHECK false}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$RESTART_COUNT_THRESHOLD_OVERRIDES:= DefaultParam .RESTART_COUNT_THRESHOLD_OVERRIDES &#34;&#34;}}</span><span class=w>
+</span><span class=w></span><span class=c>#Variables</span><span class=w>
+</span><span class=w></span>{{<span class=l>$namespaces := DivideInt .Nodes $NODES_PER_NAMESPACE}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$podsPerNamespace := MultiplyInt $PODS_PER_NODE $NODES_PER_NAMESPACE}}</span><span class=w>
+</span><span class=w></span><span class=c># 总pod数量：ns数量*每个ns的pod数（ PODS_PER_NODE * NODES_PER_NAMESPACE ）</span><span class=w>
+</span><span class=w></span>{{<span class=l>$totalPods := MultiplyInt $podsPerNamespace $namespaces}}</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c># 如果 SATURATION, 设置 latencyReplicas = 0 则禁用latency</span><span class=w>
+</span><span class=w></span><span class=c># {{$latencyReplicas := 0}}</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c># if latency set latency</span><span class=w>
+</span><span class=w></span>{{<span class=l>$latencyReplicas := DivideInt (MaxInt $MIN_LATENCY_PODS .Nodes) $namespaces}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$totalLatencyPods := MultiplyInt $namespaces $latencyReplicas}}</span><span class=w>
+</span><span class=w></span><span class=c># {{$saturationRCTimeout := DivideFloat $totalPods $DENSITY_TEST_THROUGHPUT | AddInt $MIN_SATURATION_PODS_TIMEOUT}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$saturationRCTimeout := 3600}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$podsTimeout := DivideFloat $totalLatencyPods $DENSITY_TEST_THROUGHPUT | AddInt $MIN_SATURATION_PODS_TIMEOUT}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$latencyPodsTimeout := MaxInt $podsTimeout 7200}}</span><span class=w>
+</span><span class=w></span><span class=c># saturationRCHardTimeout must be at least 20m to make sure that ~10m node</span><span class=w>
+</span><span class=w></span><span class=c># failure won&#39;t fail the test. See https://github.com/kubernetes/kubernetes/issues/73461#issuecomment-467338711</span><span class=w>
+</span><span class=w></span><span class=c># 这里的超时 是wait_for_controlled_pods 时使用，一旦超过阈值，就会设置该pod为timeout</span><span class=w>
+</span><span class=w></span><span class=c># {{$saturationRCHardTimeout := MaxInt $saturationRCTimeout 1200}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$saturationRCHardTimeout := MaxInt $saturationRCTimeout 3600}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>$latencyRCHardTimeout := MaxInt $latencyPodsTimeout 3600}}</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c># add by binge</span><span class=w>
+</span><span class=w></span><span class=c># SchedulingThroughput 默认是在saturation中添加，自定义又在latency添加</span><span class=w>
+</span><span class=w></span><span class=c># 为避免调度器2个场景中的调度器吞吐量混淆，每次只统计一种场景下的调度器吞吐量SchedulingThroughput</span><span class=w>
+</span><span class=w></span><span class=c># 可以通过设置某场景的pod副本数为0方式，禁用该场景</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>density</span><span class=w>
+</span><span class=w></span><span class=nt>automanagedNamespaces</span><span class=p>:</span><span class=w> </span>{{<span class=l>$namespaces}}</span><span class=w>
+</span><span class=w></span><span class=nt>tuningSets</span><span class=p>:</span><span class=w>
+</span><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Uniform5qps</span><span class=w>
+</span><span class=w>  </span><span class=nt>qpsLoad</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=c># qps: 5</span><span class=w>
+</span><span class=w>    </span><span class=c># custom value</span><span class=w>
+</span><span class=w>    </span><span class=nt>qps</span><span class=p>:</span><span class=w> </span>{{<span class=l>$DENSITY_TEST_THROUGHPUT}}</span><span class=w>
+</span><span class=w></span>{{<span class=l>if $ENABLE_CHAOSMONKEY}}</span><span class=w>
+</span><span class=w></span><span class=nt>chaosMonkey</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>nodeFailure</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>failureRate</span><span class=p>:</span><span class=w> </span><span class=m>0.01</span><span class=w>
+</span><span class=w>    </span><span class=nt>interval</span><span class=p>:</span><span class=w> </span><span class=l>1m</span><span class=w>
+</span><span class=w>    </span><span class=nt>jitterFactor</span><span class=p>:</span><span class=w> </span><span class=m>10.0</span><span class=w>
+</span><span class=w>    </span><span class=nt>simulatedDowntime</span><span class=p>:</span><span class=w> </span><span class=l>10m</span><span class=w>
+</span><span class=w></span>{{<span class=l>end}}</span><span class=w>
+</span><span class=w></span><span class=nt>steps</span><span class=p>:</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>APIResponsiveness</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>APIResponsiveness</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>reset</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>TestMetrics</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>TestMetrics</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>start</span><span class=w>
+</span><span class=w>      </span><span class=nt>nodeMode</span><span class=p>:</span><span class=w> </span>{{<span class=l>$NODE_MODE}}</span><span class=w>
+</span><span class=w>      </span><span class=nt>resourceConstraints</span><span class=p>:</span><span class=w> </span>{{<span class=l>$DENSITY_RESOURCE_CONSTRAINTS_FILE}}</span><span class=w>
+</span><span class=w>      </span><span class=nt>systemPodMetricsEnabled</span><span class=p>:</span><span class=w> </span>{{<span class=l>$ENABLE_SYSTEM_POD_METRICS}}</span><span class=w>
+</span><span class=w>      </span><span class=nt>restartCountThresholdOverrides</span><span class=p>:</span><span class=w> </span>{{<span class=l>YamlQuote $RESTART_COUNT_THRESHOLD_OVERRIDES 4}}</span><span class=w>
+</span><span class=w>      </span><span class=nt>enableRestartCountCheck</span><span class=p>:</span><span class=w> </span>{{<span class=l>$ENABLE_RESTART_COUNT_CHECK}}</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c># Create saturation pods</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>SaturationPodStartupLatency</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>PodStartupLatency</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>start</span><span class=w>
+</span><span class=w>      </span><span class=nt>labelSelector</span><span class=p>:</span><span class=w> </span><span class=l>group = saturation</span><span class=w>
+</span><span class=w>      </span><span class=nt>threshold</span><span class=p>:</span><span class=w> </span>{{<span class=l>$saturationRCTimeout}}s</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>WaitForRunningSaturationRCs</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>WaitForControlledPodsRunning</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>start</span><span class=w>
+</span><span class=w>      </span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w>      </span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ReplicationController</span><span class=w>
+</span><span class=w>      </span><span class=nt>labelSelector</span><span class=p>:</span><span class=w> </span><span class=l>group = saturation</span><span class=w>
+</span><span class=w>      </span><span class=nt>operationTimeout</span><span class=p>:</span><span class=w> </span>{{<span class=l>$saturationRCHardTimeout}}s</span><span class=w>
+</span><span class=w></span>- <span class=nt>phases</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>namespaceRange</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>min</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>      </span><span class=nt>max</span><span class=p>:</span><span class=w> </span>{{<span class=l>$namespaces}}</span><span class=w>
+</span><span class=w>    </span><span class=nt>replicasPerNamespace</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>    </span><span class=nt>tuningSet</span><span class=p>:</span><span class=w> </span><span class=l>Uniform5qps</span><span class=w>
+</span><span class=w>    </span><span class=nt>objectBundle</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>basename</span><span class=p>:</span><span class=w> </span><span class=l>saturation-rc</span><span class=w>
+</span><span class=w>      </span><span class=nt>objectTemplatePath</span><span class=p>:</span><span class=w> </span><span class=l>rc-batch.yaml</span><span class=w>
+</span><span class=w>      </span><span class=nt>templateFillMap</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>Replicas</span><span class=p>:</span><span class=w> </span>{{<span class=l>$podsPerNamespace}}</span><span class=w>
+</span><span class=w>        </span><span class=nt>Group</span><span class=p>:</span><span class=w> </span><span class=l>saturation</span><span class=w>
+</span><span class=w>        </span><span class=nt>CpuRequest</span><span class=p>:</span><span class=w> </span><span class=l>10m</span><span class=w>
+</span><span class=w>        </span><span class=nt>MemoryRequest</span><span class=p>:</span><span class=w> </span><span class=l>10M</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>SchedulingThroughput</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>SchedulingThroughput</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>start</span><span class=w>
+</span><span class=w>      </span><span class=nt>labelSelector</span><span class=p>:</span><span class=w> </span><span class=l>group = saturation</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>WaitForRunningSaturationRCs</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>WaitForControlledPodsRunning</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>SaturationPodStartupLatency</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>PodStartupLatency</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>SchedulingThroughput</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>SchedulingThroughput</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Creating saturation pods</span><span class=w>
+</span><span class=w></span><span class=c># Create latency pods</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>PodStartupLatency</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>PodStartupLatency</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>start</span><span class=w>
+</span><span class=w>      </span><span class=nt>labelSelector</span><span class=p>:</span><span class=w> </span><span class=l>group = latency</span><span class=w>
+</span><span class=w>      </span><span class=nt>threshold</span><span class=p>:</span><span class=w> </span>{{<span class=l>$latencyPodsTimeout}}s</span><span class=w> </span><span class=c># custom threshold params == saturationRCTimeout</span><span class=w>
+</span><span class=w></span><span class=c># latency SchedulingThroughput add by binge</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>SchedulingThroughput</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>SchedulingThroughput</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>start</span><span class=w>
+</span><span class=w>      </span><span class=nt>labelSelector</span><span class=p>:</span><span class=w> </span><span class=l>group = latency</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>WaitForRunningLatencyRCs</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>WaitForControlledPodsRunning</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>start</span><span class=w>
+</span><span class=w>      </span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w>      </span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ReplicationController</span><span class=w>
+</span><span class=w>      </span><span class=nt>labelSelector</span><span class=p>:</span><span class=w> </span><span class=l>group = latency</span><span class=w>
+</span><span class=w>      </span><span class=c># operationTimeout: 15m</span><span class=w>
+</span><span class=w>      </span><span class=nt>operationTimeout</span><span class=p>:</span><span class=w> </span>{{<span class=l>$latencyRCHardTimeout}}s</span><span class=w>
+</span><span class=w></span>- <span class=nt>phases</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>namespaceRange</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>min</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>      </span><span class=nt>max</span><span class=p>:</span><span class=w> </span>{{<span class=l>$namespaces}}</span><span class=w>
+</span><span class=w>    </span><span class=nt>replicasPerNamespace</span><span class=p>:</span><span class=w> </span>{{<span class=l>$latencyReplicas}}</span><span class=w>
+</span><span class=w>    </span><span class=nt>tuningSet</span><span class=p>:</span><span class=w> </span><span class=l>Uniform5qps</span><span class=w>
+</span><span class=w>    </span><span class=nt>objectBundle</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>basename</span><span class=p>:</span><span class=w> </span><span class=l>latency-pod-rc</span><span class=w>
+</span><span class=w>      </span><span class=nt>objectTemplatePath</span><span class=p>:</span><span class=w> </span><span class=l>rc-batch.yaml</span><span class=w>
+</span><span class=w>      </span><span class=nt>templateFillMap</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>Replicas</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>        </span><span class=nt>Group</span><span class=p>:</span><span class=w> </span><span class=l>latency</span><span class=w>
+</span><span class=w>        </span><span class=nt>CpuRequest</span><span class=p>:</span><span class=w> </span>{{<span class=l>$LATENCY_POD_CPU}}m</span><span class=w>
+</span><span class=w>        </span><span class=nt>MemoryRequest</span><span class=p>:</span><span class=w> </span>{{<span class=l>$LATENCY_POD_MEMORY}}M</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>WaitForRunningLatencyRCs</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>WaitForControlledPodsRunning</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Creating latency pods</span><span class=w>
+</span><span class=w></span><span class=c># Remove latency pods</span><span class=w>
+</span><span class=w></span>- <span class=nt>phases</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>namespaceRange</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>min</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>      </span><span class=nt>max</span><span class=p>:</span><span class=w> </span>{{<span class=l>$namespaces}}</span><span class=w>
+</span><span class=w>    </span><span class=nt>replicasPerNamespace</span><span class=p>:</span><span class=w> </span><span class=m>0</span><span class=w>
+</span><span class=w>    </span><span class=nt>tuningSet</span><span class=p>:</span><span class=w> </span><span class=l>Uniform5qps</span><span class=w>
+</span><span class=w>    </span><span class=nt>objectBundle</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>basename</span><span class=p>:</span><span class=w> </span><span class=l>latency-pod-rc</span><span class=w>
+</span><span class=w>      </span><span class=nt>objectTemplatePath</span><span class=p>:</span><span class=w> </span><span class=l>rc-batch.yaml</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>WaitForRunningLatencyRCs</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>WaitForControlledPodsRunning</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>PodStartupLatency</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>PodStartupLatency</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>SchedulingThroughput</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>SchedulingThroughput</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Deleting latancy pods</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c># Delete pods</span><span class=w>
+</span><span class=w></span>- <span class=nt>phases</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>namespaceRange</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>min</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span><span class=w>      </span><span class=nt>max</span><span class=p>:</span><span class=w> </span>{{<span class=l>$namespaces}}</span><span class=w>
+</span><span class=w>    </span><span class=nt>replicasPerNamespace</span><span class=p>:</span><span class=w> </span><span class=m>0</span><span class=w>
+</span><span class=w>    </span><span class=nt>tuningSet</span><span class=p>:</span><span class=w> </span><span class=l>Uniform5qps</span><span class=w>
+</span><span class=w>    </span><span class=nt>objectBundle</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>basename</span><span class=p>:</span><span class=w> </span><span class=l>saturation-rc</span><span class=w>
+</span><span class=w>      </span><span class=nt>objectTemplatePath</span><span class=p>:</span><span class=w> </span><span class=l>rc-batch.yaml</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>WaitForRunningSaturationRCs</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>WaitForControlledPodsRunning</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>Deleting saturation pods</span><span class=w>
+</span><span class=w></span><span class=c># Collect measurements</span><span class=w>
+</span><span class=w></span>- <span class=nt>measurements</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>APIResponsiveness</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>APIResponsiveness</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>Identifier</span><span class=p>:</span><span class=w> </span><span class=l>TestMetrics</span><span class=w>
+</span><span class=w>    </span><span class=nt>Method</span><span class=p>:</span><span class=w> </span><span class=l>TestMetrics</span><span class=w>
+</span><span class=w>    </span><span class=nt>Params</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>action</span><span class=p>:</span><span class=w> </span><span class=l>gather</span><span class=w>
+</span><span class=w>      </span><span class=nt>systemPodMetricsEnabled</span><span class=p>:</span><span class=w> </span>{{<span class=l>$ENABLE_SYSTEM_POD_METRICS}}</span><span class=w>
+</span><span class=w>      </span><span class=nt>restartCountThresholdOverrides</span><span class=p>:</span><span class=w> </span>{{<span class=l>YamlQuote $RESTART_COUNT_THRESHOLD_OVERRIDES 4}}</span><span class=w>
+</span><span class=w>      </span><span class=nt>enableRestartCountCheck</span><span class=p>:</span><span class=w> </span>{{<span class=l>$ENABLE_RESTART_COUNT_CHECK}}</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><h4 id=rc-batchyaml>rc-batch.yaml</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ReplicationController</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span>{{<span class=l>.Name}}</span><span class=w>
+</span><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>group</span><span class=p>:</span><span class=w> </span>{{<span class=l>.Group}}</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span>{{<span class=l>.Replicas}}</span><span class=w>
+</span><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>name</span><span class=p>:</span><span class=w> </span>{{<span class=l>.Name}}</span><span class=w>
+</span><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>name</span><span class=p>:</span><span class=w> </span>{{<span class=l>.Name}}</span><span class=w>
+</span><span class=w>        </span><span class=nt>group</span><span class=p>:</span><span class=w> </span>{{<span class=l>.Group}}</span><span class=w>
+</span><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=c># define custom scheduler</span><span class=w>
+</span><span class=w>      </span><span class=nt>schedulerName</span><span class=p>:</span><span class=w> </span><span class=l>kube-batch</span><span class=w>
+</span><span class=w>      </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=c># - image: 192.168.182.101:5000/com.inspur/pause-amd64:3.1</span><span class=w>
+</span><span class=w>      </span>- <span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=m>10.151.11.61</span><span class=p>:</span><span class=m>5000</span><span class=l>/com.inspur/pause-amd64:3.1</span><span class=w>
+</span><span class=w>        </span><span class=nt>imagePullPolicy</span><span class=p>:</span><span class=w> </span><span class=l>IfNotPresent</span><span class=w>
+</span><span class=w>        </span><span class=nt>name</span><span class=p>:</span><span class=w> </span>{{<span class=l>.Name}}</span><span class=w>
+</span><span class=w>        </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>          </span><span class=nt>limits</span><span class=p>:</span><span class=w>
+</span><span class=w>            </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span>{{<span class=l>.CpuRequest}}</span><span class=w>
+</span><span class=w>            </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span>{{<span class=l>.MemoryRequest}}</span><span class=w>
+</span><span class=w>          </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span><span class=w>            </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span>{{<span class=l>.CpuRequest}}</span><span class=w>
+</span><span class=w>            </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span>{{<span class=l>.MemoryRequest}}</span><span class=w>
+</span><span class=w>      </span><span class=c># Add not-ready/unreachable tolerations for 15 minutes so that node</span><span class=w>
+</span><span class=w>      </span><span class=c># failure doesn&#39;t trigger pod deletion.</span><span class=w>
+</span><span class=w>      </span><span class=nt>tolerations</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;node.kubernetes.io/not-ready&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>operator</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;Exists&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>effect</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;NoExecute&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>tolerationSeconds</span><span class=p>:</span><span class=w> </span><span class=m>900</span><span class=w>
+</span><span class=w>      </span>- <span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;node.kubernetes.io/unreachable&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>operator</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;Exists&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>effect</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;NoExecute&#34;</span><span class=w>
+</span><span class=w>        </span><span class=nt>tolerationSeconds</span><span class=p>:</span><span class=w> </span><span class=m>900</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><h4 id=执行脚本custom_clusterloadersh>执行脚本custom_clusterloader.sh</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=cp>#!bash
+</span><span class=cp></span>
+<span class=nb>cd</span> /home/wangb/perf-test/clusterloader2
+<span class=c1># ssh访问参数</span>
+<span class=nb>export</span> <span class=nv>KUBE_SSH_KEY_PATH</span><span class=o>=</span>/root/.ssh/id_rsa
+<span class=c1># master节点信息</span>
+<span class=nv>MASTER_NAME</span><span class=o>=</span>node61
+<span class=nv>TEST_MASTER_IP</span><span class=o>=</span>10.151.11.61
+<span class=nv>TEST_MASTER_INTERNAL_IP</span><span class=o>=</span>10.151.11.61
+<span class=nv>KUBE_CONFIG</span><span class=o>=</span><span class=si>${</span><span class=nv>HOME</span><span class=si>}</span>/.kube/config
+<span class=c1># 测试配置文件</span>
+<span class=nv>TEST_CONFIG</span><span class=o>=</span><span class=s1>&#39;/home/wangb/perf-test/clusterloader2/testing/density/config-batch.yaml&#39;</span>
+<span class=c1># 测试报告目录位置</span>
+<span class=nv>REPORT_DIR</span><span class=o>=</span><span class=s1>&#39;./reports&#39;</span>
+<span class=c1># 测试日志打印文件</span>
+<span class=nv>LOG_FILE</span><span class=o>=</span><span class=s1>&#39;test.log&#39;</span>
+
+
+./custom_clusterloader --kubeconfig<span class=o>=</span><span class=nv>$KUBE_CONFIG</span> <span class=se>\
+</span><span class=se></span>    --mastername<span class=o>=</span><span class=nv>$TEST_MASTER_IP</span> <span class=se>\
+</span><span class=se></span>    --masterip<span class=o>=</span><span class=nv>$MASTER_IP</span> <span class=se>\
+</span><span class=se></span>    --master-internal-ip<span class=o>=</span>TEST_MASTER_INTERNAL_IP <span class=se>\
+</span><span class=se></span>    --testconfig<span class=o>=</span><span class=nv>$TEST_CONFIG</span> <span class=se>\
+</span><span class=se></span>    --report-dir<span class=o>=</span><span class=nv>$REPORT_DIR</span> <span class=se>\
+</span><span class=se></span>    --alsologtostderr 2&gt;<span class=p>&amp;</span><span class=m>1</span> <span class=p>|</span> tee <span class=nv>$LOG_FILE</span>
+
+
+</code></pre></td></tr></table></div></div><h2 id=6-问题>6 问题</h2><h3 id=1-提示-getting-master-name-error-master-node-not-found和-getting-master-internal-ip-error-didnt-find-any-internalip-master-ips>1. 提示 Getting master name error: master node not found和 Getting master internal ip error: didn&rsquo;t find any InternalIP master IPs</h3><p>mastername和 internalip 参数需要配置</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
 </span><span class=lnt> 2
 </span><span class=lnt> 3
 </span><span class=lnt> 4
@@ -2811,7 +4109,7 @@ I1214 15:36:04.390753  <span class=m>111782</span> clusterloader.go:178<span cla
 I1214 15:36:04.390756  <span class=m>111782</span> clusterloader.go:179<span class=o>]</span>   Test: /home/wangb/perf-test/clusterloader2/testing/density/config2.yaml
 I1214 15:36:04.390758  <span class=m>111782</span> clusterloader.go:180<span class=o>]</span>   Status: Success
 I1214 15:36:04.390760  <span class=m>111782</span> clusterloader.go:184<span class=o>]</span> --------------------------------------------------------------------------------
-</code></pre></td></tr></table></div></div><h2 id=6-总结>6 总结</h2><ol><li>perf-test clusterloader2工具主要提供了性能压测，可配置性好，方便编写测试用例，并且统计了相应的性能指标</li><li>clusterloader2内置实现了k8s指标采集处理和指标阈值定义，参考文档：<a href=https://github.com/kubernetes/community/blob/master/sig-scalability/slos/slos.md target=_blank rel="noopener noreffer">Kubernetes scalability and performance SLIs/SLOs</a></li><li>clusterloader2没有详细的使用说明文档，目前来看不是可以拿来直接运行使用。所遇到问题一般只能依靠自己解决。</li><li>由于上面第3点，所遇问题较多，一般多涉及测试工具环境配置参数，另外clusterloader2对一些参数使用的是硬编码方式，导致无法直接使用原有工具，只能修改源码进行测试适配。</li><li>测试使用clusterloader2，需要详细了解其设计方案，才能运行测试用例</li><li>进行集群测试，需要了解集群测试指标定义，再编写测试配置</li><li>测试时需要预估下测试pod数量和内存占用情况，否则会引起OOM。</li><li><strong>clusterloader2并不是一个拿来即用的测试工具，还需结合测试环境进行改造适配，更像是K8S内部使用的类似脚手架的东西</strong></li></ol><h2 id=7-附录>7 附录</h2><p>参考命令</p><p>批量删除k8s测试命名空间及其资源，这里测试数据默认使用了test-开头的命令规则</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</code></pre></td></tr></table></div></div><h2 id=7-总结>7 总结</h2><ol><li>perf-test clusterloader2工具主要提供了性能压测，可配置性好，方便编写测试用例，并且统计了相应的性能指标</li><li>clusterloader2内置实现了k8s指标采集处理和指标阈值定义，参考文档：<a href=https://github.com/kubernetes/community/blob/master/sig-scalability/slos/slos.md target=_blank rel="noopener noreffer">Kubernetes scalability and performance SLIs/SLOs</a></li><li>clusterloader2没有详细的使用说明文档，目前来看不是可以拿来直接运行使用。所遇到问题一般只能依靠自己解决。</li><li>由于上面第3点，所遇问题较多，一般多涉及测试工具环境配置参数，另外clusterloader2对一些参数使用的是硬编码方式，导致无法直接使用原有工具，只能修改源码进行测试适配。</li><li>测试使用clusterloader2，需要详细了解其设计方案，才能运行测试用例</li><li>进行集群测试，需要了解集群测试指标定义，再编写测试配置</li><li>测试时需要预估下测试pod数量和内存占用情况，否则会引起OOM。</li><li><strong>clusterloader2并不是一个拿来即用的测试工具，还需结合测试环境进行改造适配，更像是K8S内部使用的类似脚手架的东西</strong></li></ol><h2 id=8-附录>8 附录</h2><p>参考命令</p><p>批量删除k8s测试命名空间及其资源，这里测试数据默认使用了test-开头的命令规则</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
 </span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>kubectl get ns <span class=p>|</span>grep test- <span class=p>|</span>awk <span class=s1>&#39;{print $1}&#39;</span> <span class=p>|</span>xargs kubectl delete ns --force --grace-period<span class=o>=</span><span class=m>0</span>
 </code></pre></td></tr></table></div></div><p>测试中如果出现异常，系统会残留有测试使用的资源参数，这里需要对实际情况进行调整</p><p>测试完成后的测试资源清理（如果测试后有测试数据资源残留的话）：</p><ol><li>测试ns、rc、pod清理</li><li>hollow-node 桩节点清理</li></ol><h4 id=k8s的sli-服务等级指标-和-slo-服务等级目标>K8S的SLI (服务等级指标) 和 SLO (服务等级目标)</h4><p>Kubernetes 社区提供了 SLI (服务等级指标) 和 SLO (服务等级目标) 系统性能测试、分析文档 <a href=https://github.com/kubernetes/community/blob/master/sig-scalability/slos/slos.md target=_blank rel="noopener noreffer">Kubernetes scalability and performance SLIs/SLOs</a>。模拟出一个 K8s cluster（Kubemark cluster），不受资源限制。cluster 中 master 是真实的机器，所有的 nodes 是 Hollow nodes。Hollow nodes 不会调用Docker，测试一套 K8s API 调用的完整流程，不会真正创建 pod。</p><p>社区开发了 perf-test/clusterloader2，可配置性好，并且统计了相应的性能指标</p><p>kubemark 不调用 CRI 接口之外，其它行为和 kubelet 基本一致</p><h3 id=etcd监控指标>Etcd监控指标</h3><p>参考: <a href=https://github.com/coreos/etcd/blob/master/Documentation/metrics.md>https://github.com/coreos/etcd/blob/master/Documentation/metrics.md</a></p><h4 id=领导者相关>领导者相关</h4><p>etcd_server_has_leader etcd是否有leader
 etcd_server_leader_changes_seen_total etcd的leader变换次数
