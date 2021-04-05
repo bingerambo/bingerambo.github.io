@@ -1,0 +1,444 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>Go程序性能分析pprof - 斌哥的小站|Binge Blog</title><meta name=Description content="斌哥的小站 | 这里是 @BingeRambo斌哥兰博的个人博客"><meta property="og:title" content="Go程序性能分析pprof"><meta property="og:description" content="Golang作为一门高效的语言，性能监控和调试非常重要，如何进行性能监控和分析是优化的关键。
+Go语言项目中的性能优化主要有以下几个方面：
+
+CPU profile：报告程序的 CPU 使用情况，按照一定频率去采集应用程序在 CPU 和寄存器上面的数据
+Memory Profile（Heap Profile）：报告程序的内存使用情况
+Block Profiling：报告 goroutines 不在运行状态的情况，可以用来分析和查找死锁等性能瓶颈
+Goroutine Profiling：报告 goroutines 的使用情况，有哪些 goroutine，它们的调用关系是怎样的"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2021/04/go%E7%A8%8B%E5%BA%8F%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90pprof/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2021-04-05T08:43:17+08:00"><meta property="article:modified_time" content="2021-04-05T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="Go程序性能分析pprof"><meta name=twitter:description content="Golang作为一门高效的语言，性能监控和调试非常重要，如何进行性能监控和分析是优化的关键。
+Go语言项目中的性能优化主要有以下几个方面：
+
+CPU profile：报告程序的 CPU 使用情况，按照一定频率去采集应用程序在 CPU 和寄存器上面的数据
+Memory Profile（Heap Profile）：报告程序的内存使用情况
+Block Profiling：报告 goroutines 不在运行状态的情况，可以用来分析和查找死锁等性能瓶颈
+Goroutine Profiling：报告 goroutines 的使用情况，有哪些 goroutine，它们的调用关系是怎样的"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2021/04/go%E7%A8%8B%E5%BA%8F%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90pprof/><link rel=prev href=http://bingerambo.com/posts/2021/03/%E7%BC%96%E8%AF%91kube-batch%E5%92%8Cdensity/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Go程序性能分析pprof","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2021\/04\/go%E7%A8%8B%E5%BA%8F%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90pprof\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"Go","wordcount":4785,"url":"http:\/\/bingerambo.com\/posts\/2021\/04\/go%E7%A8%8B%E5%BA%8F%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90pprof\/","datePublished":"2021-04-05T08:43:17+08:00","dateModified":"2021-04-05T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":""}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">Go程序性能分析pprof</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/%E5%BC%80%E5%8F%91/><i class="far fa-folder fa-fw"></i>开发</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2021-04-05>2021-04-05</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 4785 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 10 分钟&nbsp;
+<i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#pprof介绍>pprof介绍</a></li><li><a href=#pprof配置>pprof配置</a><ul><li><a href=#引入包>引入包</a></li><li><a href=#使用方法>使用方法</a></li><li><a href=#命令模式>命令模式</a></li><li><a href=#监控方式>监控方式</a></li></ul></li><li><a href=#安装graphviz>安装graphviz</a><ul><li><a href=#安装命令>安装命令</a></li><li><a href=#测试graphviz是否安装成功>测试graphviz是否安装成功</a></li></ul></li><li><a href=#pprof开启>pprof开启</a><ul><li><a href=#如何使用pprof>如何使用pprof</a></li><li><a href=#heap-profile>heap profile</a></li><li><a href=#30-second-cpu-profile>30-second CPU profile</a></li><li><a href=#查看环境cpu-profile命令>查看环境cpu profile命令</a></li><li><a href=#调度图>调度图</a></li><li><a href=#goroutine-blocking-profile>goroutine blocking profile</a></li><li><a href=#the-holders-of-contended-mutexes>the holders of contended mutexes</a></li><li><a href=#execution-trace>execution trace</a></li><li><a href=#trace查看>trace查看</a><ul><li><a href=#trace获取>trace获取</a></li><li><a href=#trace分析>trace分析</a></li></ul></li><li><a href=#all-available-profiles>all available profiles</a></li><li><a href=#pprof包>pprof包</a></li></ul></li><li><a href=#实例分析>实例分析</a><ul><li><a href=#pprof配置-1>pprof配置</a><ul><li><a href=#pprof-server-config>pprof server config</a></li><li><a href=#pprof-service>pprof service</a></li></ul></li><li><a href=#调度图-1>调度图</a></li><li><a href=#trace图>trace图</a></li><li><a href=#优化后的pprof>优化后的pprof</a><ul><li><a href=#调度图-2>调度图</a></li><li><a href=#trace图-1>trace图</a></li></ul></li></ul></li><li><a href=#参考资料>参考资料</a></li></ul></nav></div></div><div class=content id=content><p>Golang作为一门高效的语言，性能监控和调试非常重要，如何进行性能监控和分析是优化的关键。</p><p>Go语言项目中的性能优化主要有以下几个方面：</p><ul><li>CPU profile：报告程序的 CPU 使用情况，按照一定频率去采集应用程序在 CPU 和寄存器上面的数据</li><li>Memory Profile（Heap Profile）：报告程序的内存使用情况</li><li>Block Profiling：报告 goroutines 不在运行状态的情况，可以用来分析和查找死锁等性能瓶颈</li><li>Goroutine Profiling：报告 goroutines 的使用情况，有哪些 goroutine，它们的调用关系是怎样的</li></ul><h2 id=pprof介绍>pprof介绍</h2><ul><li><p>go程序从开始运行起，runtime就按照一定频率对内存分配进行采样记录：当内存分配每达到一定值（默认是512KB，由runtime.MemProfileRate设定）, runtime就会记录下当前这次内存分配的大小，call stack等信息到profile里面。</p></li><li><p>而CPU的profile是从调用runtime/pprof包的pprof.StartCPUProfile()开始，到pprof.StopCPUProfile()结束，每1秒采样100次，每次采样时记录下当前正在执行的所有goroutine的call stack，某个函数在这些快照里面出现的次数越多就说明这个函数越耗时。</p></li><li><p>运行的go程序的所有profile信息都是通过在运行时调用runtime/pprof和runtime/trace两个包的接口获取，调用这些接口的方式有直接调用和通过http请求间接调用两种，下面我们说明各种常用的profile信息以及它们的获取，使用方式。</p></li></ul><h2 id=pprof配置>pprof配置</h2><p>pprof采集方式有2种：</p><ul><li>命令模式</li><li>监控模式</li></ul><p>pprof开启后，每隔一段时间（10ms）就会收集下当前的堆栈信息，获取格格函数占用的CPU以及内存资源；最后通过对这些采样数据进行分析，形成一个性能分析报告。</p><h3 id=引入包>引入包</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=kn>import</span> <span class=s>&#34;runtime/pprof&#34;</span>
+</code></pre></td></tr></table></div></div><h3 id=使用方法>使用方法</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=nx>pprof</span><span class=p>.</span><span class=nf>StartCPUProfile</span><span class=p>(</span><span class=nx>w</span> <span class=nx>io</span><span class=p>.</span><span class=nx>Writer</span><span class=p>)</span> <span class=c1>//开启，向一个io中写入cpu信息
+</span><span class=c1></span><span class=nx>pprof</span><span class=p>.</span><span class=nf>WriteHeapProfile</span><span class=p>(</span><span class=nx>w</span> <span class=nx>io</span><span class=p>.</span><span class=nx>Writer</span><span class=p>)</span> <span class=c1>//向一个io中写入内存信息
+</span><span class=c1></span><span class=nx>pprof</span><span class=p>.</span><span class=nf>StopCPUProfile</span><span class=p>()</span> <span class=c1>//停止，写入完成
+</span></code></pre></td></tr></table></div></div><h3 id=命令模式>命令模式</h3><p>将数据写入到文件中
+通过 go tool pprof [文件名] 命令查看使用</p><p>我们可以在交互界面输入top 10 来查看程序中占用CPU前10位的函数：</p><p>命令：
+top 10</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=w>
+</span><span class=w></span><span class=p>[</span><span class=l>root@node61 ~]# go tool pprof http://10.151.11.61:39999/debug/pprof/profile?seconds=30</span><span class=w>
+</span><span class=w></span><span class=l>Fetching profile over HTTP from http://10.151.11.61:39999/debug/pprof/profile?seconds=30</span><span class=w>
+</span><span class=w></span><span class=l>Saved profile in /root/pprof/pprof.kube-batch.samples.cpu.018.pb.gz</span><span class=w>
+</span><span class=w></span><span class=nt>File</span><span class=p>:</span><span class=w> </span><span class=l>kube-batch</span><span class=w>
+</span><span class=w></span><span class=nt>Build ID</span><span class=p>:</span><span class=w> </span><span class=l>3224bdfdc94dfee3f4c2f15d26825527ae27817c</span><span class=w>
+</span><span class=w></span><span class=nt>Type</span><span class=p>:</span><span class=w> </span><span class=l>cpu</span><span class=w>
+</span><span class=w></span><span class=nt>Time</span><span class=p>:</span><span class=w> </span><span class=l>Apr 5, 2021 at 11:48am (CST)</span><span class=w>
+</span><span class=w></span><span class=nt>Duration</span><span class=p>:</span><span class=w> </span><span class=l>30s, Total samples = 290ms ( 0.97%)</span><span class=w>
+</span><span class=w></span><span class=l>Entering interactive mode (type &#34;help&#34; for commands, &#34;o&#34; for options)</span><span class=w>
+</span><span class=w></span><span class=l>(pprof) top 10</span><span class=w>
+</span><span class=w></span><span class=l>Showing nodes accounting for 200ms, 68.97% of 290ms total</span><span class=w>
+</span><span class=w></span><span class=l>Showing top 10 nodes out of 106</span><span class=w>
+</span><span class=w>      </span><span class=l>flat  flat%   sum%        cum   cum%</span><span class=w>
+</span><span class=w>      </span><span class=l>40ms 13.79% 13.79%       40ms 13.79%  runtime.usleep</span><span class=w>
+</span><span class=w>      </span><span class=l>30ms 10.34% 24.14%       30ms 10.34%  encoding/json.stateInString</span><span class=w>
+</span><span class=w>      </span><span class=l>20ms  6.90% 31.03%       70ms 24.14%  regexp.(*Regexp).tryBacktrack</span><span class=w>
+</span><span class=w>      </span><span class=l>20ms  6.90% 37.93%       20ms  6.90%  regexp/syntax.(*Inst).MatchRunePos</span><span class=w>
+</span><span class=w>      </span><span class=l>20ms  6.90% 44.83%       20ms  6.90%  runtime.epollwait</span><span class=w>
+</span><span class=w>      </span><span class=l>20ms  6.90% 51.72%       60ms 20.69%  runtime.mallocgc</span><span class=w>
+</span><span class=w>      </span><span class=l>20ms  6.90% 58.62%       20ms  6.90%  runtime.memclrNoHeapPointers</span><span class=w>
+</span><span class=w>      </span><span class=l>10ms  3.45% 62.07%       30ms 10.34%  encoding/json.(*Decoder).readValue</span><span class=w>
+</span><span class=w>      </span><span class=l>10ms  3.45% 65.52%       10ms  3.45%  encoding/json.stateEndValue</span><span class=w>
+</span><span class=w>      </span><span class=l>10ms  3.45% 68.97%       10ms  3.45%  github.com/kubernetes-sigs/kube-batch/vendor/github.com/json-iterator/go.(*Iterator).ReadString</span><span class=w>
+</span><span class=w></span><span class=l>(pprof)</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><p>其中：</p><ul><li>flat：当前函数占用CPU的耗时</li><li>flat%：当前函数占用CPU的耗时百分比</li><li>sun%：函数占用CPU的耗时累计百分比</li><li>cum：当前函数加上调用当前函数的函数占用CPU的总耗时</li><li>cum%：当前函数加上调用当前函数的函数占用CPU的总耗时百分比</li><li>最后一列：函数名称</li></ul><p>也可以通过list 函数名查看函数的信息</p><p>命令：
+list func_name</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=l>(pprof) list ReadString</span><span class=w>
+</span><span class=w></span><span class=nt>Total</span><span class=p>:</span><span class=w> </span><span class=l>290ms</span><span class=w>
+</span><span class=w></span><span class=l>ROUTINE ======================== github.com/kubernetes-sigs/kube-batch/vendor/github.com/json-iterator/go.(*Iterator).ReadString in /home/wangb/projects/src/github.com/kubernetes-sigs/kube-batch/vendor/github.com/json-iterator/go/iter_str.go</span><span class=w>
+</span><span class=w>      </span><span class=l>10ms       10ms (flat, cum)  3.45% of Total</span><span class=w>
+</span><span class=w>         </span><span class=nt>.          .     10</span><span class=p>:</span><span class=w>   </span><span class=l>c := iter.nextToken()</span><span class=w>
+</span><span class=w>         </span><span class=nt>.          .     11</span><span class=p>:</span><span class=w>   </span><span class=l>if c == &#39;&#34;&#39; {</span><span class=w>
+</span><span class=w>         </span><span class=nt>.          .     12</span><span class=p>:</span><span class=w>           </span><span class=l>for i := iter.head; i &lt; iter.tail; i++ {</span><span class=w>
+</span><span class=w>         </span><span class=nt>.          .     13</span><span class=p>:</span><span class=w>                   </span><span class=l>c := iter.buf[i]</span><span class=w>
+</span><span class=w>         </span><span class=nt>.          .     14</span><span class=p>:</span><span class=w>                   </span><span class=l>if c == &#39;&#34;&#39; {</span><span class=w>
+</span><span class=w>      </span><span class=nt>10ms       10ms     15</span><span class=p>:</span><span class=w>                           </span><span class=l>ret = string(iter.buf[iter.head:i])</span><span class=w>
+</span><span class=w>         </span><span class=nt>.          .     16</span><span class=p>:</span><span class=w>                           </span><span class=l>iter.head = i + 1</span><span class=w>
+</span><span class=w>         </span><span class=nt>.          .     17</span><span class=p>:</span><span class=w>                           </span><span class=l>return ret</span><span class=w>
+</span><span class=w>         </span><span class=nt>.          .     18</span><span class=p>:</span><span class=w>                   </span>}<span class=w> </span><span class=l>else if c == &#39;\\&#39; {</span><span class=w>
+</span><span class=w>         </span><span class=nt>.          .     19</span><span class=p>:</span><span class=w>                           </span><span class=l>break</span><span class=w>
+</span><span class=w>         </span><span class=nt>.          .     20</span><span class=p>:</span><span class=w>                   </span>}<span class=w> </span><span class=l>else if c &lt; &#39; &#39; {</span><span class=w>
+</span><span class=w></span><span class=l>(pprof)</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><p>tree查看调用链</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=w>
+</span><span class=w></span><span class=l>(pprof) top</span><span class=w>
+</span><span class=w></span><span class=l>Showing nodes accounting for 200ms, 68.97% of 290ms total</span><span class=w>
+</span><span class=w></span><span class=l>Showing top 10 nodes out of 106</span><span class=w>
+</span><span class=w>      </span><span class=l>flat  flat%   sum%        cum   cum%</span><span class=w>
+</span><span class=w>      </span><span class=l>40ms 13.79% 13.79%       40ms 13.79%  runtime.usleep</span><span class=w>
+</span><span class=w>      </span><span class=l>30ms 10.34% 24.14%       30ms 10.34%  encoding/json.stateInString</span><span class=w>
+</span><span class=w>      </span><span class=l>20ms  6.90% 31.03%       70ms 24.14%  regexp.(*Regexp).tryBacktrack</span><span class=w>
+</span><span class=w>      </span><span class=l>20ms  6.90% 37.93%       20ms  6.90%  regexp/syntax.(*Inst).MatchRunePos</span><span class=w>
+</span><span class=w>      </span><span class=l>20ms  6.90% 44.83%       20ms  6.90%  runtime.epollwait</span><span class=w>
+</span><span class=w>      </span><span class=l>20ms  6.90% 51.72%       60ms 20.69%  runtime.mallocgc</span><span class=w>
+</span><span class=w>      </span><span class=l>20ms  6.90% 58.62%       20ms  6.90%  runtime.memclrNoHeapPointers</span><span class=w>
+</span><span class=w>      </span><span class=l>10ms  3.45% 62.07%       30ms 10.34%  encoding/json.(*Decoder).readValue</span><span class=w>
+</span><span class=w>      </span><span class=l>10ms  3.45% 65.52%       10ms  3.45%  encoding/json.stateEndValue</span><span class=w>
+</span><span class=w>      </span><span class=l>10ms  3.45% 68.97%       10ms  3.45%  github.com/kubernetes-sigs/kube-batch/vendor/github.com/json-iterator/go.(*Iterator).ReadString</span><span class=w>
+</span><span class=w></span><span class=l>(pprof) tree ReadString</span><span class=w>
+</span><span class=w></span><span class=nt>Active filters</span><span class=p>:</span><span class=w>
+</span><span class=w>   </span><span class=l>focus=ReadString</span><span class=w>
+</span><span class=w></span><span class=l>Showing nodes accounting for 10ms, 3.45% of 290ms total</span><span class=w>
+</span><span class=w></span><span class=nn>---</span>-------------------------------------------------------<span class=l>+-------------</span><span class=w>
+</span><span class=w>      </span><span class=l>flat  flat%   sum%        cum   cum%   calls calls% + context</span><span class=w>
+</span><span class=w></span><span class=nn>---</span>-------------------------------------------------------<span class=l>+-------------</span><span class=w>
+</span><span class=w>                                              </span><span class=l>10ms   100% |   github.com/kubernetes-sigs/kube-batch/vendor/github.com/json-iterator/go.(*Iterator).ReadObjectCB</span><span class=w>
+</span><span class=w>      </span><span class=l>10ms  3.45%  3.45%       10ms  3.45%                | github.com/kubernetes-sigs/kube-batch/vendor/github.com/json-iterator/go.(*Iterator).ReadString</span><span class=w>
+</span><span class=w></span><span class=nn>---</span>-------------------------------------------------------<span class=l>+-------------</span><span class=w>
+</span><span class=w>                                              </span><span class=l>10ms   100% |   github.com/kubernetes-sigs/kube-batch/vendor/github.com/json-iterator/go.(*Iterator).skipObject</span><span class=w>
+</span><span class=w>         </span><span class=m>0</span><span class=w>     </span><span class=m>0</span><span class=l>%  3.45%       10ms  3.45%                | github.com/kubernetes-sigs/kube-batch/vendor/github.com/json-iterator/go.(*Iterator).ReadObjectCB</span><span class=w>
+</span><span class=w>                                              </span><span class=l>10ms   100% |   github.com/kubernetes-sigs/kube-batch/vendor/github.com/json-iterator/go.(*Iterator).ReadString</span><span class=w>
+</span><span class=w>                                              </span><span class=l>10ms   100% |   github.com/kubernetes-sigs/kube-batch/vendor/github.com/json-iterator/go.(*Iterator).skipObject.func1</span><span class=w>
+</span><span class=w></span><span class=nn>---</span>-------------------------------------------------------<span class=l>+-------------</span><span class=w>
+</span><span class=w>                                              </span><span class=l>10ms   100% |   github.com/kubernetes-sigs/kube-batch/vendor/github.com/json-iterator/go.(*frozenConfig).Unmarshal</span><span class=w>
+</span><span class=w>         </span><span class=m>0</span><span class=w>     </span><span class=m>0</span><span class=l>%  3.45%       10ms  3.45%                | github.com/kubernetes-sigs/kube-batch/vendor/github.com/json-iterator/go.(*Iterator).ReadVal</span><span class=w>
+</span><span class=w>                                              </span><span class=l>10ms   100% |   github.com/kubernetes-sigs/kube-batch/vendor/github.com/json-iterator/go.(*twoFieldsStructDecoder).Decode</span><span class=w>
+</span><span class=w></span><span class=nn>---</span>-------------------------------------------------------<span class=l>+-------------</span><span class=w>
+</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><h3 id=监控方式>监控方式</h3><p>如果你的应用程序是一直运行的，比如 web 应用，那么可以使用net/http/pprof库，它能够在提供 HTTP 服务进行分析。</p><p>如果使用了默认的http.DefaultServeMux（通常是代码直接使用 http.ListenAndServe(“0.0.0.0:8000”, nil)），只需要在你的web server端代码中按如下方式导入net/http/pprof</p><p>此方式适合测试一些服务进程的性能，当某场景触发时，通过接口采集性能数据，便于查看程序的动态性能。</p><p>如测试调度器在压力测试场景中的性能。采用此监控http方式，详细查看[开启pprof](## 开启pprof)</p><h2 id=安装graphviz>安装graphviz</h2><p>graphviz是将结构信息表示为抽象图和网络图的一种方法。自动图形绘制在软件工程、数据库和网页设计、网络化以及其他许多领域的可视化界面中都有着重要的应用。</p><p>graphviz安装完成后，在后面使用pprof生成的测试profile，可以转成svg等格式（如调度图），进行可视化查看</p><p><a href=https://graphviz.org/download/ target=_blank rel="noopener noreffer">graphviz下载地址</a></p><h3 id=安装命令>安装命令</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+<span class=c1># Ubuntu packages*</span>
+<span class=c1># sudo apt install graphviz</span>
+
+<span class=c1># Fedora project*</span>
+<span class=c1># sudo yum install graphviz</span>
+
+<span class=c1># Debian packages*</span>
+<span class=c1># sudo apt install graphviz</span>
+
+
+<span class=c1># Stable and development rpms for Redhat Enterprise, or CentOS systems* available but are out of date.</span>
+<span class=c1># sudo yum install graphviz</span>
+
+
+</code></pre></td></tr></table></div></div><h3 id=测试graphviz是否安装成功>测试graphviz是否安装成功</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@node61 ~<span class=o>]</span><span class=c1># dot -V</span>
+dot - graphviz version 2.47.0 <span class=o>(</span>20210316.0004<span class=o>)</span>
+<span class=o>[</span>root@node61 ~<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@node61 ~<span class=o>]</span><span class=c1>#</span>
+
+</code></pre></td></tr></table></div></div><h2 id=pprof开启>pprof开启</h2><p>包pprof以pprof可视化工具所期望的格式通过其HTTP服务器运行时分析数据提供服务。通常，导入包只是为了注册其HTTP处理程序的副作用。所处理的路径都以/DEBUG/pprof/开头。</p><p>go语言提供包：</p><ul><li>runtime/pprof：采集工具型应用运行数据进行分析</li><li>net/http/pprof：采集服务型应用运行时数据进行分析</li></ul><h3 id=如何使用pprof>如何使用pprof</h3><p>导入pprof包</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=c1>// pprof
+</span><span class=c1></span><span class=kn>import</span> <span class=nx>_</span> <span class=s>&#34;net/http/pprof&#34;</span>
+</code></pre></td></tr></table></div></div><p>这一句导致源码里面实际执行的是:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=kd>func</span> <span class=nf>init</span><span class=p>()</span> <span class=p>{</span>
+    <span class=nx>http</span><span class=p>.</span><span class=nf>HandleFunc</span><span class=p>(</span><span class=s>&#34;/debug/pprof/&#34;</span><span class=p>,</span> <span class=nx>Index</span><span class=p>)</span>
+    <span class=nx>http</span><span class=p>.</span><span class=nf>HandleFunc</span><span class=p>(</span><span class=s>&#34;/debug/pprof/cmdline&#34;</span><span class=p>,</span> <span class=nx>Cmdline</span><span class=p>)</span>
+    <span class=nx>http</span><span class=p>.</span><span class=nf>HandleFunc</span><span class=p>(</span><span class=s>&#34;/debug/pprof/profile&#34;</span><span class=p>,</span> <span class=nx>Profile</span><span class=p>)</span>
+    <span class=nx>http</span><span class=p>.</span><span class=nf>HandleFunc</span><span class=p>(</span><span class=s>&#34;/debug/pprof/symbol&#34;</span><span class=p>,</span> <span class=nx>Symbol</span><span class=p>)</span>
+    <span class=nx>http</span><span class=p>.</span><span class=nf>HandleFunc</span><span class=p>(</span><span class=s>&#34;/debug/pprof/trace&#34;</span><span class=p>,</span> <span class=nx>Trace</span><span class=p>)</span>
+<span class=p>}</span>
+</code></pre></td></tr></table></div></div><p>上面的url和处理函数都被注册到了http包的DefaultServeMux里面，所以要想使用这些url就必须使用DefaultServeMux来监听某一端口：</p><p>如果应用程序尚未运行http服务器，则需要启动该服务器。在导入中添加“net/http”和“log”，并在主函数中添加以下代码：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=c1>// pprof
+</span><span class=c1></span><span class=k>go</span> <span class=kd>func</span><span class=p>()</span> <span class=p>{</span>
+    <span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>http</span><span class=p>.</span><span class=nf>ListenAndServe</span><span class=p>(</span><span class=s>&#34;localhost:6060&#34;</span><span class=p>,</span> <span class=kc>nil</span><span class=p>))</span>
+<span class=p>}()</span>
+</code></pre></td></tr></table></div></div><p>这里第一个参数可以是本机的任一端口，当第二个参数为nil时就使用http包的DefaultServeMux来监听并处理http请求， 或者当程序里面已经有自定义的ServeMux时，可以像上面的init函数那样把pprof的处理函数注册到自定义的ServeMux。</p><h3 id=heap-profile>heap profile</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>go tool pprof http://localhost:6060/debug/pprof/heap
+</code></pre></td></tr></table></div></div><h3 id=30-second-cpu-profile>30-second CPU profile</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30</span>
+go tool pprof http://10.151.11.61:39999/debug/pprof/profile?seconds<span class=o>=</span><span class=m>30</span>
+</code></pre></td></tr></table></div></div><p>这个http请求会等seconds参数指定的秒数，这期间读取请求返回的二进制格式内容，我们把返回的内容保存为文件，假设取名为cpu.prof, 这个文件里面包含了程序收到请求后的seconds秒内运行占用CPU的情况。
+接下来我们通过在命令行输入go tool pprof来查看cpu.prof:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>go tool pprof cpu.prof
+</code></pre></td></tr></table></div></div><p>这个命令会进入命令行交互，我们可以输入很多子命令来查看相关信息，最常用的几个子命令是：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># top N</span>
+top <span class=m>10</span>
+</code></pre></td></tr></table></div></div><p>该子命令会列出最耗时的N个函数调用，在输入top命令前输入cum或flat可以使得top列出的列表按cum或flat列排序，flat是单个函数自身（不计函数里面调用的其它函数）的耗时，cum是函数从进入到退出总的耗时。</p><p>如果要看某个函数具体是在什么地方耗时，可以使用list子命令查看：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>list func_name_in_top_list
+</code></pre></td></tr></table></div></div><p>该命令会显示耗时的代码和行号, 如果提示找不到source信息，可以在go tool pprof后面指定保存在本地的被profile程序的binary文件，并且这个binary文件要和生成profile文件的程序是在同一平台下编译的。比如在本地的Windows机器上远程profile linux机器上运行的go程序时，确保本地指定的binary是linux机器上编译的：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>go tool pprof mybinarypath prof_file_from_remote_host
+go tool pprof mybinarypath https://myremotehost/debug/pprof/profile
+</code></pre></td></tr></table></div></div><p>为了更直观的看出热点函数的调用关系，我们更多的是使用svg和web子命令：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1>###svg &gt; xxx.svg</span>
+<span class=c1>##web</span>
+svg
+</code></pre></td></tr></table></div></div><p>svg命令会生成一个指定文件名的svg文件，web命令会生成一个svg文件并用浏览器打开这个文件，<strong>执行web命令前先确保安装了graphviz</strong>（brew install graphviz, 然后brew list graphviz查看安装位置并将安装位置的bin目录加到PATH），并确保svg文件的默认打开程序是浏览器。 通过web子命令在浏览器打开的这个svg文件非常有用, 可以清楚的看到耗时函数的调用关系图。</p><h3 id=查看环境cpu-profile命令>查看环境cpu profile命令</h3><p>在环境中，获取cpu pofile命令，默认采集时长30秒</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>go tool pprof http://10.151.11.61:8080/debug/pprof/profile
+</code></pre></td></tr></table></div></div><p>fetch完成后，会进入pprof，然后输入svg，（环境中使用web自动打开svg），导出xxx.svg文件，将该svg文件拷贝出来，使用liu浏览器打开即可。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=w>
+</span><span class=w></span><span class=l>type &#34;help &lt;cmd|option&gt;&#34; for more information</span><span class=w>
+</span><span class=w></span><span class=l>(pprof) svg</span><span class=w>
+</span><span class=w></span><span class=l>Generating report in profile001.svg</span><span class=w>
+</span></code></pre></td></tr></table></div></div><h3 id=调度图>调度图</h3><p>把上面的xxx.svg文件，使用浏览器打开，就能看到调度图，里面包含了各函数之间的调用性能</p><img src=call-perf.png style=width:100%><p>关于图形的说明：</p><ul><li>每个框代表一个函数，理论上框的越大表示占用的CPU资源越多。 方框之间的线条代表函数之间的调用关系。 线条上的数字表示函数调用的次数。</li><li>方框中的第一行数字表示当前函数占用CPU的百分比，第二行数字表示当前函数累计占用CPU的百分比。</li></ul><p>go tool pprof默认是使用-inuse_space进行统计，还可以使用-inuse-objects查看分配对象的数量。</p><h3 id=goroutine-blocking-profile>goroutine blocking profile</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>go tool pprof http://localhost:6060/debug/pprof/block
+</code></pre></td></tr></table></div></div><h3 id=the-holders-of-contended-mutexes>the holders of contended mutexes</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>go tool pprof http://localhost:6060/debug/pprof/mutex
+</code></pre></td></tr></table></div></div><h3 id=execution-trace>execution trace</h3><p>该包还导出一个处理程序，该处理程序为“Go Tool Track”命令提供执行跟踪数据。收集5秒钟的执行跟踪</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>wget -O trace.out http://localhost:6060/debug/pprof/trace?seconds<span class=o>=</span><span class=m>5</span>
+go tool trace trace.out
+</code></pre></td></tr></table></div></div><h3 id=trace查看>trace查看</h3><h4 id=trace获取>trace获取</h4><p>在环境中获取trace数据</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># kube-batch pprof</span>
+<span class=c1># http://10.151.11.61:39999/debug/pprof/</span>
+
+wget -O trace.out http://10.151.11.61:39999/debug/pprof/trace?seconds<span class=o>=</span><span class=m>10</span>
+
+</code></pre></td></tr></table></div></div><p>或者直接本地通过浏览器访问http://10.151.11.61:39999/debug/pprof/ 获取trace数据。</p><h4 id=trace分析>trace分析</h4><p>把环境中获得的trace文件，拷贝到本地，并输入如下命令</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># go tool trace trace.out</span>
+go tool trace trace
+</code></pre></td></tr></table></div></div><p>本地需安装有go环境，此时自动调用浏览器打开trace</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=l>$ go tool trace trace</span><span class=w>
+</span><span class=w></span><span class=m>2021</span><span class=l>/04/05 12:10:17 Parsing trace...</span><span class=w>
+</span><span class=w></span><span class=m>2021</span><span class=l>/04/05 12:10:20 Splitting trace...</span><span class=w>
+</span><span class=w></span><span class=m>2021</span><span class=l>/04/05 12:10:21 Opening browser. Trace viewer is listening on http://127.0.0.1:50907</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><p>使用浏览器打开访问页面如下图
+<img src=trace.png style=width:100%></p><p>现在可以进行以下项分析</p><ul><li>View trace</li><li>Goroutine analysis</li><li>Network blocking profile</li><li>Synchronization blocking profile</li><li>Syscall blocking profile</li><li>Scheduler latency profile</li><li>User-defined tasks</li><li>User-defined regions</li><li>Minimum mutator utilization</li></ul><p>常用的有：</p><ul><li><strong>View trace</strong></li><li><strong>Goroutine analysis</strong></li><li>Network blocking profile</li><li>Synchronization blocking profile</li><li>Syscall blocking profile</li></ul><h3 id=all-available-profiles>all available profiles</h3><p>若要查看所有可用的配置文件，请在浏览器中打开http://localhost:6060/debug/pprof/。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=w>
+</span><span class=w></span><span class=l>http://localhost:6060/debug/pprof/</span><span class=w>
+</span></code></pre></td></tr></table></div></div><p>使用浏览器打开访问页面如下图
+<img src=debug-prof.png style=width:100%></p><h3 id=pprof包>pprof包</h3><p>pprof包介绍见下链接</p><p><a href=https://pkg.go.dev/net/http/pprof target=_blank rel="noopener noreffer">pprof包详细内容</a></p><h2 id=实例分析>实例分析</h2><p>k8s部署的一个go程序组件的性能在压测条件下，性能指标（吞吐量、延时）表现不好</p><p>由于是底层程序组件，不易采用日志打印方式来定位问题原因，考虑go pprof分析。
+结合程序运行cpu和内存情况，发现内存使用正常，但cpu利用率很高。重点分析cpu profile</p><h3 id=pprof配置-1>pprof配置</h3><h4 id=pprof-server-config>pprof server config</h4><p>在9999端口开启pprof服务</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go>
+<span class=c1>// main.go
+</span><span class=c1></span>
+<span class=c1>// pprof
+</span><span class=c1></span><span class=kn>import</span> <span class=nx>_</span> <span class=s>&#34;net/http/pprof&#34;</span>
+
+<span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+    <span class=c1>// ...
+</span><span class=c1></span>    <span class=c1>// pprof
+</span><span class=c1></span>    <span class=k>if</span> <span class=nx>s</span><span class=p>.</span><span class=nx>Profiling</span><span class=p>{</span>
+        <span class=k>go</span> <span class=nx>http</span><span class=p>.</span><span class=nf>ListenAndServe</span><span class=p>(</span><span class=s>&#34;:9999&#34;</span><span class=p>,</span> <span class=kc>nil</span><span class=p>)</span>
+    <span class=p>}</span>
+    <span class=c1>// ...
+</span><span class=c1></span><span class=p>}</span>
+
+
+</code></pre></td></tr></table></div></div><h4 id=pprof-service>pprof service</h4><p>编辑 service.yaml，使得环境node的39999端口映射到待调试k8s程序</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Service</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>kube-system</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>kube-batch-prometheus-discovery</span><span class=w>
+</span><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>k8s-app</span><span class=p>:</span><span class=w> </span><span class=l>kube-batch</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>k8s-app</span><span class=p>:</span><span class=w> </span><span class=l>kube-batch</span><span class=w>
+</span><span class=w>  </span><span class=c>#type: ClusterIP</span><span class=w>
+</span><span class=w>  </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>NodePort</span><span class=w>
+</span><span class=w>  </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>http-metrics</span><span class=w>
+</span><span class=w>      </span><span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>8080</span><span class=w>
+</span><span class=w>      </span><span class=nt>targetPort</span><span class=p>:</span><span class=w> </span><span class=m>8080</span><span class=w>
+</span><span class=w>      </span><span class=nt>protocol</span><span class=p>:</span><span class=w> </span><span class=l>TCP</span><span class=w>
+</span><span class=w>    </span><span class=c># pprof port setting</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>http-pprof</span><span class=w>
+</span><span class=w>      </span><span class=nt>nodePort</span><span class=p>:</span><span class=w> </span><span class=m>39999</span><span class=w>
+</span><span class=w>      </span><span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>9999</span><span class=w>
+</span><span class=w>      </span><span class=nt>targetPort</span><span class=p>:</span><span class=w> </span><span class=m>9999</span><span class=w>
+</span><span class=w>      </span><span class=nt>protocol</span><span class=p>:</span><span class=w> </span><span class=l>TCP</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><p>重启程序和服务，运行压测，待场景触发时，浏览器访问http://node_ip:39999/debug/pprof/</p><p>或者 通过命令行方式获取pprof文件</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># http://10.151.11.61:39999/debug/pprof/</span>
+
+
+
+
+<span class=c1>## trace文件</span>
+wget -O trace.out http://10.151.11.61:39999/debug/pprof/trace?seconds<span class=o>=</span><span class=m>10</span>
+
+<span class=c1>## cpu profile，默认30s，进入pprof后，输入svg，导出svg文件</span>
+go tool pprof http://10.151.11.61:39999/debug/pprof/profile
+
+<span class=c1>#type &#34;help &lt;cmd|option&gt;&#34; for more information</span>
+<span class=c1>#(pprof) svg</span>
+<span class=c1>#Generating report in profile001.svg</span>
+
+</code></pre></td></tr></table></div></div><h3 id=调度图-1>调度图</h3><p>浏览器打开之前导出的svg文件，如profile001.svg
+<img src=call-perf.png style=width:100%></p><p>可知predicates协程的FilteredList函数cpu占比较大，处理耗时较长。需要进行优化。</p><h3 id=trace图>trace图</h3><p>优化前，协程运行和执行时间
+<img src=trace-1.png style=width:100%>
+<img src=time-1.png style=width:100%>
+此时执行时间基本上都在130ms左右，耗时较长，影响性能。</p><h3 id=优化后的pprof>优化后的pprof</h3><h4 id=调度图-2>调度图</h4><img src=call-perf-2.png style=width:100%><p>对比优化前性能得到改善。</p><h4 id=trace图-1>trace图</h4><p>协程运行和执行时间
+<img src=trace-2.png style=width:100%>
+<img src=time-2.png style=width:100%>
+最后优化结果性能，执行时间基本上都在20ms以内，程序的性能经优化得到改善。</p><h2 id=参考资料>参考资料</h2><ul><li><a href="https://studygolang.com/articles/12314?fr=sidebar" target=_blank rel="noopener noreffer">如何获取运行的go程序的profile信息</a></li><li><a href=https://pkg.go.dev/net/http/pprof target=_blank rel="noopener noreffer">go package pprof</a></li><li><a href=https://blog.csdn.net/qq_25490573/article/details/103761814 target=_blank rel="noopener noreffer">Go程序性能分析方法（一文全解）</a></li><li><a href=https://blog.gopheracademy.com/advent-2017/go-execution-tracer/ target=_blank rel="noopener noreffer">Go execution tracer</a></li><li><a href=https://software.intel.com/content/www/us/en/develop/blogs/debugging-performance-issues-in-go-programs.html target=_blank rel="noopener noreffer">Debugging performance issues in Go* programs</a></li></ul></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2021-04-05</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/go/>Go</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2021/03/%E7%BC%96%E8%AF%91kube-batch%E5%92%8Cdensity/ class=prev rel=prev title=编译kube-batch和density><i class="fas fa-angle-left fa-fw"></i>编译kube-batch和density</a></div></div><div id=comments></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2021</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
+<script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i></a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css><script type=text/javascript src=https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script><script type=text/javascript>window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type=text/javascript src=/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-81425808-1',{'anonymize_ip':true});</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script><script src=https://libs.baidu.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js></script><script type=text/javascript src=/js/custom.js></script><script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script></body></html>
