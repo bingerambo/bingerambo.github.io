@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+        <title>kubelet残留孤儿pod(Orphaned pod)无法删除的问题 - 斌哥的小站|Binge Blog</title><meta name="Description" content="记录kubelet残留孤儿pod(Orphaned pod)无法删除的问题分析和解决方法"><meta property="og:title" content="kubelet残留孤儿pod(Orphaned pod)无法删除的问题" />
+<meta property="og:description" content="记录kubelet残留孤儿pod(Orphaned pod)无法删除的问题分析和解决方法" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://bingerambo.com/posts/2021/03/kubelet%E6%AE%8B%E7%95%99%E5%AD%A4%E5%84%BFpodorphaned-pod%E6%97%A0%E6%B3%95%E5%88%A0%E9%99%A4%E7%9A%84%E9%97%AE%E9%A2%98/" />
+<meta property="og:image" content="http://bingerambo.com/logo.png"/>
+<meta property="article:published_time" content="2021-03-02T08:43:17+08:00" />
+<meta property="article:modified_time" content="2021-03-02T08:43:17+08:00" />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="http://bingerambo.com/logo.png"/>
+
+<meta name="twitter:title" content="kubelet残留孤儿pod(Orphaned pod)无法删除的问题"/>
+<meta name="twitter:description" content="记录kubelet残留孤儿pod(Orphaned pod)无法删除的问题分析和解决方法"/>
+<meta name="application-name" content="Binge Blog">
+<meta name="apple-mobile-web-app-title" content="Binge Blog"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"><link rel="canonical" href="http://bingerambo.com/posts/2021/03/kubelet%E6%AE%8B%E7%95%99%E5%AD%A4%E5%84%BFpodorphaned-pod%E6%97%A0%E6%B3%95%E5%88%A0%E9%99%A4%E7%9A%84%E9%97%AE%E9%A2%98/" /><link rel="prev" href="http://bingerambo.com/posts/2021/02/k8s%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C%E5%91%BD%E4%BB%A4%E9%9B%86%E5%90%88/" /><link rel="next" href="http://bingerambo.com/posts/2021/03/%E4%B8%9A%E5%8A%A1%E5%8E%8B%E5%8A%9B%E6%B5%8B%E8%AF%95tsung-in-k8s/" /><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css"><link rel="stylesheet" href="/css/style.min.css"><link rel="stylesheet" href="/css/custom.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css"><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "kubelet残留孤儿pod(Orphaned pod)无法删除的问题",
+        "inLanguage": "zh-CN",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "http:\/\/bingerambo.com\/posts\/2021\/03\/kubelet%E6%AE%8B%E7%95%99%E5%AD%A4%E5%84%BFpodorphaned-pod%E6%97%A0%E6%B3%95%E5%88%A0%E9%99%A4%E7%9A%84%E9%97%AE%E9%A2%98\/"
+        },"image": ["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre": "posts","keywords": "K8S","wordcount":  1004 ,
+        "url": "http:\/\/bingerambo.com\/posts\/2021\/03\/kubelet%E6%AE%8B%E7%95%99%E5%AD%A4%E5%84%BFpodorphaned-pod%E6%97%A0%E6%B3%95%E5%88%A0%E9%99%A4%E7%9A%84%E9%97%AE%E9%A2%98\/","datePublished": "2021-03-02T08:43:17+08:00","dateModified": "2021-03-02T08:43:17+08:00","license": "This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher": {
+            "@type": "Organization",
+            "name": "xxxx","logo": "http:\/\/bingerambo.com\/images\/avatar.png"},"author": {
+                "@type": "Person",
+                "name": "Binge"
+            },"description": "记录kubelet残留孤儿pod(Orphaned pod)无法删除的问题分析和解决方法"
+    }
+    </script></head>
+    <body header-desktop="fixed" header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="斌哥的小站|Binge Blog"><span class="header-title-pre"><i class='fas fa-biking fa-fw'></i></span>Binge Blog</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"><i class='fas fa-fw fa-archive'></i> 文章 </a><a class="menu-item" href="/tags/"><i class='fas fa-fw fa-tag'></i> 标签 </a><a class="menu-item" href="/categories/"><i class='fas fa-fw fa-th'></i> 分类 </a><a class="menu-item" href="/timeline/"><i class='fas fa-cog fa-spin'></i> 随记 </a><a class="menu-item" href="/about/"><i class='fas fa-fw fa-at'></i> 关于 </a><a class="menu-item" href="/search/"><i class='fas fa-fw fa-search'></i> 搜索 </a><a class="menu-item" href="/friend/" title="Friend"><i class='fas fa fa-user'></i> 友链 </a><a class="menu-item" href="https://github.com/bingerambo" title="GitHub" rel="noopener noreffer" target="_blank"><i class='fab fa-github fa-fw'></i>  </a><a class="menu-item" href="/"><i class='fas fa fa-eye'></i>  <span id='busuanzi_value_site_uv'></span></a><span class="menu-item delimiter"></span><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                    <i class="fas fa-adjust fa-fw"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="斌哥的小站|Binge Blog"><span class="header-title-pre"><i class='fas fa-biking fa-fw'></i></span>Binge Blog</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><a class="menu-item" href="/posts/" title=""><i class='fas fa-fw fa-archive'></i>文章</a><a class="menu-item" href="/tags/" title=""><i class='fas fa-fw fa-tag'></i>标签</a><a class="menu-item" href="/categories/" title=""><i class='fas fa-fw fa-th'></i>分类</a><a class="menu-item" href="/timeline/" title=""><i class='fas fa-cog fa-spin'></i>随记</a><a class="menu-item" href="/about/" title=""><i class='fas fa-fw fa-at'></i>关于</a><a class="menu-item" href="/search/" title=""><i class='fas fa-fw fa-search'></i>搜索</a><a class="menu-item" href="/friend/" title="Friend"><i class='fas fa fa-user'></i>友链</a><a class="menu-item" href="https://github.com/bingerambo" title="GitHub" rel="noopener noreffer" target="_blank"><i class='fab fa-github fa-fw'></i></a><a class="menu-item" href="/" title=""><i class='fas fa fa-eye'></i><span id='busuanzi_value_site_uv'></span></a><a href="javascript:void(0);" class="menu-item theme-switch" title="切换主题">
+                <i class="fas fa-adjust fa-fw"></i>
+            </a></div>
+    </div>
+</header>
+<div class="search-dropdown desktop">
+    <div id="search-dropdown-desktop"></div>
+</div>
+<div class="search-dropdown mobile">
+    <div id="search-dropdown-mobile"></div>
+</div>
+<main class="main">
+                <div class="container">
+                    <div class="toc" id="toc-auto">
+            <h2 class="toc-title">目录</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animated flipInX">kubelet残留孤儿pod(Orphaned pod)无法删除的问题</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="http://bingerambo.com" title="Author" target="_blank" rel="noopener noreffer author" class="author"><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class="post-category">收录于 <a href="/categories/k8s/"><i class="far fa-folder fa-fw"></i>K8S</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime="2021-03-02">2021-03-02</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 1004 字&nbsp;
+                <i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 3 分钟&nbsp;
+                <i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  kept="">
+                <div class="details-summary toc-title">
+                    <span>目录</span>
+                    <span><i class="details-icon fas fa-angle-right"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#问题">问题</a></li>
+    <li><a href="#分析">分析</a></li>
+    <li><a href="#解决">解决</a></li>
+    <li><a href="#orphaned-pod批量清理">Orphaned pod批量清理</a></li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><p>记录kubelet残留孤儿pod(Orphaned pod)无法删除的问题分析和解决方法</p>
+<h2 id="问题">问题</h2>
+<p>查看kubelet日志，错误信息如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-shell" data-lang="shell">
+E0823 10:31:01.847946    <span class="m">1303</span> kubelet_volumes.go:140<span class="o">]</span> Orphaned pod <span class="s2">&#34;19a4e3e6-a562-11e8-9a25-309c23027882&#34;</span> found, but volume paths are still present on disk : There were a total of <span class="m">2</span> errors similar to this. Turn up verbosity to see them.
+E0823 10:31:03.840552    <span class="m">1303</span> kubelet_volumes.go:140<span class="o">]</span> Orphaned pod <span class="s2">&#34;19a4e3e6-a562-11e8-9a25-309c23027882&#34;</span> found, but volume paths are still present on disk : There were a total of <span class="m">2</span> errors similar to this. Turn up verbosity to see them.
+
+</code></pre></td></tr></table>
+</div>
+</div><p>这些错误信息打印提示出现了Orphaned pod，并且每2秒打印1条记录，会导致系统日志充满kubelet的泛滥打印。影响对系统日志信息的查看。</p>
+<h2 id="分析">分析</h2>
+<p>原因为，k8s已经删除了该Orphaned pod信息（kubectl get 已经查询不到Orphaned pod），此时，kubelet从pod manager中获取all pods信息时不会有该孤儿pod，但是kubelet在cleanupOrphanedPodDirs操作清理该pod时，发现该pod的卷目录仍存在（或挂载使用中），pod卷目录仍存在且无法删除，就导致该pod在节点上无法删除，并提示Orphaned pod错误信息。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-golang" data-lang="golang"><span class="c1">// cleanupOrphanedPodDirs removes the volumes of pods that should not be
+</span><span class="c1">// running and that have no containers running.  Note that we roll up logs here since it runs in the main loop.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">kl</span> <span class="o">*</span><span class="nx">Kubelet</span><span class="p">)</span> <span class="nf">cleanupOrphanedPodDirs</span><span class="p">(</span><span class="nx">pods</span> <span class="p">[]</span><span class="o">*</span><span class="nx">v1</span><span class="p">.</span><span class="nx">Pod</span><span class="p">,</span> <span class="nx">runningPods</span> <span class="p">[]</span><span class="o">*</span><span class="nx">kubecontainer</span><span class="p">.</span><span class="nx">Pod</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+        <span class="c1">// If there are still volume directories, do not delete directory
+</span><span class="c1"></span>        <span class="nx">volumePaths</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">kl</span><span class="p">.</span><span class="nf">getPodVolumePathListFromDisk</span><span class="p">(</span><span class="nx">uid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+            <span class="nx">orphanVolumeErrors</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">orphanVolumeErrors</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;orphaned pod %q found, but error %v occurred during reading volume dir from disk&#34;</span><span class="p">,</span> <span class="nx">uid</span><span class="p">,</span> <span class="nx">err</span><span class="p">))</span>
+            <span class="k">continue</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nx">volumePaths</span><span class="p">)</span> <span class="p">&gt;</span> <span class="mi">0</span> <span class="p">{</span>
+            <span class="nx">orphanVolumeErrors</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">orphanVolumeErrors</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;orphaned pod %q found, but volume paths are still present on disk&#34;</span><span class="p">,</span> <span class="nx">uid</span><span class="p">))</span>
+            <span class="k">continue</span>
+        <span class="p">}</span>
+
+        <span class="c1">// If there are any volume-subpaths, do not cleanup directories
+</span><span class="c1"></span>        <span class="nx">volumeSubpathExists</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">kl</span><span class="p">.</span><span class="nf">podVolumeSubpathsDirExists</span><span class="p">(</span><span class="nx">uid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+            <span class="nx">orphanVolumeErrors</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">orphanVolumeErrors</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;orphaned pod %q found, but error %v occurred during reading of volume-subpaths dir from disk&#34;</span><span class="p">,</span> <span class="nx">uid</span><span class="p">,</span> <span class="nx">err</span><span class="p">))</span>
+            <span class="k">continue</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="nx">volumeSubpathExists</span> <span class="p">{</span>
+            <span class="nx">orphanVolumeErrors</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">orphanVolumeErrors</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;orphaned pod %q found, but volume subpaths are still present on disk&#34;</span><span class="p">,</span> <span class="nx">uid</span><span class="p">))</span>
+            <span class="k">continue</span>
+        <span class="p">}</span>
+
+<span class="p">}</span>
+
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="解决">解决</h2>
+<p>一般的 我们会直接删除掉这个孤儿pod的目录，该操作需谨慎。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-shell" data-lang="shell"><span class="c1"># kubeectl 查询不到该$podid的pod信息，则可以进行清理操作</span>
+<span class="c1"># 删除该Orphaned pod数据目录</span>
+<span class="nv">KUBELET_HOME</span><span class="o">=</span>/var/lib
+rm -rf <span class="si">${</span><span class="nv">KUBELET_HOME</span><span class="si">}</span>/kubelet/pods/<span class="nv">$podid</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="orphaned-pod批量清理">Orphaned pod批量清理</h2>
+<p>如果系统环境中存在大量的Orphaned pod需求清理，可使用下面脚本批量处理</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-shell" data-lang="shell"><span class="cp">#!/bin/bash
+</span><span class="cp"></span>
+<span class="c1"># 这个脚本使用优雅方式进行pod相关挂载卷的卸载处理和卷目录删除，并不手动删除pod目录（其内可能包含pod数据）</span>
+
+<span class="nv">KUBELET_HOME</span><span class="o">=</span>/var/lib
+<span class="c1"># 通过系统日志获取到全部孤儿pod的podid</span>
+<span class="c1"># for podid in $(grep &#34;orphaned pod&#34; /var/log/syslog | tail -1 | awk &#39;{print $12}&#39; | sed &#39;s/&#34;//g&#39;);</span>
+<span class="k">for</span> podid in <span class="k">$(</span>grep <span class="s2">&#34;orphaned pod&#34;</span> /var/log/messages <span class="p">|</span> tail -1 <span class="p">|</span> awk <span class="s1">&#39;{print $12}&#39;</span> <span class="p">|</span> sed <span class="s1">&#39;s/&#34;//g&#39;</span><span class="k">)</span><span class="p">;</span>
+<span class="k">do</span>
+    <span class="k">if</span> <span class="o">[</span> ! -d <span class="si">${</span><span class="nv">KUBELET_HOME</span><span class="si">}</span>/kubelet/pods/<span class="nv">$podid</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+        <span class="nb">break</span>
+    <span class="k">fi</span>
+
+    <span class="k">if</span> <span class="o">[</span> -d <span class="si">${</span><span class="nv">KUBELET_HOME</span><span class="si">}</span>/kubelet/pods/<span class="nv">$podid</span>/volume-subpaths/ <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+        <span class="nv">mountpath</span><span class="o">=</span><span class="k">$(</span>mount <span class="p">|</span> grep <span class="si">${</span><span class="nv">KUBELET_HOME</span><span class="si">}</span>/kubelet/pods/<span class="nv">$podid</span>/volume-subpaths/ <span class="p">|</span> awk <span class="s1">&#39;{print $3}&#39;</span><span class="k">)</span>
+        <span class="k">for</span> mntPath in <span class="nv">$mountpath</span><span class="p">;</span>
+        <span class="k">do</span>
+            umount <span class="nv">$mntPath</span>
+        <span class="k">done</span>
+        rm -rf <span class="si">${</span><span class="nv">KUBELET_HOME</span><span class="si">}</span>/kubelet/pods/<span class="nv">$podid</span>/volume-subpaths
+    <span class="k">fi</span>
+
+    <span class="nv">csiMounts</span><span class="o">=</span><span class="k">$(</span>mount <span class="p">|</span> grep <span class="s2">&#34;</span><span class="si">${</span><span class="nv">KUBELET_HOME</span><span class="si">}</span><span class="s2">/kubelet/pods/</span><span class="nv">$podid</span><span class="s2">/volumes/kubernetes.io~csi&#34;</span><span class="k">)</span>
+    <span class="k">if</span> <span class="o">[</span> <span class="s2">&#34;</span><span class="nv">$csiMounts</span><span class="s2">&#34;</span> !<span class="o">=</span> <span class="s2">&#34;&#34;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+        <span class="nb">echo</span> <span class="s2">&#34;csi is mounted at: </span><span class="nv">$csiMounts</span><span class="s2">&#34;</span>
+        <span class="nb">exit</span> <span class="m">1</span>
+    <span class="k">else</span>
+        rm -rf <span class="si">${</span><span class="nv">KUBELET_HOME</span><span class="si">}</span>/kubelet/pods/<span class="nv">$podid</span>/volumes/kubernetes.io~csi
+    <span class="k">fi</span>
+
+    <span class="nv">volumeTypes</span><span class="o">=</span><span class="k">$(</span>ls <span class="si">${</span><span class="nv">KUBELET_HOME</span><span class="si">}</span>/kubelet/pods/<span class="nv">$podid</span>/volumes/<span class="k">)</span>
+    <span class="k">for</span> volumeType in <span class="nv">$volumeTypes</span><span class="p">;</span>
+    <span class="k">do</span>
+        <span class="nv">subVolumes</span><span class="o">=</span><span class="k">$(</span>ls -A <span class="si">${</span><span class="nv">KUBELET_HOME</span><span class="si">}</span>/kubelet/pods/<span class="nv">$podid</span>/volumes/<span class="nv">$volumeType</span><span class="k">)</span>
+        <span class="k">if</span> <span class="o">[</span> <span class="s2">&#34;</span><span class="nv">$subVolumes</span><span class="s2">&#34;</span> !<span class="o">=</span> <span class="s2">&#34;&#34;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+            <span class="nb">echo</span> <span class="s2">&#34;</span><span class="si">${</span><span class="nv">KUBELET_HOME</span><span class="si">}</span><span class="s2">/kubelet/pods/</span><span class="nv">$podid</span><span class="s2">/volumes/</span><span class="nv">$volumeType</span><span class="s2"> contents volume: </span><span class="nv">$subVolumes</span><span class="s2">&#34;</span>
+            <span class="nb">exit</span> <span class="m">1</span>
+        <span class="k">else</span>
+            rmdir <span class="si">${</span><span class="nv">KUBELET_HOME</span><span class="si">}</span>/kubelet/pods/<span class="nv">$podid</span>/volumes/<span class="nv">$volumeType</span>
+        <span class="k">fi</span>
+    <span class="k">done</span>
+<span class="k">done</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://github.com/kubernetes/kubernetes/issues/60987" target="_blank" rel="noopener noreffer">OrphanedPod Issue</a></li>
+<li><a href="https://docs.microfocus.com/itom/SMAX:2019.08/OrphanedPodFound" target="_blank" rel="noopener noreffer">OrphanedPod Found</a></li>
+</ul></div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>更新于 2021-03-02</span>
+            </div>
+            <div class="post-info-license"></div>
+        </div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"><i class="fas fa-tags fa-fw"></i>&nbsp;<a href="/tags/k8s/">K8S</a></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">返回</a></span>&nbsp;|&nbsp;<span><a href="/">主页</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/posts/2021/02/k8s%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C%E5%91%BD%E4%BB%A4%E9%9B%86%E5%90%88/" class="prev" rel="prev" title="K8S常用操作命令集合"><i class="fas fa-angle-left fa-fw"></i>K8S常用操作命令集合</a>
+            <a href="/posts/2021/03/%E4%B8%9A%E5%8A%A1%E5%8E%8B%E5%8A%9B%E6%B5%8B%E8%AF%95tsung-in-k8s/" class="next" rel="next" title="业务压力测试tsung-in-k8s">业务压力测试tsung-in-k8s<i class="fas fa-angle-right fa-fw"></i></a></div>
+</div>
+<div id="comments"></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line"><i class="far fa-copyright fa-fw"></i><span itemprop="copyrightYear">2016 - 2021</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="bingerambo.com" target="_blank">Binge</a></span>&nbsp;|&nbsp;<span class="license"><a rel="license external nofollow noopener noreffer" href="http://bingerambo.com/" target="_blank">bingerambo.com</a></span></div><div class="footer-line">
+                
+                <i class="fa fa-eye"></i>本站总访问量<span id="busuanzi_value_site_pv"></span>次
+                
+                
+                <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            </div>
+        </div>
+    </footer>
+        </div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="回到顶部">
+                <i class="fas fa-arrow-up fa-fw"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="查看评论">
+                <i class="fas fa-comment fa-fw"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css"><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type="text/javascript" src="/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'UA-81425808-1', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script>
+        <script src="https://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
+        <script src="https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js"></script>
+        <script type="text/javascript" src="/js/custom.js"></script><script>
+            var _hmt = _hmt || [];
+            (function() {
+              var hm = document.createElement("script");
+              hm.src = "https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";
+              var s = document.getElementsByTagName("script")[0]; 
+              s.parentNode.insertBefore(hm, s);
+            })();
+        </script>
+    </body>
+</html>
