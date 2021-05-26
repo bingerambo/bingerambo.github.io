@@ -1,0 +1,1132 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>KubeEdge介绍和设计原理 - 斌哥的小站|Binge Blog</title><meta name=Description content="斌哥的小站 | 这里是 @BingeRambo斌哥兰博的个人博客"><meta property="og:title" content="KubeEdge介绍和设计原理"><meta property="og:description" content="KubeEdge架构和组件介绍
+KubeEdge提供了一个容器化的边缘计算平台，该平台具有内在的可伸缩性。由于模块化和优化的设计，它是轻量级的(较小的占用空间和运行内存)，可以部署在低资源的设备上。同样，边缘节点可以具有不同的硬件结构和不同的硬件配置。对于设备连接，它可以支持多个协议，并使用标准的基于MQTT的通信.这有助于有效地扩展具有新节点和设备的边缘集群。"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2021/05/kubeedge%E4%BB%8B%E7%BB%8D%E5%92%8C%E8%AE%BE%E8%AE%A1%E5%8E%9F%E7%90%86/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2021-05-26T08:43:17+08:00"><meta property="article:modified_time" content="2021-05-26T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="KubeEdge介绍和设计原理"><meta name=twitter:description content="KubeEdge架构和组件介绍
+KubeEdge提供了一个容器化的边缘计算平台，该平台具有内在的可伸缩性。由于模块化和优化的设计，它是轻量级的(较小的占用空间和运行内存)，可以部署在低资源的设备上。同样，边缘节点可以具有不同的硬件结构和不同的硬件配置。对于设备连接，它可以支持多个协议，并使用标准的基于MQTT的通信.这有助于有效地扩展具有新节点和设备的边缘集群。"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2021/05/kubeedge%E4%BB%8B%E7%BB%8D%E5%92%8C%E8%AE%BE%E8%AE%A1%E5%8E%9F%E7%90%86/><link rel=prev href=http://bingerambo.com/posts/2021/05/k8s%E4%B8%AD%E7%9A%84crd%E5%BC%80%E5%8F%91/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"KubeEdge介绍和设计原理","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2021\/05\/kubeedge%E4%BB%8B%E7%BB%8D%E5%92%8C%E8%AE%BE%E8%AE%A1%E5%8E%9F%E7%90%86\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":9884,"url":"http:\/\/bingerambo.com\/posts\/2021\/05\/kubeedge%E4%BB%8B%E7%BB%8D%E5%92%8C%E8%AE%BE%E8%AE%A1%E5%8E%9F%E7%90%86\/","datePublished":"2021-05-26T08:43:17+08:00","dateModified":"2021-05-26T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":""}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">KubeEdge介绍和设计原理</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2021-05-26>2021-05-26</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 9884 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 20 分钟&nbsp;
+<i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#介绍>介绍</a></li><li><a href=#特点>特点</a></li><li><a href=#优势>优势</a></li><li><a href=#架构>架构</a></li><li><a href=#cloudcore>Cloudcore</a><ul><li><a href=#cloudhub>CloudHub</a></li><li><a href=#edge-controller>Edge Controller</a><ul><li><a href=#downstreamcontroller>DownstreamController</a></li><li><a href=#upstreamcontroller>UpstreamController</a></li></ul></li><li><a href=#device-controller>Device Controller</a><ul><li><a href=#device-crd-model>device-crd-model</a></li><li><a href=#云端下发更新边缘端设备>云端下发更新边缘端设备</a></li><li><a href=#边缘端更新设备上报云端>边缘端更新设备上报云端</a></li></ul></li></ul></li><li><a href=#edgecore>EdgeCore</a><ul><li><a href=#edged>Edged</a></li><li><a href=#eventbus>eventbus</a><ul><li><a href=#modes>modes</a></li><li><a href=#topics>topics</a></li><li><a href=#messages-flow>messages flow</a></li></ul></li><li><a href=#metamanager>MetaManager</a><ul><li><a href=#update-operation>Update Operation</a></li></ul></li><li><a href=#edgehub>Edgehub</a><ul><li><a href=#route-to-cloud>Route To Cloud</a></li><li><a href=#route-to-edge>Route To Edge</a></li></ul></li><li><a href=#devicetwin>DeviceTwin</a></li><li><a href=#edgemesh>edgemesh</a></li></ul></li><li><a href=#可靠的消息传递机制>可靠的消息传递机制</a><ul><li><a href=#at-least-once-delivery>At-Least-Once Delivery</a></li><li><a href=#synccontroller>SyncController</a></li><li><a href=#message-queue>Message Queue</a></li><li><a href=#ack-message-format>ACK message Format</a></li><li><a href=#reliablesync-crd>ReliableSync CRD</a><ul><li><a href=#the-clusterobjectsync>The ClusterObjectSync</a></li><li><a href=#the-objectsync>The ObjectSync</a></li></ul></li><li><a href=#exception-scenarioscorner-cases-handling>Exception scenarios/Corner cases handling</a><ul><li><a href=#cloudcore重启>CloudCore重启</a></li><li><a href=#edgecore-重启>EdgeCore 重启</a></li><li><a href=#edgenode-删除>EdgeNode 删除</a></li><li><a href=#objectsync-cr-垃圾回收>ObjectSync CR 垃圾回收</a></li></ul></li></ul></li><li><a href=#部署安装>部署安装</a><ul><li><a href=#download-keadm>Download keadm</a></li><li><a href=#setup-cloud-side-kubeedge-master-node>Setup Cloud Side (KubeEdge Master Node)</a><ul><li><a href=#安装打印>安装打印</a></li><li><a href=#cloudcore启动日志>cloudcore启动日志</a></li></ul></li><li><a href=#setup-edge-side-kubeedge-worker-node>Setup Edge Side (KubeEdge Worker Node)</a><ul><li><a href=#get-token-from-cloud-side>Get Token From Cloud Side</a></li><li><a href=#join-edge-node>Join Edge Node</a></li><li><a href=#安装过程部分打印>安装过程部分打印</a></li></ul></li></ul></li><li><a href=#节点信息>节点信息</a></li><li><a href=#组件进程>组件进程</a></li><li><a href=#卸载>卸载</a></li><li><a href=#问题>问题</a><ul><li><a href=#keadm在线下载失败>keadm在线下载失败</a></li><li><a href=#edgecore失败-failed-to-check-the-running-environment>edgecore失败-Failed to check the running environment</a></li><li><a href=#edgecore失败-failed-to-start-container-manager>edgecore失败-Failed to start container manager</a></li></ul></li><li><a href=#参考资料>参考资料</a></li></ul></nav></div></div><div class=content id=content><p>KubeEdge架构和组件介绍
+KubeEdge提供了一个容器化的边缘计算平台，该平台具有内在的可伸缩性。由于模块化和优化的设计，它是轻量级的(较小的占用空间和运行内存)，可以部署在低资源的设备上。同样，边缘节点可以具有不同的硬件结构和不同的硬件配置。对于设备连接，它可以支持多个协议，并使用标准的基于MQTT的通信.这有助于有效地扩展具有新节点和设备的边缘集群。</p><h2 id=介绍>介绍</h2><p>KubeEdge是一个开源系统，用于将本机容器化的应用程序编排功能扩展到Edge上的主机， 它基于kubernetes构建，并为网络，应用程序提供基本的基础架构支持。云和边缘之间的部署和元数据同步。 Kubeedge已获得Apache 2.0的许可。并且完全免费供个人或商业使用。我们欢迎贡献者！</p><p>我们的目标是建立一个开放平台，以支持Edge计算，将原生容器化应用程序编排功能扩展到Edge上的主机，该主机基于kubernetes，并为网络， 应用程序部署以及云与Edge之间的元数据同步提供基础架构支持。</p><h2 id=特点>特点</h2><ul><li>完全开放 - Edge Core和Cloud Core都是开源的。</li><li>离线模式 - 即使与云断开连接，Edge也可以运行。</li><li>基于Kubernetes - 节点，群集，应用程序和设备管理。
+可扩展 - 容器化，微服务</li><li>资源优化 - 可以在资源不足的情况下运行。边缘云上资源的优化利用。</li><li>跨平台 - 无感知；可以在私有，公共和混合云中工作。</li><li>数据与分析 - 支持数据管理，数据分析管道引擎。</li><li>异构 - 可以支持x86，ARM。</li><li>简化开发 - 基于SDK的设备加成，应用程序部署等开发</li><li>易于维护 - 升级，回滚，监视，警报等</li></ul><h2 id=优势>优势</h2><ul><li>边缘计算： 通过在Edge上运行的业务逻辑，可以在生成数据的本地保护和处理大量数据。这减少了网络带宽需求以及边缘和云之间的消耗。这样可以提高响应速度，降低成本并保护客户的数据隐私。</li><li>简化开发：开发人员可以编写基于常规http或mqtt的应用程序，对其进行容器化，然后在Edge或Cloud中的任何位置运行它们中的更合适的一个。</li><li>Kubernetes原生支持： 借助KubeEdge，用户可以在Edge节点上编排应用，管理设备并监视应用和设备状态，就像云中的传统Kubernetes集群一样
+大量的应用： 可以轻松地将现有的复杂机器学习，图像识别，事件处理和其他高级应用程序部署和部署到Edge。</li></ul><h2 id=架构>架构</h2><img src=kubeedge_arch.png style=width:100%><p>kubeedge分为两个可执行程序，cloudcore和edgecore,分别有以下模块</p><p>cloudcore：</p><ul><li>CloudHub：云中的通信接口模块。一个Web套接字服务器，负责监视云端的更改、缓存和向EdgeHub发送消息</li><li>EdgeController：管理Edge节点。 一种扩展的Kubernetes控制器，它管理边缘节点和pod元数据，来定义边缘节点。</li><li>devicecontroller 负责设备管理。一种扩展的Kubernetes控制器，用于管理设备，以便设备元数据/状态数据可以在边缘和云之间同步。</li></ul><p>edgecore： 主要有6个模块</p><ul><li>Edged：在边缘节点上运行并管理容器化应用程序的代理。</li><li>EdgeHub：Edge上负责与云服务交互的Web套接字客户端。 负责与用于边缘计算(如KubeEdge体系结构中的EdgeController)云服务交互的Web套接字客户端，。这包括同步云端资源更新到边缘，以及报告边缘端主机和设备状态对云的更改。</li><li>EventBus：使用MQTT处理内部边缘通信。 MQTT客户端与MQTT服务器(MQTT服务器)交互，为其他组件提供发布和订阅功能。</li><li>DeviceTwin：负责存储设备状态和同步设备状态到云。它还为应用程序提供查询接口。。</li><li>MetaManager：edged和edgehub之间的消息处理器。它还负责将元数据存储/检索到轻量级数据库(SQLite)。</li><li>ServiceBus: 接收云上服务请求和边缘应用进行http交互</li></ul><h2 id=cloudcore>Cloudcore</h2><h3 id=cloudhub>CloudHub</h3><p>CloudHub是cloudcore的一个模块，是Controller和Edge端之间的中介。它负责下行分发消息(其内封装了k8s资源事件，如pod update等)，也负责接收并发送边缘节点上行消息至controllers。其中下行的消息在应用层增强了传输的可靠性，以应对云边的弱网络环境。</p><p>到边缘的连接（通过EdgeHub模块）是通过可选的websocket/quic连接完成的。对于Cloudcore内部通信，Cloudhub直接与Controller通讯。Controller发送到CloudHub的所有请求，与用于存储这个边缘节点的事件对象的通道一起存储在channelq中。</p><img src=Cloudhub-1.png style=width:100%><p>Cloudhub内部主要有以下几个重要结构：</p><ul><li><p>MessageDispatcher：下行消息分发中心，也是下行消息队列的生产者，DispatchMessage函数中实现。</p></li><li><p>NodeMessageQueue：每个边缘节点有一个专属的消息队列，总体构成一个队列池，以Node + UID作为区分，ChannelMessageQueue结构体实现</p></li><li><p>WriteLoop：负责将消息写入底层连接，是上述消息队列的消费者</p></li><li><p>Connection server：接收边缘节点访问，支持websocket协议和quick协议连接</p></li><li><p>Http server：为边缘节点提供证书服务，如证书签发与证书轮转</p></li></ul><img src=Cloudhub-2.png style=width:100%><p>云边消息格式的结构如下：</p><p>Header，由beehive框架调用NewMessage函数提供，主要包括ID、ParentID、TimeStamp
+Body，包含消息源，消息Group，消息资源，资源对应的操作</p><h3 id=edge-controller>Edge Controller</h3><p>EdgeController是Kubernetes Api服务器和Edgecore之间的桥梁</p><h4 id=downstreamcontroller>DownstreamController</h4><img src=DownstreamController.png style=width:100%><h4 id=upstreamcontroller>UpstreamController</h4><img src=UpstreamController.png style=width:100%><h3 id=device-controller>Device Controller</h3><p>通过k8s CRD来描述设备metadata/status ，devicecontroller在云和边缘之间同步，有两个goroutines: upstream controller/downstream controller</p><h4 id=device-crd-model>device-crd-model</h4><img src=device-crd/device-crd-model.png style=width:100%><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=c># 关于kubeedge的crd</span><span class=w>
+</span><span class=w></span><span class=c># kubectl get CustomResourceDefinition -A |grep edge</span><span class=w>
+</span><span class=w></span><span class=l>clusterobjectsyncs.reliablesyncs.kubeedge.io   2021-05-25T02:35:25Z</span><span class=w>
+</span><span class=w></span><span class=l>devicemodels.devices.kubeedge.io               2021-05-25T02:33:32Z</span><span class=w>
+</span><span class=w></span><span class=l>devices.devices.kubeedge.io                    2021-05-25T02:29:00Z</span><span class=w>
+</span><span class=w></span><span class=l>objectsyncs.reliablesyncs.kubeedge.io          2021-05-25T02:44:23Z</span><span class=w>
+</span><span class=w></span><span class=l>ruleendpoints.rules.kubeedge.io                2021-05-25T02:44:24Z</span><span class=w>
+</span><span class=w></span><span class=l>rules.rules.kubeedge.io                        2021-05-25T02:44:23Z</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c># kubeedge device-model 和 device的crd</span><span class=w>
+</span><span class=w></span><span class=c># kubectl get CustomResourceDefinition -A |grep edge |grep device</span><span class=w>
+</span><span class=w></span><span class=l>devicemodels.devices.kubeedge.io               2021-05-25T02:33:32Z</span><span class=w>
+</span><span class=w></span><span class=l>devices.devices.kubeedge.io                    2021-05-25T02:29:00Z</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><h4 id=云端下发更新边缘端设备>云端下发更新边缘端设备</h4><p>device-updates-cloud-edge
+<img src=device-crd/device-downstream-controller.png style=width:100%><br><br><br><img src=device-crd/device-updates-cloud-edge.png style=width:100%></p><h4 id=边缘端更新设备上报云端>边缘端更新设备上报云端</h4><p>device-updates-edge-cloud
+<img src=device-crd/device-upstream-controller.png style=width:100%><br><br><br><img src=device-crd/device-updates-edge-cloud.png style=width:100%></p><h2 id=edgecore>EdgeCore</h2><p><strong>EdgeCore支持amd以及arm，不能运行在有kubelet以及Kube-proxy的节点（或者关闭EdgeCore运行环境检查开关参数）。</strong></p><img src=kubeedge-component-arch.png style=width:100%><p>EdgeCore包括几个模块：Edged、EdgeHub、MetaManager、DeviceTwin、EventBus、ServiceBus、EdgeStream以及EdgeMesh。</p><p>与k8s节点上部署的kubelet相比：对kubelet不必要的部分进行了精简，即edgecore中的edged；edgecore增加了与设备管理相关的模块如devicetwin以及eventbus；edgemesh模块实现了服务发现；edgecore将元数据进行本地存储，保证云边网络不稳定时边缘端也能正常工作，metamanager进行元数据的管理。</p><h3 id=edged>Edged</h3><p>Edged是管理节点生命周期的边缘节点模块。它可以帮助用户在边缘节点上部署容器化的工作负载或应用程序。 这些工作负载可以执行任何操作，从简单的遥测数据操作到分析或ML推理等。使用kubectl云端的命令行界面，用户可以发出命令来启动工作负载。</p><p>当前容器和镜像管理支持Docker容器运行时。将来应添加其他运行时支持，例如containerd等。</p><p>有许多模块协同工作以实现edged的功能。</p><img src=modules.jpg style=width:100%><ul><li><p>pod管理: 用于pod的添加删除修改,它还使用pod status manager和pleg跟踪pod的运行状况。其主要工作如下：</p><ul><li>从metamanager接收和处理pod添加/删除/修改消息。</li><li>处理单独的工作队列以添加和删除容器。</li><li>处理工作程序例程以检查工作程序队列以执行pod操作。</li><li>分别为config map 和 secrets保留单独的的缓存。</li><li>定期清理孤立的pod</li></ul></li><li><p>Pod生命周期事件生成器</p></li><li><p>CRI边缘化</p></li><li><p>secret管理</p></li><li><p>Probe Management</p></li><li><p>ConfigMap Management</p></li><li><p>Container GC</p></li><li><p>Image GC</p></li><li><p>Status Manager</p></li><li><p>卷管理</p></li><li><p>MetaClient</p></li></ul><img src=edged-podCreate.png style=width:100%><h3 id=eventbus>eventbus</h3><p>Eventbus充当用于发送/接收有关mqtt主题的消息的接口</p><h4 id=modes>modes</h4><p>它支持三种模式：</p><ul><li>internalMqttMode</li><li>externalMqttMode</li><li>bothMqttMode</li></ul><h4 id=topics>topics</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>- $hw/events/upload/#
+- SYS/dis/upload_records
+- SYS/dis/upload_records/+
+- $hw/event/node/+/membership/get
+- $hw/event/node/+/membership/get/+
+- $hw/events/device/+/state/update
+- $hw/events/device/+/state/update/+
+- $hw/event/device/+/twin/+
+</code></pre></td></tr></table></div></div><h4 id=messages-flow>messages flow</h4><ol><li>eventbus sends messages from external client</li></ol><img src=eventbus-handleMsgFromClient.jpg style=width:100%><ol start=2><li>eventbus sends response messages to external client
+<img src=eventbus-handleResMsgToClient.jpg style=width:100%></li></ol><h3 id=metamanager>MetaManager</h3><p>MetaManager是edged和edgehub之间的消息处理器。它还负责将元数据存储到轻量级数据库（SQLite）或从中检索元数据。</p><p>Metamanager根据以下列出的操作接收不同类型的消息：</p><ul><li>Insert</li><li>Update</li><li>Delete</li><li>Query</li><li>Response</li><li>NodeConnection</li><li>MetaSync</li></ul><h4 id=update-operation>Update Operation</h4><img src=meta-update.png style=width:100%><h3 id=edgehub>Edgehub</h3><p>Edge Hub负责与云中存在的CloudHub组件进行交互。它可以使用WebSocket连接或QUIC协议连接到CloudHub 。它支持同步云端资源更新，报告边缘端主机和设备状态更改等功能。</p><p>它充当边缘与云之间的通信链接。它将从云接收的消息转发到边缘的相应模块，反之亦然。</p><p>edgehub执行的主要功能是：</p><ul><li>Keep Alive</li><li>Publish Client Info</li><li>Route to Cloud</li><li>Route to Edge</li></ul><img src=edgehub.png style=width:100%><p>EdgeHub中有两类client，分别是httpclient以及websocket/quic client，前者用于与EdgeCore与CloudCore通信所需证书的申请，后者负责与CloudCore的日常通信（资源下发、状态上传等）</p><p>当EdgeHub启动时，其先从CloudCore申请证书（若正确配置本地证书，则直接使用本地证书）</p><p>初始化与CloudCore通信的websocket/quic client，成功连接之后将成功连接的信息传给其他组件（MetaGroup、TwinGroup、BusGroup），分别启动三个goroutine不断的进行云到边以及边到云的消息分发(单纯分发，不做任何封装或改变)、健康状态上报。当云边传送消息过程中出现错误时，则边缘端重新init相应的websocket/quic client，与云端重新建立连接。</p><h4 id=route-to-cloud>Route To Cloud</h4><img src=route-to-cloud.png style=width:100%><h4 id=route-to-edge>Route To Edge</h4><img src=route-to-edge.png style=width:100%><h3 id=devicetwin>DeviceTwin</h3><p>DeviceTwin模块负责存储设备状态，处理设备属性，处理DeviceTwin操作，在边缘设备和边缘节点之间创建成员关系， 将设备状态同步到云以及在边缘和云之间同步DeviceTwin信息。它还为应用程序提供查询接口。 DeviceTwin由四个子模块（即membership，communication，device和device twin）组成，以执行device twin模块的职责。</p><ul><li>Membership Module</li><li>Twin Module</li><li>Communication Module</li><li>Device Module</li></ul><ol><li>数据存储方面，将设备数据存储到本地存储sqlLite，包括三张表：device、deviceAttr和deviceTwin。</li><li>处理其他模块发送到twin module的消息，然后调用 dtc.distributeMsg来处理消息。在消息处理逻辑里面，消息被分为了四个类别，并分别发送到这四个类别的action执行处理（每一个类别又包含多个action）：<ul><li>membership</li><li>device</li><li>communication</li><li>twin</li></ul></li></ol><h3 id=edgemesh>edgemesh</h3><p>和kube-proxy的对比</p><ul><li><p>kube-proxy：
+需要list-watch service，从而进行服务发现
+容器化部署在每个节点(daemonset)
+service with cluster IP</p></li><li><p>edgemesh：
+从cloudcore接收service信息，从而进行服务发现
+嵌入到edgecore
+headless service</p></li></ul><h2 id=可靠的消息传递机制>可靠的消息传递机制</h2><p>云和边缘之间的不稳定网络会导致边缘节点频繁断开。如果Cloudcore或EdgeCore重新启动或脱机一段时间，这可能导致发送到边缘节点的消息丢失，这些消息无法临时到达。如果没有新事件成功地传递到边缘，这将导致云和边缘之间的不一致。</p><p>所以需要考虑设计一种云与边缘之间可靠的消息传递机制</p><p>有三种类型的消息传递机制：</p><ul><li>At-Most-Once</li><li>Exactly-Once</li><li>At-Least-Once</li></ul><ol><li><p>At-Most-Once方式不可靠</p></li><li><p>第二种方法“Exactly-Once”非常昂贵，表现出最差的性能，尽管它提供了保证传递而不丢失或复制消息。由于KubeEdge遵循Kubernetes的最终一致性设计原则，因此只要消息是最新消息，边缘就不会反复接收相同的消息。</p></li><li><p>建议使用At-Least-Once</p></li></ol><h3 id=at-least-once-delivery>At-Least-Once Delivery</h3><p>下面是一个使用MessageQueue和ACK确保消息从云传递到边缘的设计。</p><img src=reliable-message-delivery/reliablemessage-workflow.PNG style=width:100%><ul><li>我们使用K8s CRD存储资源的最新版本，该资源已经成功地发送到EDGE。当Cloudcore正常重新启动或启动时，它将检查ResourceVersion以避免发送旧消息。</li><li>EdgeController和devicecontroller将消息发送到Cloudhub，MessageDispatcher将根据消息中的节点名称向相应的NodeMessageQueue发送消息。</li><li>CloudHub顺序地将数据从NodeMessageQueue发送到相应的边缘节点，并将消息ID存储在ACK信道中。当从边缘节点接收到ACK消息时，ACK通道将触发将消息资源版本保存到K8s作为CRD，并发送下一条消息。</li><li>当EdgeCore接收到消息时，它将首先将消息保存到本地数据存储，然后将ACK消息返回给云。</li><li>如果CloudHub在间隔内没有接收到ACK消息，它将继续重发该消息5次。如果所有5次重试都失败，CloudHub将放弃该事件。SyncController将处理这些失败事件。</li><li>即使边缘节点接收到消息，返回的ACK消息也可能在传输期间丢失。在这种情况下，CloudHub将再次发送消息，边缘可以处理重复的消息。</li></ul><h3 id=synccontroller>SyncController</h3><p>SyncController将定期将保存的对象资源验证与K8s中的对象进行比较，然后触发重试和删除等事件。</p><p>当CloudHub向nodeMessageQueue添加事件时，它将与nodeMessageQueue中的相应对象进行比较。如果nodeMessageQueue中的对象较新，它将直接丢弃这些事件。
+<img src=reliable-message-delivery/sync-controller.PNG style=width:100%></p><h3 id=message-queue>Message Queue</h3><p>当每个边缘节点成功连接到云时，将创建一个消息队列，该队列将缓存发送到边缘节点的所有消息。我们使用Kubernetes/Client-go中的workQueue和cacheStore来实现消息队列和对象存储。使用Kubernetes workQueue，将合并重复事件以提高传输效率。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go>
+<span class=c1>// ChannelMessageQueue is the channel implementation of MessageQueue
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>ChannelMessageQueue</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=nx>queuePool</span> <span class=nx>sync</span><span class=p>.</span><span class=nx>Map</span>
+    <span class=nx>storePool</span> <span class=nx>sync</span><span class=p>.</span><span class=nx>Map</span>
+
+    <span class=nx>listQueuePool</span> <span class=nx>sync</span><span class=p>.</span><span class=nx>Map</span>
+    <span class=nx>listStorePool</span> <span class=nx>sync</span><span class=p>.</span><span class=nx>Map</span>
+
+    <span class=nx>objectSyncLister</span>        <span class=nx>reliablesyncslisters</span><span class=p>.</span><span class=nx>ObjectSyncLister</span>
+    <span class=nx>clusterObjectSyncLister</span> <span class=nx>reliablesyncslisters</span><span class=p>.</span><span class=nx>ClusterObjectSyncLister</span>
+<span class=p>}</span>
+
+
+<span class=c1>// Add message to the queue:
+</span><span class=c1></span><span class=nx>key</span><span class=p>,</span><span class=nx>_</span><span class=o>:=</span><span class=nf>getMsgKey</span><span class=p>(</span><span class=o>&amp;</span><span class=nx>message</span><span class=p>)</span>
+<span class=nx>nodeStore</span><span class=p>.</span><span class=nf>Add</span><span class=p>(</span><span class=nx>message</span><span class=p>)</span>
+<span class=nx>nodeQueue</span><span class=p>.</span><span class=nf>Add</span><span class=p>(</span><span class=nx>message</span><span class=p>)</span>
+
+<span class=c1>// Get the message from the queue:
+</span><span class=c1></span><span class=nx>key</span><span class=p>,</span><span class=nx>_</span><span class=o>:=</span><span class=nx>nodeQueue</span><span class=p>.</span><span class=nf>Get</span><span class=p>()</span>
+<span class=nx>msg</span><span class=p>,</span><span class=nx>_</span><span class=p>,</span><span class=nx>_</span><span class=o>:=</span><span class=nx>nodeStore</span><span class=p>.</span><span class=nf>GetByKey</span><span class=p>(</span><span class=nx>key</span><span class=p>.(</span><span class=kt>string</span><span class=p>))</span>
+
+<span class=c1>// Structure of the message key:
+</span><span class=c1></span><span class=nx>Key</span> <span class=p>=</span> <span class=nx>resourceType</span><span class=o>/</span><span class=nx>resourceNamespace</span><span class=o>/</span><span class=nx>resourceName</span>
+
+</code></pre></td></tr></table></div></div><p>说明，为了提高队列操作性能，队列中排列的是message key</p><h3 id=ack-message-format>ACK message Format</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=nx>AckMessage</span><span class=p>.</span><span class=nx>ParentID</span> <span class=p>=</span> <span class=nx>receivedMessage</span><span class=p>.</span><span class=nx>ID</span>
+<span class=nx>AckMessage</span><span class=p>.</span><span class=nx>Operation</span> <span class=p>=</span> <span class=s>&#34;response&#34;</span>
+</code></pre></td></tr></table></div></div><h3 id=reliablesync-crd>ReliableSync CRD</h3><p>我们使用K8s CRD保存已成功持久化到边缘的对象的资源验证。为了节省资源，我们设计了两种类型的CRD。</p><ul><li>ClusterObjectSync 用于保存集群作用域对象，</li><li>ObjectSync 用于保存命名空间作用域对象。</li></ul><p>它们的名称由相关的节点名称和对象UUID组成。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=c1>// BuildObjectSyncName builds the name of objectSync/clusterObjectSync
+</span><span class=c1></span><span class=kd>func</span> <span class=nf>BuildObjectSyncName</span><span class=p>(</span><span class=nx>nodeName</span><span class=p>,</span> <span class=nx>UID</span> <span class=kt>string</span><span class=p>)</span> <span class=kt>string</span> <span class=p>{</span>
+    <span class=k>return</span> <span class=nx>nodeName</span> <span class=o>+</span> <span class=s>&#34;.&#34;</span> <span class=o>+</span> <span class=nx>UID</span>
+<span class=p>}</span>
+
+</code></pre></td></tr></table></div></div><h4 id=the-clusterobjectsync>The ClusterObjectSync</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=kd>type</span> <span class=nx>ClusterObjectSync</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=nx>metav1</span><span class=p>.</span><span class=nx>TypeMeta</span>   <span class=s>`json:&#34;,inline&#34;`</span>
+    <span class=nx>metav1</span><span class=p>.</span><span class=nx>ObjectMeta</span> <span class=s>`json:&#34;metadata,omitempty&#34;`</span>
+
+    <span class=nx>Spec</span>   <span class=nx>ClusterObjectSyncSpec</span>   <span class=s>`json:&#34;spec,omitempty&#34;`</span>
+    <span class=nx>Status</span> <span class=nx>ClusterObjectSyncStatus</span> <span class=s>`json:&#34;spec,omitempty&#34;`</span>
+<span class=p>}</span>
+
+<span class=c1>// ClusterObjectSyncSpec stores the details of objects that sent to the edge.
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>ClusterObjectSyncSpec</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=c1>// Required: ObjectGroupVerion is the group and version of the object
+</span><span class=c1></span>    <span class=c1>// that was successfully sent to the edge node.
+</span><span class=c1></span>    <span class=nx>ObjectGroupVerion</span> <span class=kt>string</span> <span class=s>`json:&#34;objectGroupVerion,omitempty&#34;`</span>
+    <span class=c1>// Required: ObjectKind is the type of the object
+</span><span class=c1></span>    <span class=c1>// that was successfully sent to the edge node.
+</span><span class=c1></span>    <span class=nx>ObjectKind</span> <span class=kt>string</span> <span class=s>`json:&#34;objectKind,omitempty&#34;`</span>
+    <span class=c1>// Required: ObjectName is the name of the object
+</span><span class=c1></span>    <span class=c1>// that was successfully sent to the edge node.
+</span><span class=c1></span>    <span class=nx>ObjectName</span> <span class=kt>string</span> <span class=s>`json:&#34;objectName,omitempty&#34;`</span>
+<span class=p>}</span>
+
+<span class=c1>// ClusterObjectSyncSpec stores the resourceversion of objects that sent to the edge.
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>ClusterObjectSyncStatus</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=c1>// Required: ObjectResourceVersion is the resourceversion of the object
+</span><span class=c1></span>    <span class=c1>// that was successfully sent to the edge node.
+</span><span class=c1></span>    <span class=nx>ObjectResourceVersion</span> <span class=kt>string</span> <span class=s>`json:&#34;objectResourceVersion,omitempty&#34;`</span>
+<span class=p>}</span>
+
+</code></pre></td></tr></table></div></div><h4 id=the-objectsync>The ObjectSync</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=kd>type</span> <span class=nx>ClusterObjectSync</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=nx>metav1</span><span class=p>.</span><span class=nx>TypeMeta</span>   <span class=s>`json:&#34;,inline&#34;`</span>
+    <span class=nx>metav1</span><span class=p>.</span><span class=nx>ObjectMeta</span> <span class=s>`json:&#34;metadata,omitempty&#34;`</span>
+
+    <span class=nx>Spec</span>   <span class=nx>ObjectSyncSpec</span>   <span class=s>`json:&#34;spec,omitempty&#34;`</span>
+    <span class=nx>Status</span> <span class=nx>ObjectSyncStatus</span> <span class=s>`json:&#34;spec,omitempty&#34;`</span>
+<span class=p>}</span>
+
+<span class=c1>// ObjectSyncSpec stores the details of objects that sent to the edge.
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>ObjectSyncSpec</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=c1>// Required: ObjectGroupVerion is the group and version of the object
+</span><span class=c1></span>    <span class=c1>// that was successfully sent to the edge node.
+</span><span class=c1></span>    <span class=nx>ObjectGroupVerion</span> <span class=kt>string</span> <span class=s>`json:&#34;objectGroupVerion,omitempty&#34;`</span>
+    <span class=c1>// Required: ObjectKind is the type of the object
+</span><span class=c1></span>    <span class=c1>// that was successfully sent to the edge node.
+</span><span class=c1></span>    <span class=nx>ObjectKind</span> <span class=kt>string</span> <span class=s>`json:&#34;objectKind,omitempty&#34;`</span>
+    <span class=c1>// Required: ObjectName is the name of the object
+</span><span class=c1></span>    <span class=c1>// that was successfully sent to the edge node.
+</span><span class=c1></span>    <span class=nx>ObjectName</span> <span class=kt>string</span> <span class=s>`json:&#34;objectName,omitempty&#34;`</span>
+<span class=p>}</span>
+
+<span class=c1>// ClusterObjectSyncSpec stores the resourceversion of objects that sent to the edge.
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>ObjectSyncStatus</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=c1>// Required: ObjectResourceVersion is the resourceversion of the object
+</span><span class=c1></span>    <span class=c1>// that was successfully sent to the edge node.
+</span><span class=c1></span>    <span class=nx>ObjectResourceVersion</span> <span class=kt>string</span> <span class=s>`json:&#34;objectResourceVersion,omitempty&#34;`</span>
+<span class=p>}</span>
+</code></pre></td></tr></table></div></div><p>ObjectSync CRD 示例</p><p>其中 ObjectSync crd实例name ： {nodename.UID} : node2.89c8bbd2-da6d-4bb4-bfb1-2faf68852009</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ~<span class=o>]</span><span class=c1># kubectl get ObjectSync -A</span>
+NAMESPACE     NAME                                             AGE
+default       node2.252da63b-5b27-4cb5-9d36-0115657a9ffb   25h
+default       node2.89c8bbd2-da6d-4bb4-bfb1-2faf68852009   127m
+default       node2.bc5a3c5e-69dd-49c1-9753-194609229886   25h
+kube-system   node2.538ed3e7-7cf1-417a-ad72-b69c152c6c00   25h
+kube-system   node2.a0ce6db3-e247-436f-a72e-bdf5b2cc8fb9   25h
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ~<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ~<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ~<span class=o>]</span><span class=c1># kubectl describe -n default       node2.89c8bbd2-da6d-4bb4-bfb1-2faf68852009</span>
+error: the server doesn<span class=err>&#39;</span>t have a resource <span class=nb>type</span> <span class=s2>&#34;node2&#34;</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ~<span class=o>]</span><span class=c1># kubectl describe ObjectSync -n default       node2.89c8bbd2-da6d-4bb4-bfb1-2faf68852009</span>
+Name:         node2.89c8bbd2-da6d-4bb4-bfb1-2faf68852009
+Namespace:    default
+Labels:       &lt;none&gt;
+Annotations:  &lt;none&gt;
+API Version:  reliablesyncs.kubeedge.io/v1alpha1
+Kind:         ObjectSync
+Metadata:
+  Creation Timestamp:  2021-05-26T05:42:07Z
+  Generation:          <span class=m>1</span>
+  Resource Version:    <span class=m>34833736</span>
+  Self Link:           /apis/reliablesyncs.kubeedge.io/v1alpha1/namespaces/default/objectsyncs/node2.89c8bbd2-da6d-4bb4-bfb1-2faf68852009
+  UID:                 c329514a-784c-4fdf-9261-53bf4dcc18a0
+Spec:
+  Object API Version:  v1
+  Object Kind:         pods
+  Object Name:         testpod
+Status:
+  Object Resource Version:  <span class=m>34833729</span>
+Events:                     &lt;none&gt;
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ~<span class=o>]</span><span class=c1>#</span>
+
+
+</code></pre></td></tr></table></div></div><h3 id=exception-scenarioscorner-cases-handling>Exception scenarios/Corner cases handling</h3><h4 id=cloudcore重启>CloudCore重启</h4><ul><li>当Cloudcore正常重新启动或启动时，它将检查ResourceVersion以避免发送旧消息。</li><li>在Cloudcore重新启动期间，如果删除某些对象，此时可能会丢失DELETE事件。SyncController将处理此情况。这里需要对象GC机制来确保删除：比较CRD中存储的对象是否存在于K8s中。如果没有，则SyncController将生成并发送一个DELETE事件到边缘，并在ACK接收到时删除CRD中的对象。</li></ul><h4 id=edgecore-重启>EdgeCore 重启</h4><ul><li>当EdgeCore重新启动或脱机一段时间后，节点消息队列将缓存所有消息，每当该节点恢复联机时，消息将被发送。</li><li>当边缘节点脱机时，CloudHub将停止发送消息，直到边缘节点恢复联机才会重试。</li></ul><h4 id=edgenode-删除>EdgeNode 删除</h4><ul><li>当从云中删除edgenode时，Cloudcore将删除相应的消息队列和存储</li></ul><h4 id=objectsync-cr-垃圾回收>ObjectSync CR 垃圾回收</h4><p>当EdgeNode不在集群中时，应删除EdgeNode的所有ObjectSync CRS。</p><p>现在，触发垃圾收集的主要方法有两种：CloudCore的启动和EdgeNode的删除事件。</p><ul><li>当CloudCore启动时，它将首先检查是否存在旧的ObjectSync CRS并删除它们。</li><li>当CloudCore运行时，EdgeNode被删除的事件将触发垃圾回收。</li></ul><h2 id=部署安装>部署安装</h2><p><a href=https://docs.kubeedge.io/en/docs/setup/keadm/ target=_blank rel="noopener noreffer">Deploying using Keadm</a></p><h3 id=download-keadm>Download keadm</h3><p>下载页面，选择相应版本keadm</p><p><a href=https://github.com/kubeedge/kubeedge/releases target=_blank rel="noopener noreffer">kubeedge下载链接</a></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>kubeedge/keadm-v1.6.2-linux-amd64/keadm/keadm
+</code></pre></td></tr></table></div></div><p>keadm用法</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># ./keadm -h</span>
+
+    +----------------------------------------------------------+
+    <span class=p>|</span> KEADM                                                    <span class=p>|</span>
+    <span class=p>|</span> Easily bootstrap a KubeEdge cluster                      <span class=p>|</span>
+    <span class=p>|</span>                                                          <span class=p>|</span>
+    <span class=p>|</span> Please give us feedback at:                              <span class=p>|</span>
+    <span class=p>|</span> https://github.com/kubeedge/kubeedge/issues              <span class=p>|</span>
+    +----------------------------------------------------------+
+
+    Create a cluster with cloud node
+    <span class=o>(</span>which controls the edge node cluster<span class=o>)</span>, and edge nodes
+    <span class=o>(</span>where native containerized application, in the form of
+    pods and deployments run<span class=o>)</span>, connects to devices.
+
+Usage:
+  keadm <span class=o>[</span>command<span class=o>]</span>
+
+Examples:
+
+    +----------------------------------------------------------+
+    <span class=p>|</span> On the cloud machine:                                    <span class=p>|</span>
+    +----------------------------------------------------------+
+    <span class=p>|</span> master node <span class=o>(</span>on the cloud<span class=o>)</span><span class=c1># sudo keadm init              |</span>
+    +----------------------------------------------------------+
+
+    +----------------------------------------------------------+
+    <span class=p>|</span> On the edge machine:                                   <span class=p>|</span>
+    +----------------------------------------------------------+
+    <span class=p>|</span> worker node <span class=o>(</span>at the edge<span class=o>)</span><span class=c1># sudo keadm join &lt;flags&gt;       |</span>
+    +----------------------------------------------------------+
+
+    You can <span class=k>then</span> repeat the second step on, as many other machines as you like.
+
+
+Available Commands:
+  debug       debug <span class=k>function</span> to <span class=nb>help</span> diagnose the cluster
+  gettoken    To get the token <span class=k>for</span> edge nodes to join the cluster
+  <span class=nb>help</span>        Help about any <span class=nb>command</span>
+  init        Bootstraps cloud component. Checks and install <span class=o>(</span><span class=k>if</span> required<span class=o>)</span> the pre-requisites.
+  join        Bootstraps edge component. Checks and install <span class=o>(</span><span class=k>if</span> required<span class=o>)</span> the pre-requisites. Execute it on any edge node machine you wish to join
+  reset       Teardowns KubeEdge <span class=o>(</span>cloud <span class=p>&amp;</span> edge<span class=o>)</span> component
+  version     Print the version of keadm
+
+Flags:
+  -h, --help   <span class=nb>help</span> <span class=k>for</span> keadm
+
+Use <span class=s2>&#34;keadm [command] --help&#34;</span> <span class=k>for</span> more information about a command.
+
+
+</code></pre></td></tr></table></div></div><h3 id=setup-cloud-side-kubeedge-master-node>Setup Cloud Side (KubeEdge Master Node)</h3><p>By default ports 10000 and 10002 in your cloudcore needs to be accessible for your edge nodes.</p><p>keadm init will install cloudcore, generate the certs and install the CRDs. It also provides a flag by which a specific version can be set.</p><p>在master节点上执行：</p><ol><li>采用默认版本参数</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># keadm init --advertise-address=&#34;THE-EXPOSED-IP&#34;(only work since 1.3 release)</span>
+keadm init --advertise-address<span class=o>=</span><span class=s2>&#34;10.7.11.213&#34;</span>
+
+</code></pre></td></tr></table></div></div><ol start=2><li>或者指定版本</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>keadm init --advertise-address<span class=o>=</span><span class=s2>&#34;10.7.11.212&#34;</span> --kubeedge-version<span class=o>=</span>1.6.2  --kube-config<span class=o>=</span>/root/.kube/config
+</code></pre></td></tr></table></div></div><p>Output:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>Kubernetes version verification passed, KubeEdge installation will start...
+...
+KubeEdge cloudcore is running, For logs visit:  /var/log/kubeedge/cloudcore.log
+</code></pre></td></tr></table></div></div><h4 id=安装打印>安装打印</h4><p>指定版本kubeedge-v1.6.2，下载成功</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1># ./keadm init --advertise-address=&#34;10.7.11.213&#34; --kubeedge-version=1.6.2  --kube-config=/root/.kube/config</span>
+Kubernetes version verification passed, KubeEdge installation will start...
+Expected or Default KubeEdge version 1.6.2 is already downloaded and will checksum <span class=k>for</span> it.
+kubeedge-v1.6.2-linux-amd64.tar.gz checksum:
+checksum_kubeedge-v1.6.2-linux-amd64.tar.gz.txt content:
+kubeedge-v1.6.2-linux-amd64.tar.gz in your path checksum failed and <span class=k>do</span> you want to delete this file and try to download again?
+<span class=o>[</span>y/N<span class=o>]</span>:
+y
+I0524 17:09:26.209161    <span class=m>8227</span> common.go:271<span class=o>]</span> kubeedge-v1.6.2-linux-amd64.tar.gz have been deleted and will try to download again
+
+
+kubeedge-v1.6.2-linux-amd64.tar.gz checksum:
+checksum_kubeedge-v1.6.2-linux-amd64.tar.gz.txt content:
+<span class=o>[</span>Run as service<span class=o>]</span> service file already exisits in /etc/kubeedge//cloudcore.service, skip download
+kubeedge-v1.6.2-linux-amd64/
+kubeedge-v1.6.2-linux-amd64/edge/
+kubeedge-v1.6.2-linux-amd64/edge/edgecore
+kubeedge-v1.6.2-linux-amd64/cloud/
+kubeedge-v1.6.2-linux-amd64/cloud/csidriver/
+kubeedge-v1.6.2-linux-amd64/cloud/csidriver/csidriver
+kubeedge-v1.6.2-linux-amd64/cloud/admission/
+kubeedge-v1.6.2-linux-amd64/cloud/admission/admission
+kubeedge-v1.6.2-linux-amd64/cloud/cloudcore/
+kubeedge-v1.6.2-linux-amd64/cloud/cloudcore/cloudcore
+kubeedge-v1.6.2-linux-amd64/version
+
+KubeEdge cloudcore is running, For logs visit:  /var/log/kubeedge/cloudcore.log
+CloudCore started
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1># ps -ef |grep -i cloudcore</span>
+root      <span class=m>25669</span>      <span class=m>1</span>  <span class=m>0</span> 17:13 pts/11   00:00:00 /usr/local/bin/cloudcore
+root      <span class=m>30844</span>  <span class=m>94002</span>  <span class=m>0</span> 17:16 pts/11   00:00:00 grep --color<span class=o>=</span>auto -i cloudcore
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1>#</span>
+
+
+</code></pre></td></tr></table></div></div><h4 id=cloudcore启动日志>cloudcore启动日志</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>]</span><span class=c1># cat /var/log/kubeedge/cloudcore.log</span>
+I0525 10:56:45.064260   <span class=m>34285</span> server.go:64<span class=o>]</span> Version: v1.6.2
+I0525 10:56:45.066622   <span class=m>34285</span> module.go:34<span class=o>]</span> Module cloudhub registered successfully
+I0525 10:56:45.083709   <span class=m>34285</span> module.go:34<span class=o>]</span> Module edgecontroller registered successfully
+I0525 10:56:45.083792   <span class=m>34285</span> module.go:34<span class=o>]</span> Module devicecontroller registered successfully
+I0525 10:56:45.083826   <span class=m>34285</span> module.go:34<span class=o>]</span> Module synccontroller registered successfully
+W0525 10:56:45.083850   <span class=m>34285</span> module.go:37<span class=o>]</span> Module cloudStream is disabled, <span class=k>do</span> not register
+W0525 10:56:45.083856   <span class=m>34285</span> module.go:37<span class=o>]</span> Module router is disabled, <span class=k>do</span> not register
+W0525 10:56:45.083865   <span class=m>34285</span> module.go:37<span class=o>]</span> Module dynamiccontroller is disabled, <span class=k>do</span> not register
+I0525 10:56:45.083919   <span class=m>34285</span> core.go:24<span class=o>]</span> Starting module cloudhub
+I0525 10:56:45.083946   <span class=m>34285</span> core.go:24<span class=o>]</span> Starting module edgecontroller
+I0525 10:56:45.083975   <span class=m>34285</span> core.go:24<span class=o>]</span> Starting module devicecontroller
+I0525 10:56:45.084029   <span class=m>34285</span> core.go:24<span class=o>]</span> Starting module synccontroller
+I0525 10:56:45.084033   <span class=m>34285</span> upstream.go:110<span class=o>]</span> start upstream controller
+I0525 10:56:45.084694   <span class=m>34285</span> downstream.go:870<span class=o>]</span> Start downstream devicecontroller
+I0525 10:56:45.086932   <span class=m>34285</span> downstream.go:550<span class=o>]</span> start downstream controller
+I0525 10:56:45.184174   <span class=m>34285</span> server.go:269<span class=o>]</span> Ca and CaKey don<span class=s1>&#39;t exist in local directory, and will read from the secret
+</span><span class=s1>I0525 10:56:45.186205   34285 server.go:273] Ca and CaKey don&#39;</span>t exist in the secret, and will be created by CloudCore
+I0525 10:56:45.203712   <span class=m>34285</span> server.go:317<span class=o>]</span> CloudCoreCert and key don<span class=s1>&#39;t exist in local directory, and will read from the secret
+</span><span class=s1>I0525 10:56:45.209247   34285 server.go:321] CloudCoreCert and key don&#39;</span>t exist in the secret, and will be signed by CA
+I0525 10:56:45.224935   <span class=m>34285</span> signcerts.go:98<span class=o>]</span> Succeed to creating token
+I0525 10:56:45.225003   <span class=m>34285</span> server.go:44<span class=o>]</span> start unix domain socket server
+I0525 10:56:45.225475   <span class=m>34285</span> server.go:63<span class=o>]</span> Starting cloudhub websocket server
+I0525 10:56:45.225681   <span class=m>34285</span> uds.go:72<span class=o>]</span> listening on: //var/lib/kubeedge/kubeedge.sock
+I0525 10:56:47.085035   <span class=m>34285</span> upstream.go:63<span class=o>]</span> Start upstream devicecontroller
+
+</code></pre></td></tr></table></div></div><h3 id=setup-edge-side-kubeedge-worker-node>Setup Edge Side (KubeEdge Worker Node)</h3><h4 id=get-token-from-cloud-side>Get Token From Cloud Side</h4><p>Run keadm gettoken in cloud side will return the token, which will be used when joining edge nodes.
+在cloud节点生成token，并记录，后面edge节点用到</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+<span class=c1>#./keadm gettoken</span>
+<span class=c1># 59886279cecd7da202f1d258aad523cf44df78afac68a2766546d97a5ca5e6f9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MjE5OTc4MDV9._XjeO1GW7gsqfwM4AZ0VuOTIW1FWNAkjOTlirBByV3g</span>
+
+keadm gettoken
+<span class=c1># 27a37ef16159f7d3be8fae95d588b79b3adaaf92727b72659eb89758c66ffda2.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1OTAyMTYwNzd9.JBj8LLYWXwbbvHKffJBpPd5CyxqapRQYDIXtFZErgYE</span>
+
+</code></pre></td></tr></table></div></div><h4 id=join-edge-node>Join Edge Node</h4><p>keadm join will install edgecore and mqtt. It also provides a flag by which a specific version can be set.</p><p>Example:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># keadm join --cloudcore-ipport=192.168.20.50:10000 --token=27a37ef16159f7d3be8fae95d588b79b3adaaf92727b72659eb89758c66ffda2.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1OTAyMTYwNzd9.JBj8LLYWXwbbvHKffJBpPd5CyxqapRQYDIXtFZErgYE</span>
+<span class=c1># IMPORTANT NOTE: 1. --cloudcore-ipport flag is a mandatory flag. 1. If you want to apply certificate for edge node automatically, --token is needed. 1. The kubeEdge version used in cloud and edge side should be same.</span>
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+keadm join --cloudcore-ipport<span class=o>=</span>10.7.11.212:10000 --kubeedge-version<span class=o>=</span>1.6.2 --token<span class=o>=</span>59886279cecd7da202f1d258aad523cf44df78afac68a2766546d97a5ca5e6f9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MjE5OTc4MDV9._XjeO1GW7gsqfwM4AZ0VuOTIW1FWNAkjOTlirBByV3g
+
+
+</code></pre></td></tr></table></div></div><p>Output:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>Host has mosquit+ already installed and running. Hence skipping the installation steps !!!
+...
+KubeEdge edgecore is running, For logs visit:  /var/log/kubeedge/edgecore.log
+</code></pre></td></tr></table></div></div><h4 id=安装过程部分打印>安装过程部分打印</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1># ./keadm gettoken</span>
+9ecb7342293641c71fe70ac296e349bf0fce395618cb66c27e0643c3b8c985b5.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MjE5MzQwMzh9.5b8f16RDwRhCnnebz_3oc4yn3CnfXLz3kMl7-tPoRD0
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1># ./keadm join --cloudcore-ipport=10.7.11.213:10000 --token=9ecb7342293641c71fe70ac296e349bf0fce395618cb66c27e0643c3b8c985b5.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MjE5MzQwMzh9.5b8f16RDwRhCnnebz_3oc4yn3CnfXLz3kMl7-tPoRD0</span>
+
+install MQTT service successfully.
+Expected or Default KubeEdge version 1.6.2 is already downloaded and will checksum <span class=k>for</span> it.
+kubeedge-v1.6.2-linux-amd64.tar.gz checksum:
+checksum_kubeedge-v1.6.2-linux-amd64.tar.gz.txt content:
+kubeedge-v1.6.2-linux-amd64.tar.gz in your path checksum failed and <span class=k>do</span> you want to delete this file and try to download again?
+<span class=o>[</span>y/N<span class=o>]</span>:
+N
+W0524 17:35:22.099204   <span class=m>64615</span> common.go:276<span class=o>]</span> failed to checksum and will <span class=k>continue</span> to install.
+<span class=o>[</span>Run as service<span class=o>]</span> start to download service file <span class=k>for</span> edgecore
+<span class=o>[</span>Run as service<span class=o>]</span> success to download service file <span class=k>for</span> edgecore
+kubeedge-v1.6.2-linux-amd64/
+kubeedge-v1.6.2-linux-amd64/edge/
+kubeedge-v1.6.2-linux-amd64/edge/edgecore
+kubeedge-v1.6.2-linux-amd64/cloud/
+kubeedge-v1.6.2-linux-amd64/cloud/csidriver/
+kubeedge-v1.6.2-linux-amd64/cloud/csidriver/csidriver
+kubeedge-v1.6.2-linux-amd64/cloud/admission/
+kubeedge-v1.6.2-linux-amd64/cloud/admission/admission
+kubeedge-v1.6.2-linux-amd64/cloud/cloudcore/
+kubeedge-v1.6.2-linux-amd64/cloud/cloudcore/cloudcore
+kubeedge-v1.6.2-linux-amd64/version
+
+KubeEdge edgecore is running, For logs visit: journalctl -u edgecore.service -b
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1>#</span>
+
+
+
+
+<span class=c1># edgecore.service的下载和加载目录位置</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1># find / -name  edgecore.service</span>
+/etc/systemd/system/multi-user.target.wants/edgecore.service
+/etc/systemd/system/edgecore.service
+/etc/kubeedge/edgecore.service
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node2 /home/wangb/kubeedge/keadm-v1.6.2-linux-amd64/keadm<span class=o>]</span><span class=c1>#</span>
+
+
+
+</code></pre></td></tr></table></div></div><h2 id=节点信息>节点信息</h2><p>node2是新加入集群的edge节点</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+<span class=c1># kubectl get no</span>
+NAME        STATUS   ROLES        AGE    VERSION
+node1       Ready    master       249d   v0.0.0-master+4d3c9e0c
+node2       Ready    agent,edge   2m5s   v1.19.3-kubeedge-v1.6.2
+
+
+
+
+Name:               node2
+Roles:              agent,edge
+Labels:             kubernetes.io/arch<span class=o>=</span>amd64
+                    kubernetes.io/hostname<span class=o>=</span>node2
+                    kubernetes.io/os<span class=o>=</span>linux
+                    node-role.kubernetes.io/agent<span class=o>=</span>
+                    node-role.kubernetes.io/edge<span class=o>=</span>
+Annotations:        node.alpha.kubernetes.io/ttl: <span class=m>0</span>
+CreationTimestamp:  Tue, <span class=m>25</span> May <span class=m>2021</span> 12:41:04 +0800
+Taints:             &lt;none&gt;
+Unschedulable:      <span class=nb>false</span>
+Lease:
+  HolderIdentity:  &lt;unset&gt;
+  AcquireTime:     &lt;unset&gt;
+  RenewTime:       &lt;unset&gt;
+Conditions:
+  Type    Status  LastHeartbeatTime                 LastTransitionTime                Reason      Message
+  ----    ------  -----------------                 ------------------                ------      -------
+  Ready   True    Tue, <span class=m>25</span> May <span class=m>2021</span> 14:00:19 +0800   Tue, <span class=m>25</span> May <span class=m>2021</span> 14:00:19 +0800   EdgeReady   edge is posting ready status
+Addresses:
+  InternalIP:  10.7.11.213
+  Hostname:    node2
+Capacity:
+  cpu:     <span class=m>32</span>
+  memory:  31650Mi
+  pods:    <span class=m>110</span>
+Allocatable:
+  cpu:     <span class=m>32</span>
+  memory:  31550Mi
+  pods:    <span class=m>110</span>
+System Info:
+  Machine ID:
+  System UUID:
+  Boot ID:
+  Kernel Version:             3.10.0-1062.12.1.el7.x86_64
+  OS Image:                   CentOS Linux <span class=m>7</span> <span class=o>(</span>Core<span class=o>)</span>
+  Operating System:           linux
+  Architecture:               amd64
+  Container Runtime Version:  docker://19.3.13
+  Kubelet Version:            v1.19.3-kubeedge-v1.6.2
+  Kube-Proxy Version:
+PodCIDR:                      10.233.65.0/24
+PodCIDRs:                     10.233.65.0/24
+Non-terminated Pods:          <span class=o>(</span><span class=m>3</span> in total<span class=o>)</span>
+  Namespace                   Name                  CPU Requests  CPU Limits  Memory Requests  Memory Limits  AGE
+  ---------                   ----                  ------------  ----------  ---------------  -------------  ---
+  default                     testpod               500m <span class=o>(</span>1%<span class=o>)</span>     500m <span class=o>(</span>1%<span class=o>)</span>   <span class=m>0</span> <span class=o>(</span>0%<span class=o>)</span>           <span class=m>0</span> <span class=o>(</span>0%<span class=o>)</span>         50s
+  kube-system                 calico-node-df9bf     150m <span class=o>(</span>0%<span class=o>)</span>     300m <span class=o>(</span>0%<span class=o>)</span>   64M <span class=o>(</span>0%<span class=o>)</span>         500M <span class=o>(</span>1%<span class=o>)</span>      71m
+  kube-system                 nodelocaldns-ldj7t    100m <span class=o>(</span>0%<span class=o>)</span>     <span class=m>0</span> <span class=o>(</span>0%<span class=o>)</span>      70Mi <span class=o>(</span>0%<span class=o>)</span>        170Mi <span class=o>(</span>0%<span class=o>)</span>     71m
+Allocated resources:
+  <span class=o>(</span>Total limits may be over <span class=m>100</span> percent, i.e., overcommitted.<span class=o>)</span>
+  Resource           Requests        Limits
+  --------           --------        ------
+  cpu                750m <span class=o>(</span>2%<span class=o>)</span>       800m <span class=o>(</span>2%<span class=o>)</span>
+  memory             <span class=m>137400320</span> <span class=o>(</span>0%<span class=o>)</span>  <span class=m>678257920</span> <span class=o>(</span>2%<span class=o>)</span>
+  ephemeral-storage  <span class=m>0</span> <span class=o>(</span>0%<span class=o>)</span>          <span class=m>0</span> <span class=o>(</span>0%<span class=o>)</span>
+Events:              &lt;none&gt;
+
+
+
+</code></pre></td></tr></table></div></div><h2 id=组件进程>组件进程</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>root      74050 13.9  0.2 3499776 84608 ?       Ssl  18:17   1:04 /usr/local/bin/edgecore
+root      25669  0.3  0.1 2435444 56532 pts/11  Sl   17:13   0:14 /usr/local/bin/cloudcore
+
+# 在edge node上 还运行了mosquitto
+# ps -ef |grep mosquitto
+mosquit+  72032      1  0 May24 ?        00:00:20 /usr/sbin/mosquitto -c /etc/mosquitto/mosquitto.conf
+
+## 服务
+
+/usr/lib/systemd/system/mosquitto.service
+</code></pre></td></tr></table></div></div><h2 id=卸载>卸载</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>keadm reset
+
+<span class=c1># mosquitto 是rpm 通过yum安装和删除</span>
+yum -y remove mosquitto
+
+</code></pre></td></tr></table></div></div><p>会停止服务，删除程序和配置目录文件/etc/kubeedge</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># ./keadm reset</span>
+
+<span class=o>[</span>reset<span class=o>]</span> WARNING: Changes made to this host by <span class=s1>&#39;keadm init&#39;</span> or <span class=s1>&#39;keadm join&#39;</span> will be reverted.
+<span class=o>[</span>reset<span class=o>]</span> Are you sure you want to proceed? <span class=o>[</span>y/N<span class=o>]</span>: y
+edgecore is stopped
+
+
+</code></pre></td></tr></table></div></div><h2 id=问题>问题</h2><h3 id=keadm在线下载失败>keadm在线下载失败</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=w>
+</span><span class=w></span><span class=l>(base) [/kubeedge/keadm-v1.6.2-linux-amd64/keadm]# ./keadm init --advertise-address=&#34;10.7.11.213&#34; --kubeedge-version=1.6.2  --kube-config=/root/.kube/config</span><span class=w>
+</span><span class=w></span><span class=l>Kubernetes version verification passed, KubeEdge installation will start...</span><span class=w>
+</span><span class=w></span><span class=l>Expected or Default KubeEdge version 1.6.2 is already downloaded and will checksum for it.</span><span class=w>
+</span><span class=w></span><span class=nt>kubeedge-v1.6.2-linux-amd64.tar.gz checksum</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=nt>checksum_kubeedge-v1.6.2-linux-amd64.tar.gz.txt content</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=l>Expected or Default KubeEdge version 1.6.2 is already downloaded</span><span class=w>
+</span><span class=w></span><span class=p>[</span><span class=l>Run as service] start to download service file for cloudcore</span><span class=w>
+</span><span class=w></span><span class=nt>Error</span><span class=p>:</span><span class=w> </span><span class=l>fail to download service file,error:{failed to exec &#39;bash -c cd /etc/kubeedge/ &amp;&amp; sudo -E wget -t 5 -k --no-check-certificate https://raw.githubusercontent.com/kubeedge/kubeedge/release-1.6/build/tools/cloudcore.service&#39;, err: --2021-05-24 16:45:02--  https://raw.githubusercontent.com/kubeedge/kubeedge/release-1.6/build/tools/cloudcore.service</span><span class=w>
+</span><span class=w></span><span class=l>Resolving raw.githubusercontent.com (raw.githubusercontent.com)... 185.199.111.133, 185.199.109.133, 185.199.108.133, ...</span><span class=w>
+</span><span class=w></span><span class=l>Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|185.199.111.133|:443... connected.</span><span class=w>
+</span><span class=w></span><span class=l>Unable to establish SSL connection.</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=l>Converted 0 files in 0 seconds.</span><span class=w>
+</span><span class=w></span><span class=nt>, err</span><span class=p>:</span><span class=w> </span><span class=l>exit status 4}</span><span class=w>
+</span><span class=w></span><span class=nt>Usage</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=l>keadm init [flags]</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=nt>Examples</span><span class=p>:</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=l>keadm init</span><span class=w>
+</span><span class=w>
+</span><span class=w></span>- <span class=l>This command will download and install the default version of KubeEdge cloud component</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=l>keadm init --kubeedge-version=1.5.0  --kube-config=/root/.kube/config</span><span class=w>
+</span><span class=w>
+</span><span class=w>  </span>- <span class=l>kube-config is the absolute path of kubeconfig which used to secure connectivity between cloudcore and kube-apiserver</span><span class=w>
+</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=nt>Flags</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>--advertise-address string   Use this key to set IPs in cloudcore&#39;s certificate SubAltNames field. eg</span><span class=p>:</span><span class=w> </span><span class=m>10.10.102.78</span><span class=p>,</span><span class=m>10.10.102.79</span><span class=w>
+</span><span class=w>      </span><span class=nt>--domainname string          Use this key to set domain names in cloudcore&#39;s certificate SubAltNames field. eg</span><span class=p>:</span><span class=w> </span><span class=l>www.cloudcore.cn,www.kubeedge.cn</span><span class=w>
+</span><span class=w>  </span>-<span class=l>h, --help                       help for init</span><span class=w>
+</span><span class=w>      </span><span class=nt>--kube-config string         Use this key to set kube-config path, eg</span><span class=p>:</span><span class=w> </span><span class=l>$HOME/.kube/config (default &#34;/root/.kube/config&#34;)</span><span class=w>
+</span><span class=w>      </span>--<span class=l>kubeedge-version string    Use this key to download and use the required KubeEdge version</span><span class=w>
+</span><span class=w>      </span><span class=nt>--master string              Use this key to set K8s master address, eg</span><span class=p>:</span><span class=w> </span><span class=l>http://127.0.0.1:8080</span><span class=w>
+</span><span class=w>      </span>--<span class=l>tarballpath string         Use this key to set the temp directory path for KubeEdge tarball, if not exist, download it</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=l>F0524 16:46:02.638767   68936 keadm.go:27] fail to download service file,error:{failed to exec &#39;bash -c cd /etc/kubeedge/ &amp;&amp; sudo -E wget -t 5 -k --no-check-certificate https://raw.githubusercontent.com/kubeedge/kubeedge/release-1.6/build/tools/cloudcore.service&#39;, err: --2021-05-24 16:45:02--  https://raw.githubusercontent.com/kubeedge/kubeedge/release-1.6/build/tools/cloudcore.service</span><span class=w>
+</span><span class=w></span><span class=l>Resolving raw.githubusercontent.com (raw.githubusercontent.com)... 185.199.111.133, 185.199.109.133, 185.199.108.133, ...</span><span class=w>
+</span><span class=w></span><span class=l>Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|185.199.111.133|:443... connected.</span><span class=w>
+</span><span class=w></span><span class=l>Unable to establish SSL connection.</span><span class=w>
+</span><span class=w></span><span class=l>Converted 0 files in 0 seconds.</span><span class=w>
+</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><p>进入默认下载目录/etc/kubeedge下，
+采用手动方式下载cloudcore.service文件，解决</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=l>(base) [root@node2 /tmp]#</span><span class=w>
+</span><span class=w></span><span class=l>(base) [root@node2 /tmp]#  cd /etc/kubeedge/</span><span class=w>
+</span><span class=w></span><span class=l>(base) [root@node2 /etc/kubeedge]# ll</span><span class=w>
+</span><span class=w></span><span class=l>total 49200</span><span class=w>
+</span><span class=w></span><span class=l>drwxr-xr-x. 5 root root       72 May 24 16:13 crds</span><span class=w>
+</span><span class=w></span>-<span class=l>rw-r--r--. 1 root root 50379289 Mar 22 10:07 kubeedge-v1.6.2-linux-amd64.tar.gz</span><span class=w>
+</span><span class=w></span><span class=l>(base) [root@node2 /etc/kubeedge]# sudo -E wget -t 5 -k --no-check-certificate https://raw.githubusercontent.com/kubeedge/kubeedge/release-1.6/build/tools/cloudcore.service</span><span class=w>
+</span><span class=w></span>--<span class=ld>2021-05-24 17:05:11</span>-- <span class=w> </span><span class=l>https://raw.githubusercontent.com/kubeedge/kubeedge/release-1.6/build/tools/cloudcore.service</span><span class=w>
+</span><span class=w></span><span class=l>Resolving raw.githubusercontent.com (raw.githubusercontent.com)... 185.199.108.133, 185.199.110.133, 185.199.109.133, ...</span><span class=w>
+</span><span class=w></span><span class=l>Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|185.199.108.133|:443... connected.</span><span class=w>
+</span><span class=w></span><span class=l>HTTP request sent, awaiting response... 200 OK</span><span class=w>
+</span><span class=w></span><span class=nt>Length</span><span class=p>:</span><span class=w> </span><span class=m>162</span><span class=w> </span><span class=p>[</span><span class=l>text/plain]</span><span class=w>
+</span><span class=w></span><span class=nt>Saving to</span><span class=p>:</span><span class=w> </span><span class=l>‘cloudcore.service’</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=m>100</span><span class=l>%[=========================================================================================================================&gt;] 162         --.-K/s   in 0s</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=ld>2021-05-24 17:05:11</span><span class=w> </span><span class=l>(3.17 MB/s) - ‘cloudcore.service’ saved [162/162]</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=l>Converted 0 files in 0 seconds.</span><span class=w>
+</span><span class=w></span><span class=l>(base) [root@node2 /etc/kubeedge]#</span><span class=w>
+</span><span class=w></span><span class=l>(base) [root@node2 /etc/kubeedge]#</span><span class=w>
+</span><span class=w></span><span class=l>(base) [root@node2 /etc/kubeedge]#</span><span class=w>
+</span><span class=w></span><span class=l>(base) [root@node2 /etc/kubeedge]#</span><span class=w>
+</span><span class=w></span><span class=l>(base) [root@node2 /etc/kubeedge]# ll</span><span class=w>
+</span><span class=w></span><span class=l>total 49204</span><span class=w>
+</span><span class=w></span>-<span class=l>rw-r--r--. 1 root root      162 May 24 17:05 cloudcore.service</span><span class=w>
+</span><span class=w></span><span class=l>drwxr-xr-x. 5 root root       72 May 24 16:13 crds</span><span class=w>
+</span><span class=w></span>-<span class=l>rw-r--r--. 1 root root 50379289 Mar 22 10:07 kubeedge-v1.6.2-linux-amd64.tar.gz</span><span class=w>
+</span><span class=w></span><span class=l>(base) [root@node2 /etc/kubeedge]#</span><span class=w>
+</span><span class=w></span><span class=l>(base) [root@node2 /etc/kubeedge]#</span><span class=w>
+</span><span class=w></span><span class=l>(base) [root@node2 /etc/kubeedge]#</span><span class=w>
+</span><span class=w></span><span class=l>(base) [root@node2 /etc/kubeedge]# cat cloudcore.service</span><span class=w>
+</span><span class=w></span><span class=p>[</span><span class=l>Unit]</span><span class=w>
+</span><span class=w></span><span class=l>Description=cloudcore.service</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=p>[</span><span class=l>Service]</span><span class=w>
+</span><span class=w></span><span class=l>Type=simple</span><span class=w>
+</span><span class=w></span><span class=l>ExecStart=/usr/local/bin/cloudcore</span><span class=w>
+</span><span class=w></span><span class=l>Restart=always</span><span class=w>
+</span><span class=w></span><span class=l>RestartSec=10</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=p>[</span><span class=l>Install]</span><span class=w>
+</span><span class=w></span><span class=l>WantedBy=multi-user.target</span><span class=w>
+</span><span class=w></span><span class=l>(base) [root@node2 /etc/kubeedge]#</span><span class=w>
+</span><span class=w></span><span class=l>(base) [root@node2 /etc/kubeedge]#</span><span class=w>
+</span><span class=w></span><span class=l>(base) [root@node2 /etc/kubeedge]#</span><span class=w>
+</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><h3 id=edgecore失败-failed-to-check-the-running-environment>edgecore失败-Failed to check the running environment</h3><p>edgecore 进行运行环境检查，Kubelet 不能运行在edge</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>ay <span class=m>24</span> 17:39:59 node2 edgecore<span class=o>[</span>89260<span class=o>]</span>: INFO: Install client plugin, protocol: rest
+May <span class=m>24</span> 17:39:59 node2 edgecore<span class=o>[</span>89260<span class=o>]</span>: INFO: Installed service discovery plugin: edge
+May <span class=m>24</span> 17:39:59 node2 edgecore<span class=o>[</span>89260<span class=o>]</span>: I0524 17:39:59.286453   <span class=m>89260</span> server.go:72<span class=o>]</span> Version: v1.6.2
+May <span class=m>24</span> 17:39:59 node2 edgecore<span class=o>[</span>89260<span class=o>]</span>: F0524 17:39:59.321896   <span class=m>89260</span> server.go:79<span class=o>]</span> Failed to check the running environment: Kubelet should not running on edge
+May <span class=m>24</span> 17:39:59 node2 edgecore<span class=o>[</span>89260<span class=o>]</span>: goroutine <span class=m>1</span> <span class=o>[</span>running<span class=o>]</span>:
+May <span class=m>24</span> 17:39:59 node2 edgecore<span class=o>[</span>89260<span class=o>]</span>: k8s.io/klog/v2.stacks<span class=o>(</span>0xc000128001, 0xc0003622d0, 0x93, 0xe6<span class=o>)</span>
+
+
+</code></pre></td></tr></table></div></div><p>可以通过设置环境变量 CHECK_EDGECORE_ENVIRONMENT=false，使得edgecore不做运行环境检查</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>vi /etc/systemd/system/edgecore.service
+</code></pre></td></tr></table></div></div><p>/etc/systemd/system/edgecore.service</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=p>[</span><span class=l>Unit]</span><span class=w>
+</span><span class=w></span><span class=l>Description=edgecore.service</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=p>[</span><span class=l>Service]</span><span class=w>
+</span><span class=w></span><span class=l>Type=simple</span><span class=w>
+</span><span class=w></span><span class=l>ExecStart=/usr/local/bin/edgecore</span><span class=w>
+</span><span class=w></span><span class=l>Environment=&#34;CHECK_EDGECORE_ENVIRONMENT=false&#34;</span><span class=w>
+</span><span class=w></span><span class=l>Restart=always</span><span class=w>
+</span><span class=w></span><span class=l>RestartSec=10</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=p>[</span><span class=l>Install]</span><span class=w>
+</span><span class=w></span><span class=l>WantedBy=multi-user.target</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>systemctl daemon-reload
+systemctl restart edgecore
+</code></pre></td></tr></table></div></div><h3 id=edgecore失败-failed-to-start-container-manager>edgecore失败-Failed to start container manager</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>May <span class=m>25</span> 12:16:05 node2 edgecore: W0525 12:16:05.217771  <span class=m>103976</span> proxy.go:64<span class=o>]</span> <span class=o>[</span>EdgeMesh<span class=o>]</span> add route err: file exists
+May <span class=m>25</span> 12:16:05 node2 edgecore: I0525 12:16:05.254379  <span class=m>103976</span> client.go:86<span class=o>]</span> parsed scheme: <span class=s2>&#34;unix&#34;</span>
+May <span class=m>25</span> 12:16:05 node2 edgecore: I0525 12:16:05.254423  <span class=m>103976</span> client.go:86<span class=o>]</span> scheme <span class=s2>&#34;unix&#34;</span> not registered, fallback to default scheme
+May <span class=m>25</span> 12:16:05 node2 edgecore: I0525 12:16:05.254470  <span class=m>103976</span> passthrough.go:48<span class=o>]</span> ccResolverWrapper: sending update to cc: <span class=o>{[{</span>unix:///run/containerd/containerd.sock  &lt;nil&gt; <span class=m>0</span> &lt;nil&gt;<span class=o>}]</span> &lt;nil&gt; &lt;nil&gt;<span class=o>}</span>
+May <span class=m>25</span> 12:16:05 node2 edgecore: I0525 12:16:05.254496  <span class=m>103976</span> clientconn.go:948<span class=o>]</span> ClientConn switching balancer to <span class=s2>&#34;pick_first&#34;</span>
+May <span class=m>25</span> 12:16:06 node2 edgecore: E0525 12:16:06.238991  <span class=m>103976</span> edged.go:742<span class=o>]</span> Failed to start container manager, err: failed to build map of initial containers from runtime: no PodsandBox found with Id <span class=s1>&#39;acb4ba296812113c10acd0d7ea1f048328950ff77d36be515b3e15ba3d67ba72&#39;</span>
+May <span class=m>25</span> 12:16:06 node2 edgecore: E0525 12:16:06.239012  <span class=m>103976</span> edged.go:293<span class=o>]</span> initialize module error: failed to build map of initial containers from runtime: no PodsandBox found with Id <span class=s1>&#39;acb4ba296812113c10acd0d7ea1f048328950ff77d36be515b3e15ba3d67ba72&#39;</span>
+May <span class=m>25</span> 12:16:06 node2 systemd: edgecore.service: main process exited, <span class=nv>code</span><span class=o>=</span>exited, <span class=nv>status</span><span class=o>=</span>1/FAILURE
+May <span class=m>25</span> 12:16:06 node2 systemd: Unit edgecore.service entered failed state.
+May <span class=m>25</span> 12:16:06 node2 systemd: edgecore.service failed.
+
+</code></pre></td></tr></table></div></div><ol><li>检查edgecore的配置文件的edgecore.yaml的参数podSandboxImage 是否正确</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>podSandboxImage</span><span class=p>:</span><span class=w> </span><span class=l>kubeedge/pause:3.1</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><ol start=2><li>清理掉环境中已有pod的容器</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># 停用并删除全部容器</span>
+docker stop <span class=k>$(</span>docker ps -q<span class=k>)</span> <span class=p>&amp;</span> docker rm <span class=k>$(</span>docker ps -aq<span class=k>)</span>
+
+</code></pre></td></tr></table></div></div><h2 id=参考资料>参考资料</h2><ul><li><a href=https://kubernetes.io/blog/2019/03/19/kubeedge-k8s-based-edge-intro/ target=_blank rel="noopener noreffer">kubeedge-k8s-based-edge-intro</a></li><li><a href=https://docs.kubeedge.io/en/ target=_blank rel="noopener noreffer">kubeedge Documentation</a></li><li><a href=https://github.com/kubeedge/kubeedge target=_blank rel="noopener noreffer">kubeedge SourceCode</a></li><li><a href=https://blog.csdn.net/fly910905/article/details/105334073 target=_blank rel="noopener noreffer">Kubernetes：在边缘计算领域的发展和KubeEdge介绍</a></li><li><a href=http://ljchen.net/2019/07/21/kubeedge%e5%ae%9e%e7%8e%b0%e5%8e%9f%e7%90%86/ target=_blank rel="noopener noreffer">kubeedge实现原理</a></li></ul></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2021-05-26</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/k8s/>K8S</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2021/05/k8s%E4%B8%AD%E7%9A%84crd%E5%BC%80%E5%8F%91/ class=prev rel=prev title=K8S中的CRD开发><i class="fas fa-angle-left fa-fw"></i>K8S中的CRD开发</a></div></div><div id=comments></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2021</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
+<script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i></a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css><script type=text/javascript src=https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script><script type=text/javascript>window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type=text/javascript src=/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-81425808-1',{'anonymize_ip':true});</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script><script src=https://libs.baidu.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js></script><script type=text/javascript src=/js/custom.js></script><script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script></body></html>
