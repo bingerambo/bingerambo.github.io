@@ -1,8 +1,8 @@
-<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>Ingress介绍 - 斌哥的小站|Binge Blog</title><meta name=Description content="Ingress介绍"><meta property="og:title" content="Ingress介绍"><meta property="og:description" content="Ingress介绍"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2021/06/ingress%E4%BB%8B%E7%BB%8D/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2021-06-02T08:43:17+08:00"><meta property="article:modified_time" content="2021-06-02T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="Ingress介绍"><meta name=twitter:description content="Ingress介绍"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2021/06/ingress%E4%BB%8B%E7%BB%8D/><link rel=prev href=http://bingerambo.com/posts/2021/05/kubeedge%E4%BB%8B%E7%BB%8D%E5%92%8C%E8%AE%BE%E8%AE%A1%E5%8E%9F%E7%90%86/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Ingress介绍","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2021\/06\/ingress%E4%BB%8B%E7%BB%8D\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":2805,"url":"http:\/\/bingerambo.com\/posts\/2021\/06\/ingress%E4%BB%8B%E7%BB%8D\/","datePublished":"2021-06-02T08:43:17+08:00","dateModified":"2021-06-02T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":"Ingress介绍"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
-<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">Ingress介绍</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2021-06-02>2021-06-02</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 2805 字&nbsp;
-<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 6 分钟&nbsp;
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>Ingress介绍 - 斌哥的小站|Binge Blog</title><meta name=Description content="Ingress介绍"><meta property="og:title" content="Ingress介绍"><meta property="og:description" content="Ingress介绍"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2021/06/ingress%E4%BB%8B%E7%BB%8D/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2021-06-02T08:43:17+08:00"><meta property="article:modified_time" content="2021-06-02T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="Ingress介绍"><meta name=twitter:description content="Ingress介绍"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2021/06/ingress%E4%BB%8B%E7%BB%8D/><link rel=prev href=http://bingerambo.com/posts/2021/05/kubeedge%E4%BB%8B%E7%BB%8D%E5%92%8C%E8%AE%BE%E8%AE%A1%E5%8E%9F%E7%90%86/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Ingress介绍","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2021\/06\/ingress%E4%BB%8B%E7%BB%8D\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":3332,"url":"http:\/\/bingerambo.com\/posts\/2021\/06\/ingress%E4%BB%8B%E7%BB%8D\/","datePublished":"2021-06-02T08:43:17+08:00","dateModified":"2021-06-02T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":"Ingress介绍"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">Ingress介绍</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2021-06-02>2021-06-02</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 3332 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 7 分钟&nbsp;
 <i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
-<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#服务访问>服务访问</a><ul><li><a href=#内部访问方式-clusterip>内部访问方式 ClusterIP</a></li><li><a href=#外部访问方式>外部访问方式</a><ul><li><a href=#1-nodeport>1. NodePort</a></li><li><a href=#2-loadbalancer>2. LoadBalancer</a></li><li><a href=#3-ingress>3. Ingress</a></li></ul></li></ul></li><li><a href=#ingress原理>Ingress原理</a></li><li><a href=#ingress-controller>Ingress Controller</a></li><li><a href=#部署>部署</a><ul><li><a href=#deployyaml>deploy.yaml</a></li><li><a href=#complete-example>complete-example</a></li></ul></li><li><a href=#参考资料>参考资料</a></li></ul></nav></div></div><div class=content id=content><p>Ingress概念和原理介绍</p><h2 id=服务访问>服务访问</h2><h3 id=内部访问方式-clusterip>内部访问方式 ClusterIP</h3><p>ClusterIP 服务是 Kubernetes 的默认服务。它给你一个集群内的服务，集群内的其它应用都可以访问该服务。集群外部无法访问它。在某些场景下我们可以使用 Kubernetes 的 Proxy 模式来访问服务，比如调试服务时。</p><img src=clusterip.png style=width:100%><h3 id=外部访问方式>外部访问方式</h3><p><strong>三种外部访问方式</strong></p><h4 id=1-nodeport>1. NodePort</h4><p>NodePort 服务是引导外部流量到你的服务的最原始方式。NodePort，正如这个名字所示，在所有节点（虚拟机）上开放一个特定端口，任何发送到该端口的流量都被转发到对应服务。</p><p>NodePort 服务特征如下：</p><ul><li>每个端口只能是一种服务</li><li>端口范围只能是在apiserver配置的端口范围内：30000-32767（可调）</li><li>不在 YAML 配置文件中指定则会分配一个默认端口</li></ul><img src=nodeport.png style=width:100%><h4 id=2-loadbalancer>2. LoadBalancer</h4><p>LoadBalancer 服务是暴露服务到 Internet 的标准方式。所有通往你指定的端口的流量都会被转发到对应的服务。它没有过滤条件，没有路由等。这意味着你几乎可以发送任何种类的流量到该服务，像 HTTP，TCP，UDP，WebSocket，gRPC 或其它任意种类。</p><img src=loader.png style=width:100%><h4 id=3-ingress>3. Ingress</h4><p>通常情况下，Service 和 Pod 的 IP 仅可在集群内部访问。集群外部的请求需要通过负载均衡转发到 Service 在 Node 上暴露的 NodePort 上，然后再由 kube-proxy 通过边缘路由器 (edge router) 将其转发给相关的 Pod 或者丢弃。而 Ingress 就是为进入集群的请求提供路由规则的集合</p><img src=ingress.png style=width:100%><h2 id=ingress原理>Ingress原理</h2><p>Ingress是一种对象（资源）存在于API Server(ETCD)上，它的整个生命周期（创建、更新、销毁）可以被实时的监听
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#服务访问>服务访问</a><ul><li><a href=#内部访问方式-clusterip>内部访问方式 ClusterIP</a></li><li><a href=#外部访问方式>外部访问方式</a><ul><li><a href=#1-nodeport>1. NodePort</a></li><li><a href=#2-loadbalancer>2. LoadBalancer</a></li><li><a href=#3-ingress>3. Ingress</a></li></ul></li></ul></li><li><a href=#ingress原理>Ingress原理</a></li><li><a href=#ingress-controller>Ingress Controller</a></li><li><a href=#部署>部署</a><ul><li><a href=#deployyaml>deploy.yaml</a></li><li><a href=#demo-example>demo-example</a></li></ul></li><li><a href=#参考资料>参考资料</a></li></ul></nav></div></div><div class=content id=content><p>Ingress概念和原理介绍</p><h2 id=服务访问>服务访问</h2><h3 id=内部访问方式-clusterip>内部访问方式 ClusterIP</h3><p>ClusterIP 服务是 Kubernetes 的默认服务。它给你一个集群内的服务，集群内的其它应用都可以访问该服务。集群外部无法访问它。在某些场景下我们可以使用 Kubernetes 的 Proxy 模式来访问服务，比如调试服务时。</p><img src=clusterip.png style=width:100%><h3 id=外部访问方式>外部访问方式</h3><p><strong>三种外部访问方式</strong></p><h4 id=1-nodeport>1. NodePort</h4><p>NodePort 服务是引导外部流量到你的服务的最原始方式。NodePort，正如这个名字所示，在所有节点（虚拟机）上开放一个特定端口，任何发送到该端口的流量都被转发到对应服务。</p><p>NodePort 服务特征如下：</p><ul><li>每个端口只能是一种服务</li><li>端口范围只能是在apiserver配置的端口范围内：30000-32767（可调）</li><li>不在 YAML 配置文件中指定则会分配一个默认端口</li></ul><img src=nodeport.png style=width:100%><h4 id=2-loadbalancer>2. LoadBalancer</h4><p>LoadBalancer 服务是暴露服务到 Internet 的标准方式。所有通往你指定的端口的流量都会被转发到对应的服务。它没有过滤条件，没有路由等。这意味着你几乎可以发送任何种类的流量到该服务，像 HTTP，TCP，UDP，WebSocket，gRPC 或其它任意种类。</p><img src=loader.png style=width:100%><h4 id=3-ingress>3. Ingress</h4><p>通常情况下，Service 和 Pod 的 IP 仅可在集群内部访问。集群外部的请求需要通过负载均衡转发到 Service 在 Node 上暴露的 NodePort 上，然后再由 kube-proxy 通过边缘路由器 (edge router) 将其转发给相关的 Pod 或者丢弃。而 Ingress 就是为进入集群的请求提供路由规则的集合</p><img src=ingress.png style=width:100%><h2 id=ingress原理>Ingress原理</h2><p>Ingress是一种对象（资源）存在于API Server(ETCD)上，它的整个生命周期（创建、更新、销毁）可以被实时的监听
 Ingress是对外（公网）服务到集群内的Service之间规则的集合：允许进入集群的请求被转发至集群内的Service
 Ingress能把Service（Kubernetes的服务）配置成外网能够访问的URL，流量负载均衡，终止SSL，提供于域名访问的虚拟主机等，用户通过访问URL（API资源服务的形式，例如：caas.one/kibana）进入和请求Service，一个Ingress控制器负责处理所有Ingress的请求流量</p><p>详细请看<a href=https://kubernetes.io/zh/docs/concepts/services-networking/ingress/ target=_blank rel="noopener noreffer">Ingress说明</a></p><ul><li>所谓Ingress对象，其实就是k8s 对“反向代理”的一种抽象。</li><li>Ingress 的实现分为两个部分 Ingress Controller 和 Ingress。</li><li>Ingress Controller 是流量的入口，是一个实体软件， 一般是Nginx 和 Haproxy（较少使用）。</li><li>Ingress 描述具体的路由规则。</li><li>Ingress Controller 会监听 api server上的 /ingresses 资源 并实时生效。</li><li>Ingerss 描述了一个或者多个 域名的路由规则，以 ingress 资源的形式存在。</li></ul><p>简单说： Ingress 描述路由规则， Ingress Controller 实时实现规则。</p><h2 id=ingress-controller>Ingress Controller</h2><p><strong>Ingress Controller 实际上是一个监听 Ingress 对象以及它所代理的后端 Service 变化的控制器。</strong></p><p>以ingress-nginx-controller为例说明</p><p>当一个新的 Ingress 对象由用户创建后，nginx-ingress-controller 就会根据 Ingress 对象里定义的内容，生成一份对应的 Nginx 配置文件（/etc/nginx/nginx.conf），并使用这个配置文件启动一个 Nginx 服务。</p><br><p>而一旦 Ingress 对象被更新，nginx-ingress-controller 就会更新这个配置文件。需要注意的是，如果这里只是被代理的 Service 对象被更新，nginx-ingress-controller 所管理的 Nginx 服务是不需要重新加载（reload）的。这当然是因为 nginx-ingress-controller 通过Nginx Lua方案实现了 Nginx Upstream 的动态配置。</p><br><p>此外，nginx-ingress-controller 还允许你通过 Kubernetes 的 ConfigMap 对象来对上述 Nginx 配置文件进行定制。这个 ConfigMap 的名字，需要以参数的方式传递给 nginx-ingress-controller。而你在这个 ConfigMap 里添加的字段，将会被合并到最后生成的 Nginx 配置文件当中。</p><br><p><strong>一个 Nginx Ingress Controller 提供的服务，其实是一个可以根据 Ingress 对象和被代理后端 Service 的变化，来自动进行更新的 Nginx 负载均衡器。</strong></p><img src=ingress-nginx-controller.png style=width:100%><div class="details admonition note open"><div class="details-summary admonition-title"><i class="icon fas fa-pencil-alt fa-fw"></i>注意<i class="details-icon fas fa-angle-right fa-fw"></i></div><div class=details-content><div class=admonition-content><p>Core Sync Logics:</p><p>Ingress-nginx has an internal model of the ingresses, secrets and endpoints in a given cluster. It maintains two copy of that (1) currently running configuration model and (2) the one generated in response to some changes in the cluster.</p><p>The sync logic diffs the two models and if there&rsquo;s a change it tries to converge the running configuration to the new one.</p><p>There are static and dynamic configuration changes.</p><p>All endpoints and certificate changes are handled dynamically by posting the payload to an internal NGINX endpoint that is handled by Lua.</p></div></div></div><p>Ingress Controller 注意事项</p><ul><li>一个集群中可以有多个 Ingress Controller， 在Ingress 中可以指定使用哪一个Ingress Controller</li><li>多个Ingress 规则可能出现竞争</li><li>Ingress Controller 本身需要以hostport 或者 service形式暴露出来。 云端可以使用云供应商lb 服务。</li><li>Ingress 可以为多个命名空间服务</li><li>Ingress只能通过Annotations 进行设置。并且需要确保　Ingress Controller 启动时， 启用了 Annotations 选项</li><li>Ingress Controller 放在独立命名空间中， 由管理员来管理。</li><li>Ingress 放在各应用的命名空间中， 由应用运维来设置。</li></ul><h2 id=部署>部署</h2><p>ingress是k8s内置资源类型，只需再安装ingress controller，以ingress-nginx-controller为例</p><h3 id=deployyaml>deploy.yaml</h3><p>官方安装ingress-nginx-controller例子</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
 </span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.46.0/deploy/static/provider/baremetal/deploy.yaml
@@ -1316,5 +1316,283 @@ Ingress能把Service（Kubernetes的服务）配置成外网能够访问的URL�
 </span><span class=w>        </span><span class=nt>runAsUser</span><span class=p>:</span><span class=w> </span><span class=m>2000</span><span class=w>
 </span><span class=w>
 </span><span class=w>
-</span></code></pre></td></tr></table></div></div><h3 id=complete-example>complete-example</h3><p><a href=https://github.com/resouer/kubernetes-ingress/tree/master/examples/complete-example target=_blank rel="noopener noreffer">complete-example</a></p><h2 id=参考资料>参考资料</h2><ul><li><a href=https://kubernetes.io/zh/docs/concepts/services-networking/ingress/ target=_blank rel="noopener noreffer">Ingress说明</a></li><li><a href=https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/ target=_blank rel="noopener noreffer">NGINX Ingress Controller</a></li><li><a href=https://github.com/kubernetes/ingress-nginx/blob/master/docs/how-it-works.md target=_blank rel="noopener noreffer">How kubernetes/ingress-nginx works 原理介绍</a></li><li><a href=https://github.com/resouer/kubernetes-ingress/tree/master/examples/complete-example target=_blank rel="noopener noreffer">complete-example</a></li></ul></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2021-06-02</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/k8s/>K8S</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2021/05/kubeedge%E4%BB%8B%E7%BB%8D%E5%92%8C%E8%AE%BE%E8%AE%A1%E5%8E%9F%E7%90%86/ class=prev rel=prev title=KubeEdge介绍和设计原理><i class="fas fa-angle-left fa-fw"></i>KubeEdge介绍和设计原理</a></div></div><div id=comments><div id=utterances></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://utteranc.es/>Utterances</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2021</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
+</span></code></pre></td></tr></table></div></div><h3 id=demo-example>demo-example</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+
+
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1># kubectl create -f test-deploy.yaml</span>
+namespace/ingress-nginx created
+serviceaccount/ingress-nginx created
+configmap/ingress-nginx-controller created
+clusterrole.rbac.authorization.k8s.io/ingress-nginx created
+clusterrolebinding.rbac.authorization.k8s.io/ingress-nginx created
+role.rbac.authorization.k8s.io/ingress-nginx created
+rolebinding.rbac.authorization.k8s.io/ingress-nginx created
+service/ingress-nginx-controller-admission created
+service/ingress-nginx-controller created
+deployment.apps/ingress-nginx-controller created
+validatingwebhookconfiguration.admissionregistration.k8s.io/ingress-nginx-admission created
+serviceaccount/ingress-nginx-admission created
+clusterrole.rbac.authorization.k8s.io/ingress-nginx-admission created
+clusterrolebinding.rbac.authorization.k8s.io/ingress-nginx-admission created
+role.rbac.authorization.k8s.io/ingress-nginx-admission created
+rolebinding.rbac.authorization.k8s.io/ingress-nginx-admission created
+job.batch/ingress-nginx-admission-create created
+job.batch/ingress-nginx-admission-patch created
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1>#</span>
+
+
+
+
+
+
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ~<span class=o>]</span><span class=c1># kubectl get svc -n ingress-nginx</span>
+NAME                                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT<span class=o>(</span>S<span class=o>)</span>                      AGE
+ingress-nginx-controller             NodePort    10.233.11.136   &lt;none&gt;        80:31346/TCP,443:31929/TCP   68s
+ingress-nginx-controller-admission   ClusterIP   10.233.45.168   &lt;none&gt;        443/TCP                      68s
+
+
+
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1># kubectl create -f app.yaml</span>
+deployment.apps/ivision created
+service/ivision-svc created
+deployment.apps/iresource created
+service/iresource-svc created
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1># kubectl create -f example-ingress.yaml</span>
+ingress.extensions/example-ingress created
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1>#</span>
+
+
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ~<span class=o>]</span><span class=c1># kubectl get ingress -A</span>
+NAMESPACE   NAME              HOSTS             ADDRESS       PORTS   AGE
+default     example-ingress   hello-world.com   10.7.11.212   <span class=m>80</span>      100s
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ~<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ~<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ~<span class=o>]</span><span class=c1># kubectl describe ingress example-ingress</span>
+Name:             example-ingress
+Namespace:        default
+Address:          10.7.11.212
+Default backend:  default-http-backend:80 <span class=o>(</span>&lt;none&gt;<span class=o>)</span>
+Rules:
+  Host             Path  Backends
+  ----             ----  --------
+  hello-world.com
+                   /vision   ivision-svc:8080 <span class=o>(</span>10.233.90.45:8080,10.233.90.49:8080<span class=o>)</span>
+Annotations:
+  nginx.ingress.kubernetes.io/rewrite-target:  /<span class=nv>$1</span>
+Events:
+  Type    Reason  Age                 From                      Message
+  ----    ------  ----                ----                      -------
+  Normal  Sync    98s <span class=o>(</span>x2 over 2m3s<span class=o>)</span>  nginx-ingress-controller  Scheduled <span class=k>for</span> sync
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ~<span class=o>]</span><span class=c1>#</span>
+
+
+
+
+
+
+
+
+
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1># kubectl get svc -A</span>
+NAMESPACE        NAME                                 TYPE           CLUSTER-IP      EXTERNAL-IP   PORT<span class=o>(</span>S<span class=o>)</span>                      AGE
+default          iresource-svc                        ClusterIP      10.233.55.49    &lt;none&gt;        8080/TCP                     30m
+default          ivision-svc                          ClusterIP      10.233.34.49    &lt;none&gt;        8080/TCP                     30m
+default          kubernetes                           ClusterIP      10.233.0.1      &lt;none&gt;        443/TCP                      259d
+ingress-nginx    ingress-nginx-controller             NodePort       10.233.11.136   &lt;none&gt;        80:31346/TCP,443:31929/TCP   3h2m
+ingress-nginx    ingress-nginx-controller-admission   ClusterIP      10.233.45.168   &lt;none&gt;        443/TCP                      3h2m
+TCP                     182d
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1># curl http://hello-world.com:31346/vision</span>
+Hello, world!Version: 1.0.0
+Hostname: ivision-7859ffbc88-569pl
+
+For hello-world.com:31346 /
+
+HELLO_MY_HELLO_WORLD_PORT_8090_TCP: tcp://10.233.21.171:8090
+HELLO_MY_HELLO_WORLD_PORT_8090_TCP_ADDR: 10.233.21.171
+HELLO_MY_HELLO_WORLD_SERVICE_PORT: <span class=m>8090</span>
+HELLO_MY_HELLO_WORLD_PORT: tcp://10.233.21.171:8090
+HELLO_MY_HELLO_WORLD_PORT_8090_TCP_PORT: <span class=m>8090</span>
+HELLO_MY_HELLO_WORLD_SERVICE_HOST: 10.233.21.171
+HELLO_MY_HELLO_WORLD_SERVICE_PORT_HTTP: <span class=m>8090</span>
+HELLO_MY_HELLO_WORLD_PORT_8090_TCP_PROTO: tcp
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1>#</span>
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1>#</span>
+
+
+
+
+
+
+<span class=o>(</span>base<span class=o>)</span> <span class=o>[</span>root@node1 ingress<span class=o>]</span><span class=c1># kubectl delete -f test-deploy.yaml</span>
+namespace <span class=s2>&#34;ingress-nginx&#34;</span> deleted
+serviceaccount <span class=s2>&#34;ingress-nginx&#34;</span> deleted
+configmap <span class=s2>&#34;ingress-nginx-controller&#34;</span> deleted
+clusterrole.rbac.authorization.k8s.io <span class=s2>&#34;ingress-nginx&#34;</span> deleted
+clusterrolebinding.rbac.authorization.k8s.io <span class=s2>&#34;ingress-nginx&#34;</span> deleted
+role.rbac.authorization.k8s.io <span class=s2>&#34;ingress-nginx&#34;</span> deleted
+rolebinding.rbac.authorization.k8s.io <span class=s2>&#34;ingress-nginx&#34;</span> deleted
+service <span class=s2>&#34;ingress-nginx-controller-admission&#34;</span> deleted
+service <span class=s2>&#34;ingress-nginx-controller&#34;</span> deleted
+deployment.apps <span class=s2>&#34;ingress-nginx-controller&#34;</span> deleted
+validatingwebhookconfiguration.admissionregistration.k8s.io <span class=s2>&#34;ingress-nginx-admission&#34;</span> deleted
+serviceaccount <span class=s2>&#34;ingress-nginx-admission&#34;</span> deleted
+clusterrole.rbac.authorization.k8s.io <span class=s2>&#34;ingress-nginx-admission&#34;</span> deleted
+clusterrolebinding.rbac.authorization.k8s.io <span class=s2>&#34;ingress-nginx-admission&#34;</span> deleted
+role.rbac.authorization.k8s.io <span class=s2>&#34;ingress-nginx-admission&#34;</span> deleted
+rolebinding.rbac.authorization.k8s.io <span class=s2>&#34;ingress-nginx-admission&#34;</span> deleted
+job.batch <span class=s2>&#34;ingress-nginx-admission-create&#34;</span> deleted
+job.batch <span class=s2>&#34;ingress-nginx-admission-patch&#34;</span> deleted
+
+
+
+</code></pre></td></tr></table></div></div><h2 id=参考资料>参考资料</h2><ul><li><a href=https://kubernetes.io/zh/docs/concepts/services-networking/ingress/ target=_blank rel="noopener noreffer">Ingress说明</a></li><li><a href=https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/ target=_blank rel="noopener noreffer">NGINX Ingress Controller</a></li><li><a href=https://github.com/kubernetes/ingress-nginx/blob/master/docs/how-it-works.md target=_blank rel="noopener noreffer">How kubernetes/ingress-nginx works 原理介绍</a></li></ul><ul><li><a href=https://www.cnblogs.com/sanduzxcvbnm/p/13038059.html target=_blank rel="noopener noreffer">Ingress通过互联网访问应用</a></li><li><a href=https://www.cnblogs.com/v-fan/p/13252372.html target=_blank rel="noopener noreffer">Ingress-nginx介绍及演示</a></li></ul></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2021-06-02</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/k8s/>K8S</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2021/05/kubeedge%E4%BB%8B%E7%BB%8D%E5%92%8C%E8%AE%BE%E8%AE%A1%E5%8E%9F%E7%90%86/ class=prev rel=prev title=KubeEdge介绍和设计原理><i class="fas fa-angle-left fa-fw"></i>KubeEdge介绍和设计原理</a></div></div><div id=comments><div id=utterances></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://utteranc.es/>Utterances</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2021</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
 <script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i></a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css><script type=text/javascript src=https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script><script type=text/javascript>window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{"utterances":{"darkTheme":"github-dark","issueTerm":"pathname","label":"","lightTheme":"github-light","repo":"bingerambo/myblog-comments"}},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type=text/javascript src=/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-81425808-1',{'anonymize_ip':true});</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script><script src=https://libs.baidu.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js></script><script type=text/javascript src=/js/custom.js></script><script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script></body></html>
