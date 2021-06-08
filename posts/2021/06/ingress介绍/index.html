@@ -1,10 +1,1720 @@
-<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>Ingress介绍 - 斌哥的小站|Binge Blog</title><meta name=Description content="Ingress介绍"><meta property="og:title" content="Ingress介绍"><meta property="og:description" content="Ingress介绍"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2021/06/ingress%E4%BB%8B%E7%BB%8D/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2021-06-02T08:43:17+08:00"><meta property="article:modified_time" content="2021-06-02T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="Ingress介绍"><meta name=twitter:description content="Ingress介绍"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2021/06/ingress%E4%BB%8B%E7%BB%8D/><link rel=prev href=http://bingerambo.com/posts/2021/05/kubeedge%E4%BB%8B%E7%BB%8D%E5%92%8C%E8%AE%BE%E8%AE%A1%E5%8E%9F%E7%90%86/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Ingress介绍","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2021\/06\/ingress%E4%BB%8B%E7%BB%8D\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":3782,"url":"http:\/\/bingerambo.com\/posts\/2021\/06\/ingress%E4%BB%8B%E7%BB%8D\/","datePublished":"2021-06-02T08:43:17+08:00","dateModified":"2021-06-02T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":"Ingress介绍"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
-<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">Ingress介绍</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2021-06-02>2021-06-02</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 3782 字&nbsp;
-<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 8 分钟&nbsp;
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>Ingress介绍 - 斌哥的小站|Binge Blog</title><meta name=Description content="Ingress介绍"><meta property="og:title" content="Ingress介绍"><meta property="og:description" content="Ingress介绍"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2021/06/ingress%E4%BB%8B%E7%BB%8D/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2021-06-02T08:43:17+08:00"><meta property="article:modified_time" content="2021-06-02T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="Ingress介绍"><meta name=twitter:description content="Ingress介绍"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2021/06/ingress%E4%BB%8B%E7%BB%8D/><link rel=prev href=http://bingerambo.com/posts/2021/05/kubeedge%E4%BB%8B%E7%BB%8D%E5%92%8C%E8%AE%BE%E8%AE%A1%E5%8E%9F%E7%90%86/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"Ingress介绍","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2021\/06\/ingress%E4%BB%8B%E7%BB%8D\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":8477,"url":"http:\/\/bingerambo.com\/posts\/2021\/06\/ingress%E4%BB%8B%E7%BB%8D\/","datePublished":"2021-06-02T08:43:17+08:00","dateModified":"2021-06-02T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":"Ingress介绍"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">Ingress介绍</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2021-06-02>2021-06-02</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 8477 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 17 分钟&nbsp;
 <i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
-<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#服务访问>服务访问</a><ul><li><a href=#内部访问方式-clusterip>内部访问方式 ClusterIP</a></li><li><a href=#外部访问方式>外部访问方式</a><ul><li><a href=#1-nodeport>1. NodePort</a></li><li><a href=#2-loadbalancer>2. LoadBalancer</a></li><li><a href=#3-ingress>3. Ingress</a></li></ul></li></ul></li><li><a href=#ingress原理>Ingress原理</a></li><li><a href=#ingress-controller>Ingress Controller</a></li><li><a href=#部署>部署</a><ul><li><a href=#deployyaml>deploy.yaml</a></li><li><a href=#demo-example>demo-example</a></li></ul></li><li><a href=#参考资料>参考资料</a></li></ul></nav></div></div><div class=content id=content><p>Ingress概念和原理介绍</p><h2 id=服务访问>服务访问</h2><h3 id=内部访问方式-clusterip>内部访问方式 ClusterIP</h3><p>ClusterIP 服务是 Kubernetes 的默认服务。它给你一个集群内的服务，集群内的其它应用都可以访问该服务。集群外部无法访问它。在某些场景下我们可以使用 Kubernetes 的 Proxy 模式来访问服务，比如调试服务时。</p><img src=clusterip.png style=width:100%><h3 id=外部访问方式>外部访问方式</h3><p><strong>三种外部访问方式</strong></p><h4 id=1-nodeport>1. NodePort</h4><p>NodePort 服务是引导外部流量到你的服务的最原始方式。NodePort，正如这个名字所示，在所有节点（虚拟机）上开放一个特定端口，任何发送到该端口的流量都被转发到对应服务。</p><p>NodePort 服务特征如下：</p><ul><li>每个端口只能是一种服务</li><li>端口范围只能是在apiserver配置的端口范围内：30000-32767（可调）</li><li>不在 YAML 配置文件中指定则会分配一个默认端口</li></ul><img src=nodeport.png style=width:100%><h4 id=2-loadbalancer>2. LoadBalancer</h4><p>LoadBalancer 服务是暴露服务到 Internet 的标准方式。所有通往你指定的端口的流量都会被转发到对应的服务。它没有过滤条件，没有路由等。这意味着你几乎可以发送任何种类的流量到该服务，像 HTTP，TCP，UDP，WebSocket，gRPC 或其它任意种类。</p><img src=loader.png style=width:100%><h4 id=3-ingress>3. Ingress</h4><p>通常情况下，Service 和 Pod 的 IP 仅可在集群内部访问。集群外部的请求需要通过负载均衡转发到 Service 在 Node 上暴露的 NodePort 上，然后再由 kube-proxy 通过边缘路由器 (edge router) 将其转发给相关的 Pod 或者丢弃。而 Ingress 就是为进入集群的请求提供路由规则的集合</p><img src=ingress.png style=width:100%><h2 id=ingress原理>Ingress原理</h2><p>Ingress是一种对象（资源）存在于API Server(ETCD)上，它的整个生命周期（创建、更新、销毁）可以被实时的监听
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#服务访问>服务访问</a><ul><li><a href=#内部访问方式-clusterip>内部访问方式 ClusterIP</a></li><li><a href=#外部访问方式>外部访问方式</a><ul><li><a href=#1-nodeport>1. NodePort</a></li><li><a href=#2-loadbalancer>2. LoadBalancer</a></li><li><a href=#3-ingress>3. Ingress</a></li></ul></li></ul></li><li><a href=#ingress原理>Ingress原理</a></li><li><a href=#ingress-controller>Ingress Controller</a></li><li><a href=#ingress-相关代码>Ingress 相关代码</a><ul><li><a href=#ingressspec>IngressSpec</a></li><li><a href=#store>store</a></li><li><a href=#nginxcontroller>NGINXController</a></li><li><a href=#syncingress>syncIngress</a></li><li><a href=#server>Server</a></li></ul></li><li><a href=#部署>部署</a><ul><li><a href=#ingressyaml>ingress.yaml</a></li><li><a href=#deployyaml>deploy.yaml</a></li><li><a href=#demo-example>demo-example</a></li></ul></li><li><a href=#参考资料>参考资料</a></li></ul></nav></div></div><div class=content id=content><p>Ingress概念和原理介绍</p><h2 id=服务访问>服务访问</h2><h3 id=内部访问方式-clusterip>内部访问方式 ClusterIP</h3><p>ClusterIP 服务是 Kubernetes 的默认服务。它给你一个集群内的服务，集群内的其它应用都可以访问该服务。集群外部无法访问它。在某些场景下我们可以使用 Kubernetes 的 Proxy 模式来访问服务，比如调试服务时。</p><img src=clusterip.png style=width:100%><h3 id=外部访问方式>外部访问方式</h3><p><strong>三种外部访问方式</strong></p><h4 id=1-nodeport>1. NodePort</h4><p>NodePort 服务是引导外部流量到你的服务的最原始方式。NodePort，正如这个名字所示，在所有节点（虚拟机）上开放一个特定端口，任何发送到该端口的流量都被转发到对应服务。</p><p>NodePort 服务特征如下：</p><ul><li>每个端口只能是一种服务</li><li>端口范围只能是在apiserver配置的端口范围内：30000-32767（可调）</li><li>不在 YAML 配置文件中指定则会分配一个默认端口</li></ul><img src=nodeport.png style=width:100%><h4 id=2-loadbalancer>2. LoadBalancer</h4><p>LoadBalancer 服务是暴露服务到 Internet 的标准方式。所有通往你指定的端口的流量都会被转发到对应的服务。它没有过滤条件，没有路由等。这意味着你几乎可以发送任何种类的流量到该服务，像 HTTP，TCP，UDP，WebSocket，gRPC 或其它任意种类。</p><img src=loader.png style=width:100%><h4 id=3-ingress>3. Ingress</h4><p>通常情况下，Service 和 Pod 的 IP 仅可在集群内部访问。集群外部的请求需要通过负载均衡转发到 Service 在 Node 上暴露的 NodePort 上，然后再由 kube-proxy 通过边缘路由器 (edge router) 将其转发给相关的 Pod 或者丢弃。而 Ingress 就是为进入集群的请求提供路由规则的集合</p><img src=ingress.png style=width:100%><h2 id=ingress原理>Ingress原理</h2><p>Ingress是一种对象（资源）存在于API Server(ETCD)上，它的整个生命周期（创建、更新、销毁）可以被实时的监听
 Ingress是对外（公网）服务到集群内的Service之间规则的集合：允许进入集群的请求被转发至集群内的Service
-Ingress能把Service（Kubernetes的服务）配置成外网能够访问的URL，流量负载均衡，终止SSL，提供于域名访问的虚拟主机等，用户通过访问URL（API资源服务的形式，例如：caas.one/kibana）进入和请求Service，一个Ingress控制器负责处理所有Ingress的请求流量</p><p>详细请看<a href=https://kubernetes.io/zh/docs/concepts/services-networking/ingress/ target=_blank rel="noopener noreffer">Ingress说明</a></p><ul><li>所谓Ingress对象，其实就是k8s 对“反向代理”的一种抽象。</li><li>Ingress 的实现分为两个部分 Ingress Controller 和 Ingress。</li><li>Ingress Controller 是流量的入口，是一个实体软件， 一般是Nginx 和 Haproxy（较少使用）。</li><li>Ingress 描述具体的路由规则。</li><li>Ingress Controller 会监听 api server上的 /ingresses 资源 并实时生效。</li><li>Ingerss 描述了一个或者多个 域名的路由规则，以 ingress 资源的形式存在。</li></ul><p>简单说： Ingress 描述路由规则， Ingress Controller 实时实现规则。</p><h2 id=ingress-controller>Ingress Controller</h2><p><strong>Ingress Controller 实际上是一个监听 Ingress 对象以及它所代理的后端 Service 变化的控制器。</strong></p><p>以ingress-nginx-controller为例说明</p><p>当一个新的 Ingress 对象由用户创建后，nginx-ingress-controller 就会根据 Ingress 对象里定义的内容，生成一份对应的 Nginx 配置文件（/etc/nginx/nginx.conf），并使用这个配置文件启动一个 Nginx 服务。</p><br><p>而一旦 Ingress 对象被更新，nginx-ingress-controller 就会更新这个配置文件。需要注意的是，如果这里只是被代理的 Service 对象被更新，nginx-ingress-controller 所管理的 Nginx 服务是不需要重新加载（reload）的。这当然是因为 nginx-ingress-controller 通过Nginx Lua方案实现了 Nginx Upstream 的动态配置。</p><br><p>此外，nginx-ingress-controller 还允许你通过 Kubernetes 的 ConfigMap 对象来对上述 Nginx 配置文件进行定制。这个 ConfigMap 的名字，需要以参数的方式传递给 nginx-ingress-controller。而你在这个 ConfigMap 里添加的字段，将会被合并到最后生成的 Nginx 配置文件当中。</p><br><p><strong>一个 Nginx Ingress Controller 提供的服务，其实是一个可以根据 Ingress 对象和被代理后端 Service 的变化，来自动进行更新的 Nginx 负载均衡器。</strong></p><img src=ingress-nginx-controller.png style=width:100%><div class="details admonition note open"><div class="details-summary admonition-title"><i class="icon fas fa-pencil-alt fa-fw"></i>注意<i class="details-icon fas fa-angle-right fa-fw"></i></div><div class=details-content><div class=admonition-content><p>Core Sync Logics:</p><p>Ingress-nginx has an internal model of the ingresses, secrets and endpoints in a given cluster. It maintains two copy of that (1) currently running configuration model and (2) the one generated in response to some changes in the cluster.</p><p>The sync logic diffs the two models and if there&rsquo;s a change it tries to converge the running configuration to the new one.</p><p>There are static and dynamic configuration changes.</p><p>All endpoints and certificate changes are handled dynamically by posting the payload to an internal NGINX endpoint that is handled by Lua.</p></div></div></div><p>Ingress Controller 注意事项</p><ul><li>一个集群中可以有多个 Ingress Controller， 在Ingress 中可以指定使用哪一个Ingress Controller</li><li>多个Ingress 规则可能出现竞争</li><li>Ingress Controller 本身需要以hostport 或者 service形式暴露出来。 云端可以使用云供应商lb 服务。</li><li>Ingress 可以为多个命名空间服务</li><li>Ingress只能通过Annotations 进行设置。并且需要确保　Ingress Controller 启动时， 启用了 Annotations 选项</li><li>Ingress Controller 放在独立命名空间中， 由管理员来管理。</li><li>Ingress 放在各应用的命名空间中， 由应用运维来设置。</li></ul><h2 id=部署>部署</h2><p>ingress是k8s内置资源类型，只需再安装ingress controller，以ingress-nginx-controller为例</p><h3 id=deployyaml>deploy.yaml</h3><p>官方安装ingress-nginx-controller例子</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+Ingress能把Service（Kubernetes的服务）配置成外网能够访问的URL，流量负载均衡，终止SSL，提供于域名访问的虚拟主机等，用户通过访问URL（API资源服务的形式，例如：caas.one/kibana）进入和请求Service，一个Ingress控制器负责处理所有Ingress的请求流量</p><p>详细请看<a href=https://kubernetes.io/zh/docs/concepts/services-networking/ingress/ target=_blank rel="noopener noreffer">Ingress说明</a></p><ul><li>所谓Ingress对象，其实就是k8s 对“反向代理”的一种抽象。</li><li>Ingress 的实现分为两个部分 Ingress Controller 和 Ingress。</li><li>Ingress Controller 是流量的入口，是一个实体软件， 一般是Nginx 和 Haproxy（较少使用）。</li><li>Ingress 描述具体的路由规则。</li><li>Ingress Controller 会监听 api server上的 /ingresses 资源 并实时生效。</li><li>Ingerss 描述了一个或者多个 域名的路由规则，以 ingress 资源的形式存在。</li></ul><p>简单说： Ingress 描述路由规则， Ingress Controller 实时实现规则。</p><h2 id=ingress-controller>Ingress Controller</h2><p><strong>Ingress Controller 实际上是一个监听 Ingress 对象以及它所代理的后端 Service 变化的控制器。</strong></p><p>以ingress-nginx-controller为例说明</p><p>当一个新的 Ingress 对象由用户创建后，nginx-ingress-controller 就会根据 Ingress 对象里定义的内容，生成一份对应的 Nginx 配置文件（/etc/nginx/nginx.conf），并使用这个配置文件启动一个 Nginx 服务。</p><br><p>而一旦 Ingress 对象被更新，nginx-ingress-controller 就会更新这个配置文件。需要注意的是，如果这里只是被代理的 Service 对象被更新，nginx-ingress-controller 所管理的 Nginx 服务是不需要重新加载（reload）的。这当然是因为 nginx-ingress-controller 通过Nginx Lua方案实现了 Nginx Upstream 的动态配置。</p><br><p>此外，nginx-ingress-controller 还允许你通过 Kubernetes 的 ConfigMap 对象来对上述 Nginx 配置文件进行定制。这个 ConfigMap 的名字，需要以参数的方式传递给 nginx-ingress-controller。而你在这个 ConfigMap 里添加的字段，将会被合并到最后生成的 Nginx 配置文件当中。</p><br><p><strong>一个 Nginx Ingress Controller 提供的服务，其实是一个可以根据 Ingress 对象和被代理后端 Service 的变化，来自动进行更新的 Nginx 负载均衡器。</strong></p><img src=ingress-nginx-controller.png style=width:100%><div class="details admonition note open"><div class="details-summary admonition-title"><i class="icon fas fa-pencil-alt fa-fw"></i>注意<i class="details-icon fas fa-angle-right fa-fw"></i></div><div class=details-content><div class=admonition-content><p>Core Sync Logics:</p><p>Ingress-nginx has an internal model of the ingresses, secrets and endpoints in a given cluster. It maintains two copy of that (1) currently running configuration model and (2) the one generated in response to some changes in the cluster.</p><p>The sync logic diffs the two models and if there&rsquo;s a change it tries to converge the running configuration to the new one.</p><p>There are static and dynamic configuration changes.</p><p>All endpoints and certificate changes are handled dynamically by posting the payload to an internal NGINX endpoint that is handled by Lua.</p></div></div></div><p>Ingress Controller 注意事项</p><ul><li>一个集群中可以有多个 Ingress Controller， 在Ingress 中可以指定使用哪一个Ingress Controller</li><li>多个Ingress 规则可能出现竞争</li><li>Ingress Controller 本身需要以hostport 或者 service形式暴露出来。 云端可以使用云供应商lb 服务。</li><li>Ingress 可以为多个命名空间服务</li><li>Ingress只能通过Annotations 进行设置。并且需要确保　Ingress Controller 启动时， 启用了 Annotations 选项</li><li>Ingress Controller 放在独立命名空间中， 由管理员来管理。</li><li>Ingress 放在各应用的命名空间中， 由应用运维来设置。</li></ul><h2 id=ingress-相关代码>Ingress 相关代码</h2><h3 id=ingressspec>IngressSpec</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-golang data-lang=golang>
+<span class=c1>// IngressSpec describes the Ingress the user wishes to exist.
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>IngressSpec</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=c1>// IngressClassName is the name of the IngressClass cluster resource. The
+</span><span class=c1></span>    <span class=c1>// associated IngressClass defines which controller will implement the
+</span><span class=c1></span>    <span class=c1>// resource. This replaces the deprecated `kubernetes.io/ingress.class`
+</span><span class=c1></span>    <span class=c1>// annotation. For backwards compatibility, when that annotation is set, it
+</span><span class=c1></span>    <span class=c1>// must be given precedence over this field. The controller may emit a
+</span><span class=c1></span>    <span class=c1>// warning if the field and annotation have different values.
+</span><span class=c1></span>    <span class=c1>// Implementations of this API should ignore Ingresses without a class
+</span><span class=c1></span>    <span class=c1>// specified. An IngressClass resource may be marked as default, which can
+</span><span class=c1></span>    <span class=c1>// be used to set a default value for this field. For more information,
+</span><span class=c1></span>    <span class=c1>// refer to the IngressClass documentation.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>IngressClassName</span> <span class=o>*</span><span class=kt>string</span> <span class=s>`json:&#34;ingressClassName,omitempty&#34; protobuf:&#34;bytes,4,opt,name=ingressClassName&#34;`</span>
+
+    <span class=c1>// A default backend capable of servicing requests that don&#39;t match any
+</span><span class=c1></span>    <span class=c1>// rule. At least one of &#39;backend&#39; or &#39;rules&#39; must be specified. This field
+</span><span class=c1></span>    <span class=c1>// is optional to allow the loadbalancer controller or defaulting logic to
+</span><span class=c1></span>    <span class=c1>// specify a global default.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>Backend</span> <span class=o>*</span><span class=nx>IngressBackend</span> <span class=s>`json:&#34;backend,omitempty&#34; protobuf:&#34;bytes,1,opt,name=backend&#34;`</span>
+
+    <span class=c1>// TLS configuration. Currently the Ingress only supports a single TLS
+</span><span class=c1></span>    <span class=c1>// port, 443. If multiple members of this list specify different hosts, they
+</span><span class=c1></span>    <span class=c1>// will be multiplexed on the same port according to the hostname specified
+</span><span class=c1></span>    <span class=c1>// through the SNI TLS extension, if the ingress controller fulfilling the
+</span><span class=c1></span>    <span class=c1>// ingress supports SNI.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>TLS</span> <span class=p>[]</span><span class=nx>IngressTLS</span> <span class=s>`json:&#34;tls,omitempty&#34; protobuf:&#34;bytes,2,rep,name=tls&#34;`</span>
+
+    <span class=c1>// A list of host rules used to configure the Ingress. If unspecified, or
+</span><span class=c1></span>    <span class=c1>// no rule matches, all traffic is sent to the default backend.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>Rules</span> <span class=p>[]</span><span class=nx>IngressRule</span> <span class=s>`json:&#34;rules,omitempty&#34; protobuf:&#34;bytes,3,rep,name=rules&#34;`</span>
+    <span class=c1>// TODO: Add the ability to specify load-balancer IP through claims
+</span><span class=c1></span><span class=p>}</span>
+
+<span class=c1>// IngressTLS describes the transport layer security associated with an Ingress.
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>IngressTLS</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=c1>// Hosts are a list of hosts included in the TLS certificate. The values in
+</span><span class=c1></span>    <span class=c1>// this list must match the name/s used in the tlsSecret. Defaults to the
+</span><span class=c1></span>    <span class=c1>// wildcard host setting for the loadbalancer controller fulfilling this
+</span><span class=c1></span>    <span class=c1>// Ingress, if left unspecified.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>Hosts</span> <span class=p>[]</span><span class=kt>string</span> <span class=s>`json:&#34;hosts,omitempty&#34; protobuf:&#34;bytes,1,rep,name=hosts&#34;`</span>
+    <span class=c1>// SecretName is the name of the secret used to terminate TLS traffic on
+</span><span class=c1></span>    <span class=c1>// port 443. Field is left optional to allow TLS routing based on SNI
+</span><span class=c1></span>    <span class=c1>// hostname alone. If the SNI host in a listener conflicts with the &#34;Host&#34;
+</span><span class=c1></span>    <span class=c1>// header field used by an IngressRule, the SNI host is used for termination
+</span><span class=c1></span>    <span class=c1>// and value of the Host header is used for routing.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>SecretName</span> <span class=kt>string</span> <span class=s>`json:&#34;secretName,omitempty&#34; protobuf:&#34;bytes,2,opt,name=secretName&#34;`</span>
+    <span class=c1>// TODO: Consider specifying different modes of termination, protocols etc.
+</span><span class=c1></span><span class=p>}</span>
+
+<span class=c1>// IngressStatus describe the current state of the Ingress.
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>IngressStatus</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=c1>// LoadBalancer contains the current status of the load-balancer.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>LoadBalancer</span> <span class=nx>v1</span><span class=p>.</span><span class=nx>LoadBalancerStatus</span> <span class=s>`json:&#34;loadBalancer,omitempty&#34; protobuf:&#34;bytes,1,opt,name=loadBalancer&#34;`</span>
+<span class=p>}</span>
+
+<span class=c1>// IngressRule represents the rules mapping the paths under a specified host to
+</span><span class=c1>// the related backend services. Incoming requests are first evaluated for a host
+</span><span class=c1>// match, then routed to the backend associated with the matching IngressRuleValue.
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>IngressRule</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=c1>// Host is the fully qualified domain name of a network host, as defined by RFC 3986.
+</span><span class=c1></span>    <span class=c1>// Note the following deviations from the &#34;host&#34; part of the
+</span><span class=c1></span>    <span class=c1>// URI as defined in RFC 3986:
+</span><span class=c1></span>    <span class=c1>// 1. IPs are not allowed. Currently an IngressRuleValue can only apply to
+</span><span class=c1></span>    <span class=c1>//    the IP in the Spec of the parent Ingress.
+</span><span class=c1></span>    <span class=c1>// 2. The `:` delimiter is not respected because ports are not allowed.
+</span><span class=c1></span>    <span class=c1>//    Currently the port of an Ingress is implicitly :80 for http and
+</span><span class=c1></span>    <span class=c1>//    :443 for https.
+</span><span class=c1></span>    <span class=c1>// Both these may change in the future.
+</span><span class=c1></span>    <span class=c1>// Incoming requests are matched against the host before the
+</span><span class=c1></span>    <span class=c1>// IngressRuleValue. If the host is unspecified, the Ingress routes all
+</span><span class=c1></span>    <span class=c1>// traffic based on the specified IngressRuleValue.
+</span><span class=c1></span>    <span class=c1>//
+</span><span class=c1></span>    <span class=c1>// Host can be &#34;precise&#34; which is a domain name without the terminating dot of
+</span><span class=c1></span>    <span class=c1>// a network host (e.g. &#34;foo.bar.com&#34;) or &#34;wildcard&#34;, which is a domain name
+</span><span class=c1></span>    <span class=c1>// prefixed with a single wildcard label (e.g. &#34;*.foo.com&#34;).
+</span><span class=c1></span>    <span class=c1>// The wildcard character &#39;*&#39; must appear by itself as the first DNS label and
+</span><span class=c1></span>    <span class=c1>// matches only a single label. You cannot have a wildcard label by itself (e.g. Host == &#34;*&#34;).
+</span><span class=c1></span>    <span class=c1>// Requests will be matched against the Host field in the following way:
+</span><span class=c1></span>    <span class=c1>// 1. If Host is precise, the request matches this rule if the http host header is equal to Host.
+</span><span class=c1></span>    <span class=c1>// 2. If Host is a wildcard, then the request matches this rule if the http host header
+</span><span class=c1></span>    <span class=c1>// is to equal to the suffix (removing the first label) of the wildcard rule.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>Host</span> <span class=kt>string</span> <span class=s>`json:&#34;host,omitempty&#34; protobuf:&#34;bytes,1,opt,name=host&#34;`</span>
+    <span class=c1>// IngressRuleValue represents a rule to route requests for this IngressRule.
+</span><span class=c1></span>    <span class=c1>// If unspecified, the rule defaults to a http catch-all. Whether that sends
+</span><span class=c1></span>    <span class=c1>// just traffic matching the host to the default backend or all traffic to the
+</span><span class=c1></span>    <span class=c1>// default backend, is left to the controller fulfilling the Ingress. Http is
+</span><span class=c1></span>    <span class=c1>// currently the only supported IngressRuleValue.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>IngressRuleValue</span> <span class=s>`json:&#34;,inline,omitempty&#34; protobuf:&#34;bytes,2,opt,name=ingressRuleValue&#34;`</span>
+<span class=p>}</span>
+
+<span class=c1>// IngressRuleValue represents a rule to apply against incoming requests. If the
+</span><span class=c1>// rule is satisfied, the request is routed to the specified backend. Currently
+</span><span class=c1>// mixing different types of rules in a single Ingress is disallowed, so exactly
+</span><span class=c1>// one of the following must be set.
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>IngressRuleValue</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=c1>//TODO:
+</span><span class=c1></span>    <span class=c1>// 1. Consider renaming this resource and the associated rules so they
+</span><span class=c1></span>    <span class=c1>// aren&#39;t tied to Ingress. They can be used to route intra-cluster traffic.
+</span><span class=c1></span>    <span class=c1>// 2. Consider adding fields for ingress-type specific global options
+</span><span class=c1></span>    <span class=c1>// usable by a loadbalancer, like http keep-alive.
+</span><span class=c1></span>
+    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>HTTP</span> <span class=o>*</span><span class=nx>HTTPIngressRuleValue</span> <span class=s>`json:&#34;http,omitempty&#34; protobuf:&#34;bytes,1,opt,name=http&#34;`</span>
+<span class=p>}</span>
+
+<span class=c1>// HTTPIngressRuleValue is a list of http selectors pointing to backends.
+</span><span class=c1>// In the example: http://&lt;host&gt;/&lt;path&gt;?&lt;searchpart&gt; -&gt; backend where
+</span><span class=c1>// where parts of the url correspond to RFC 3986, this resource will be used
+</span><span class=c1>// to match against everything after the last &#39;/&#39; and before the first &#39;?&#39;
+</span><span class=c1>// or &#39;#&#39;.
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>HTTPIngressRuleValue</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=c1>// A collection of paths that map requests to backends.
+</span><span class=c1></span>    <span class=nx>Paths</span> <span class=p>[]</span><span class=nx>HTTPIngressPath</span> <span class=s>`json:&#34;paths&#34; protobuf:&#34;bytes,1,rep,name=paths&#34;`</span>
+    <span class=c1>// TODO: Consider adding fields for ingress-type specific global
+</span><span class=c1></span>    <span class=c1>// options usable by a loadbalancer, like http keep-alive.
+</span><span class=c1></span><span class=p>}</span>
+
+</code></pre></td></tr></table></div></div><h3 id=store>store</h3><p>store处理资源有：</p><ul><li>Ingress</li><li>Endpoint</li><li>Secret</li><li>ConfigMap</li><li>Service</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-golang data-lang=golang>
+    <span class=nx>store</span><span class=p>.</span><span class=nx>informers</span><span class=p>.</span><span class=nx>Ingress</span> <span class=p>=</span> <span class=nx>infFactory</span><span class=p>.</span><span class=nf>Networking</span><span class=p>().</span><span class=nf>V1beta1</span><span class=p>().</span><span class=nf>Ingresses</span><span class=p>().</span><span class=nf>Informer</span><span class=p>()</span>
+    <span class=nx>store</span><span class=p>.</span><span class=nx>listers</span><span class=p>.</span><span class=nx>Ingress</span><span class=p>.</span><span class=nx>Store</span> <span class=p>=</span> <span class=nx>store</span><span class=p>.</span><span class=nx>informers</span><span class=p>.</span><span class=nx>Ingress</span><span class=p>.</span><span class=nf>GetStore</span><span class=p>()</span>
+
+    <span class=nx>store</span><span class=p>.</span><span class=nx>informers</span><span class=p>.</span><span class=nx>Endpoint</span> <span class=p>=</span> <span class=nx>infFactory</span><span class=p>.</span><span class=nf>Core</span><span class=p>().</span><span class=nf>V1</span><span class=p>().</span><span class=nf>Endpoints</span><span class=p>().</span><span class=nf>Informer</span><span class=p>()</span>
+    <span class=nx>store</span><span class=p>.</span><span class=nx>listers</span><span class=p>.</span><span class=nx>Endpoint</span><span class=p>.</span><span class=nx>Store</span> <span class=p>=</span> <span class=nx>store</span><span class=p>.</span><span class=nx>informers</span><span class=p>.</span><span class=nx>Endpoint</span><span class=p>.</span><span class=nf>GetStore</span><span class=p>()</span>
+
+    <span class=nx>store</span><span class=p>.</span><span class=nx>informers</span><span class=p>.</span><span class=nx>Secret</span> <span class=p>=</span> <span class=nx>infFactorySecrets</span><span class=p>.</span><span class=nf>Core</span><span class=p>().</span><span class=nf>V1</span><span class=p>().</span><span class=nf>Secrets</span><span class=p>().</span><span class=nf>Informer</span><span class=p>()</span>
+    <span class=nx>store</span><span class=p>.</span><span class=nx>listers</span><span class=p>.</span><span class=nx>Secret</span><span class=p>.</span><span class=nx>Store</span> <span class=p>=</span> <span class=nx>store</span><span class=p>.</span><span class=nx>informers</span><span class=p>.</span><span class=nx>Endpoint</span><span class=p>.</span><span class=nf>GetStore</span><span class=p>()</span>
+
+    <span class=nx>store</span><span class=p>.</span><span class=nx>informers</span><span class=p>.</span><span class=nx>ConfigMap</span> <span class=p>=</span> <span class=nx>infFactoryConfigmaps</span><span class=p>.</span><span class=nf>Core</span><span class=p>().</span><span class=nf>V1</span><span class=p>().</span><span class=nf>ConfigMaps</span><span class=p>().</span><span class=nf>Informer</span><span class=p>()</span>
+    <span class=nx>store</span><span class=p>.</span><span class=nx>listers</span><span class=p>.</span><span class=nx>ConfigMap</span><span class=p>.</span><span class=nx>Store</span> <span class=p>=</span> <span class=nx>store</span><span class=p>.</span><span class=nx>informers</span><span class=p>.</span><span class=nx>ConfigMap</span><span class=p>.</span><span class=nf>GetStore</span><span class=p>()</span>
+
+    <span class=nx>store</span><span class=p>.</span><span class=nx>informers</span><span class=p>.</span><span class=nx>Service</span> <span class=p>=</span> <span class=nx>infFactory</span><span class=p>.</span><span class=nf>Core</span><span class=p>().</span><span class=nf>V1</span><span class=p>().</span><span class=nf>Services</span><span class=p>().</span><span class=nf>Informer</span><span class=p>()</span>
+    <span class=nx>store</span><span class=p>.</span><span class=nx>listers</span><span class=p>.</span><span class=nx>Service</span><span class=p>.</span><span class=nx>Store</span> <span class=p>=</span> <span class=nx>store</span><span class=p>.</span><span class=nx>informers</span><span class=p>.</span><span class=nx>Service</span><span class=p>.</span><span class=nf>GetStore</span><span class=p>()</span>
+
+</code></pre></td></tr></table></div></div><h3 id=nginxcontroller>NGINXController</h3><p>NGINXController构造</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span><span class=lnt>140
+</span><span class=lnt>141
+</span><span class=lnt>142
+</span><span class=lnt>143
+</span><span class=lnt>144
+</span><span class=lnt>145
+</span><span class=lnt>146
+</span><span class=lnt>147
+</span><span class=lnt>148
+</span><span class=lnt>149
+</span><span class=lnt>150
+</span><span class=lnt>151
+</span><span class=lnt>152
+</span><span class=lnt>153
+</span><span class=lnt>154
+</span><span class=lnt>155
+</span><span class=lnt>156
+</span><span class=lnt>157
+</span><span class=lnt>158
+</span><span class=lnt>159
+</span><span class=lnt>160
+</span><span class=lnt>161
+</span><span class=lnt>162
+</span><span class=lnt>163
+</span><span class=lnt>164
+</span><span class=lnt>165
+</span><span class=lnt>166
+</span><span class=lnt>167
+</span><span class=lnt>168
+</span><span class=lnt>169
+</span><span class=lnt>170
+</span><span class=lnt>171
+</span><span class=lnt>172
+</span><span class=lnt>173
+</span><span class=lnt>174
+</span><span class=lnt>175
+</span><span class=lnt>176
+</span><span class=lnt>177
+</span><span class=lnt>178
+</span><span class=lnt>179
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-golang data-lang=golang><span class=c1>// NewNGINXController creates a new NGINX Ingress controller.
+</span><span class=c1></span><span class=kd>func</span> <span class=nf>NewNGINXController</span><span class=p>(</span><span class=nx>config</span> <span class=o>*</span><span class=nx>Configuration</span><span class=p>,</span> <span class=nx>mc</span> <span class=nx>metric</span><span class=p>.</span><span class=nx>Collector</span><span class=p>)</span> <span class=o>*</span><span class=nx>NGINXController</span> <span class=p>{</span>
+    <span class=nx>eventBroadcaster</span> <span class=o>:=</span> <span class=nx>record</span><span class=p>.</span><span class=nf>NewBroadcaster</span><span class=p>()</span>
+    <span class=nx>eventBroadcaster</span><span class=p>.</span><span class=nf>StartLogging</span><span class=p>(</span><span class=nx>klog</span><span class=p>.</span><span class=nx>Infof</span><span class=p>)</span>
+    <span class=nx>eventBroadcaster</span><span class=p>.</span><span class=nf>StartRecordingToSink</span><span class=p>(</span><span class=o>&amp;</span><span class=nx>v1core</span><span class=p>.</span><span class=nx>EventSinkImpl</span><span class=p>{</span>
+        <span class=nx>Interface</span><span class=p>:</span> <span class=nx>config</span><span class=p>.</span><span class=nx>Client</span><span class=p>.</span><span class=nf>CoreV1</span><span class=p>().</span><span class=nf>Events</span><span class=p>(</span><span class=nx>config</span><span class=p>.</span><span class=nx>Namespace</span><span class=p>),</span>
+    <span class=p>})</span>
+
+    <span class=nx>h</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>dns</span><span class=p>.</span><span class=nf>GetSystemNameServers</span><span class=p>()</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=nx>klog</span><span class=p>.</span><span class=nf>Warningf</span><span class=p>(</span><span class=s>&#34;Error reading system nameservers: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=nx>n</span> <span class=o>:=</span> <span class=o>&amp;</span><span class=nx>NGINXController</span><span class=p>{</span>
+        <span class=nx>isIPV6Enabled</span><span class=p>:</span> <span class=nx>ing_net</span><span class=p>.</span><span class=nf>IsIPv6Enabled</span><span class=p>(),</span>
+
+        <span class=nx>resolver</span><span class=p>:</span>        <span class=nx>h</span><span class=p>,</span>
+        <span class=nx>cfg</span><span class=p>:</span>             <span class=nx>config</span><span class=p>,</span>
+        <span class=nx>syncRateLimiter</span><span class=p>:</span> <span class=nx>flowcontrol</span><span class=p>.</span><span class=nf>NewTokenBucketRateLimiter</span><span class=p>(</span><span class=nx>config</span><span class=p>.</span><span class=nx>SyncRateLimit</span><span class=p>,</span> <span class=mi>1</span><span class=p>),</span>
+
+        <span class=nx>recorder</span><span class=p>:</span> <span class=nx>eventBroadcaster</span><span class=p>.</span><span class=nf>NewRecorder</span><span class=p>(</span><span class=nx>scheme</span><span class=p>.</span><span class=nx>Scheme</span><span class=p>,</span> <span class=nx>apiv1</span><span class=p>.</span><span class=nx>EventSource</span><span class=p>{</span>
+            <span class=nx>Component</span><span class=p>:</span> <span class=s>&#34;nginx-ingress-controller&#34;</span><span class=p>,</span>
+        <span class=p>}),</span>
+
+        <span class=nx>stopCh</span><span class=p>:</span>   <span class=nb>make</span><span class=p>(</span><span class=kd>chan</span> <span class=kd>struct</span><span class=p>{}),</span>
+        <span class=nx>updateCh</span><span class=p>:</span> <span class=nx>channels</span><span class=p>.</span><span class=nf>NewRingChannel</span><span class=p>(</span><span class=mi>1024</span><span class=p>),</span>
+
+        <span class=nx>ngxErrCh</span><span class=p>:</span> <span class=nb>make</span><span class=p>(</span><span class=kd>chan</span> <span class=kt>error</span><span class=p>),</span>
+
+        <span class=nx>stopLock</span><span class=p>:</span> <span class=o>&amp;</span><span class=nx>sync</span><span class=p>.</span><span class=nx>Mutex</span><span class=p>{},</span>
+
+        <span class=nx>runningConfig</span><span class=p>:</span> <span class=nb>new</span><span class=p>(</span><span class=nx>ingress</span><span class=p>.</span><span class=nx>Configuration</span><span class=p>),</span>
+
+        <span class=nx>Proxy</span><span class=p>:</span> <span class=o>&amp;</span><span class=nx>TCPProxy</span><span class=p>{},</span>
+
+        <span class=nx>metricCollector</span><span class=p>:</span> <span class=nx>mc</span><span class=p>,</span>
+
+        <span class=nx>command</span><span class=p>:</span> <span class=nf>NewNginxCommand</span><span class=p>(),</span>
+    <span class=p>}</span>
+
+    <span class=k>if</span> <span class=nx>n</span><span class=p>.</span><span class=nx>cfg</span><span class=p>.</span><span class=nx>ValidationWebhook</span> <span class=o>!=</span> <span class=s>&#34;&#34;</span> <span class=p>{</span>
+        <span class=nx>n</span><span class=p>.</span><span class=nx>validationWebhookServer</span> <span class=p>=</span> <span class=o>&amp;</span><span class=nx>http</span><span class=p>.</span><span class=nx>Server</span><span class=p>{</span>
+            <span class=nx>Addr</span><span class=p>:</span>      <span class=nx>config</span><span class=p>.</span><span class=nx>ValidationWebhook</span><span class=p>,</span>
+            <span class=nx>Handler</span><span class=p>:</span>   <span class=nx>adm_controller</span><span class=p>.</span><span class=nf>NewAdmissionControllerServer</span><span class=p>(</span><span class=o>&amp;</span><span class=nx>adm_controller</span><span class=p>.</span><span class=nx>IngressAdmission</span><span class=p>{</span><span class=nx>Checker</span><span class=p>:</span> <span class=nx>n</span><span class=p>}),</span>
+            <span class=nx>TLSConfig</span><span class=p>:</span> <span class=nx>ssl</span><span class=p>.</span><span class=nf>NewTLSListener</span><span class=p>(</span><span class=nx>n</span><span class=p>.</span><span class=nx>cfg</span><span class=p>.</span><span class=nx>ValidationWebhookCertPath</span><span class=p>,</span> <span class=nx>n</span><span class=p>.</span><span class=nx>cfg</span><span class=p>.</span><span class=nx>ValidationWebhookKeyPath</span><span class=p>).</span><span class=nf>TLSConfig</span><span class=p>(),</span>
+            <span class=c1>// disable http/2
+</span><span class=c1></span>            <span class=c1>// https://github.com/kubernetes/kubernetes/issues/80313
+</span><span class=c1></span>            <span class=c1>// https://github.com/kubernetes/ingress-nginx/issues/6323#issuecomment-737239159
+</span><span class=c1></span>            <span class=nx>TLSNextProto</span><span class=p>:</span> <span class=nb>make</span><span class=p>(</span><span class=kd>map</span><span class=p>[</span><span class=kt>string</span><span class=p>]</span><span class=kd>func</span><span class=p>(</span><span class=o>*</span><span class=nx>http</span><span class=p>.</span><span class=nx>Server</span><span class=p>,</span> <span class=o>*</span><span class=nx>tls</span><span class=p>.</span><span class=nx>Conn</span><span class=p>,</span> <span class=nx>http</span><span class=p>.</span><span class=nx>Handler</span><span class=p>)),</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+
+    <span class=nx>n</span><span class=p>.</span><span class=nx>store</span> <span class=p>=</span> <span class=nx>store</span><span class=p>.</span><span class=nf>New</span><span class=p>(</span>
+        <span class=nx>config</span><span class=p>.</span><span class=nx>Namespace</span><span class=p>,</span>
+        <span class=nx>config</span><span class=p>.</span><span class=nx>ConfigMapName</span><span class=p>,</span>
+        <span class=nx>config</span><span class=p>.</span><span class=nx>TCPConfigMapName</span><span class=p>,</span>
+        <span class=nx>config</span><span class=p>.</span><span class=nx>UDPConfigMapName</span><span class=p>,</span>
+        <span class=nx>config</span><span class=p>.</span><span class=nx>DefaultSSLCertificate</span><span class=p>,</span>
+        <span class=nx>config</span><span class=p>.</span><span class=nx>ResyncPeriod</span><span class=p>,</span>
+        <span class=nx>config</span><span class=p>.</span><span class=nx>Client</span><span class=p>,</span>
+        <span class=nx>n</span><span class=p>.</span><span class=nx>updateCh</span><span class=p>,</span>
+        <span class=nx>config</span><span class=p>.</span><span class=nx>DisableCatchAll</span><span class=p>)</span>
+
+    <span class=nx>n</span><span class=p>.</span><span class=nx>syncQueue</span> <span class=p>=</span> <span class=nx>task</span><span class=p>.</span><span class=nf>NewTaskQueue</span><span class=p>(</span><span class=nx>n</span><span class=p>.</span><span class=nx>syncIngress</span><span class=p>)</span>
+
+    <span class=k>if</span> <span class=nx>config</span><span class=p>.</span><span class=nx>UpdateStatus</span> <span class=p>{</span>
+        <span class=nx>n</span><span class=p>.</span><span class=nx>syncStatus</span> <span class=p>=</span> <span class=nx>status</span><span class=p>.</span><span class=nf>NewStatusSyncer</span><span class=p>(</span><span class=nx>status</span><span class=p>.</span><span class=nx>Config</span><span class=p>{</span>
+            <span class=nx>Client</span><span class=p>:</span>                 <span class=nx>config</span><span class=p>.</span><span class=nx>Client</span><span class=p>,</span>
+            <span class=nx>PublishService</span><span class=p>:</span>         <span class=nx>config</span><span class=p>.</span><span class=nx>PublishService</span><span class=p>,</span>
+            <span class=nx>PublishStatusAddress</span><span class=p>:</span>   <span class=nx>config</span><span class=p>.</span><span class=nx>PublishStatusAddress</span><span class=p>,</span>
+            <span class=nx>IngressLister</span><span class=p>:</span>          <span class=nx>n</span><span class=p>.</span><span class=nx>store</span><span class=p>,</span>
+            <span class=nx>UpdateStatusOnShutdown</span><span class=p>:</span> <span class=nx>config</span><span class=p>.</span><span class=nx>UpdateStatusOnShutdown</span><span class=p>,</span>
+            <span class=nx>UseNodeInternalIP</span><span class=p>:</span>      <span class=nx>config</span><span class=p>.</span><span class=nx>UseNodeInternalIP</span><span class=p>,</span>
+        <span class=p>})</span>
+    <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+        <span class=nx>klog</span><span class=p>.</span><span class=nf>Warning</span><span class=p>(</span><span class=s>&#34;Update of Ingress status is disabled (flag --update-status)&#34;</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=nx>onTemplateChange</span> <span class=o>:=</span> <span class=kd>func</span><span class=p>()</span> <span class=p>{</span>
+        <span class=nx>template</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>ngx_template</span><span class=p>.</span><span class=nf>NewTemplate</span><span class=p>(</span><span class=nx>nginx</span><span class=p>.</span><span class=nx>TemplatePath</span><span class=p>)</span>
+        <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+            <span class=c1>// this error is different from the rest because it must be clear why nginx is not working
+</span><span class=c1></span>            <span class=nx>klog</span><span class=p>.</span><span class=nf>ErrorS</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Error loading new template&#34;</span><span class=p>)</span>
+            <span class=k>return</span>
+        <span class=p>}</span>
+
+        <span class=nx>n</span><span class=p>.</span><span class=nx>t</span> <span class=p>=</span> <span class=nx>template</span>
+        <span class=nx>klog</span><span class=p>.</span><span class=nf>InfoS</span><span class=p>(</span><span class=s>&#34;New NGINX configuration template loaded&#34;</span><span class=p>)</span>
+        <span class=nx>n</span><span class=p>.</span><span class=nx>syncQueue</span><span class=p>.</span><span class=nf>EnqueueTask</span><span class=p>(</span><span class=nx>task</span><span class=p>.</span><span class=nf>GetDummyObject</span><span class=p>(</span><span class=s>&#34;template-change&#34;</span><span class=p>))</span>
+    <span class=p>}</span>
+
+    <span class=nx>ngxTpl</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>ngx_template</span><span class=p>.</span><span class=nf>NewTemplate</span><span class=p>(</span><span class=nx>nginx</span><span class=p>.</span><span class=nx>TemplatePath</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=nx>klog</span><span class=p>.</span><span class=nf>Fatalf</span><span class=p>(</span><span class=s>&#34;Invalid NGINX configuration template: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=nx>n</span><span class=p>.</span><span class=nx>t</span> <span class=p>=</span> <span class=nx>ngxTpl</span>
+
+    <span class=nx>_</span><span class=p>,</span> <span class=nx>err</span> <span class=p>=</span> <span class=nx>watch</span><span class=p>.</span><span class=nf>NewFileWatcher</span><span class=p>(</span><span class=nx>nginx</span><span class=p>.</span><span class=nx>TemplatePath</span><span class=p>,</span> <span class=nx>onTemplateChange</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=nx>klog</span><span class=p>.</span><span class=nf>Fatalf</span><span class=p>(</span><span class=s>&#34;Error creating file watcher for %v: %v&#34;</span><span class=p>,</span> <span class=nx>nginx</span><span class=p>.</span><span class=nx>TemplatePath</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=nx>filesToWatch</span> <span class=o>:=</span> <span class=p>[]</span><span class=kt>string</span><span class=p>{}</span>
+    <span class=nx>err</span> <span class=p>=</span> <span class=nx>filepath</span><span class=p>.</span><span class=nf>Walk</span><span class=p>(</span><span class=s>&#34;/etc/nginx/geoip/&#34;</span><span class=p>,</span> <span class=kd>func</span><span class=p>(</span><span class=nx>path</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>info</span> <span class=nx>os</span><span class=p>.</span><span class=nx>FileInfo</span><span class=p>,</span> <span class=nx>err</span> <span class=kt>error</span><span class=p>)</span> <span class=kt>error</span> <span class=p>{</span>
+        <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+            <span class=k>return</span> <span class=nx>err</span>
+        <span class=p>}</span>
+
+        <span class=k>if</span> <span class=nx>info</span><span class=p>.</span><span class=nf>IsDir</span><span class=p>()</span> <span class=p>{</span>
+            <span class=k>return</span> <span class=kc>nil</span>
+        <span class=p>}</span>
+
+        <span class=nx>filesToWatch</span> <span class=p>=</span> <span class=nb>append</span><span class=p>(</span><span class=nx>filesToWatch</span><span class=p>,</span> <span class=nx>path</span><span class=p>)</span>
+        <span class=k>return</span> <span class=kc>nil</span>
+    <span class=p>})</span>
+
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=nx>klog</span><span class=p>.</span><span class=nf>Fatalf</span><span class=p>(</span><span class=s>&#34;Error creating file watchers: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=k>for</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>f</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>filesToWatch</span> <span class=p>{</span>
+        <span class=nx>_</span><span class=p>,</span> <span class=nx>err</span> <span class=p>=</span> <span class=nx>watch</span><span class=p>.</span><span class=nf>NewFileWatcher</span><span class=p>(</span><span class=nx>f</span><span class=p>,</span> <span class=kd>func</span><span class=p>()</span> <span class=p>{</span>
+            <span class=nx>klog</span><span class=p>.</span><span class=nf>InfoS</span><span class=p>(</span><span class=s>&#34;File changed detected. Reloading NGINX&#34;</span><span class=p>,</span> <span class=s>&#34;path&#34;</span><span class=p>,</span> <span class=nx>f</span><span class=p>)</span>
+            <span class=nx>n</span><span class=p>.</span><span class=nx>syncQueue</span><span class=p>.</span><span class=nf>EnqueueTask</span><span class=p>(</span><span class=nx>task</span><span class=p>.</span><span class=nf>GetDummyObject</span><span class=p>(</span><span class=s>&#34;file-change&#34;</span><span class=p>))</span>
+        <span class=p>})</span>
+        <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+            <span class=nx>klog</span><span class=p>.</span><span class=nf>Fatalf</span><span class=p>(</span><span class=s>&#34;Error creating file watcher for %v: %v&#34;</span><span class=p>,</span> <span class=nx>f</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+
+    <span class=k>return</span> <span class=nx>n</span>
+<span class=p>}</span>
+
+<span class=c1>// NGINXController describes a NGINX Ingress controller.
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>NGINXController</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=nx>cfg</span> <span class=o>*</span><span class=nx>Configuration</span>
+
+    <span class=nx>recorder</span> <span class=nx>record</span><span class=p>.</span><span class=nx>EventRecorder</span>
+
+    <span class=nx>syncQueue</span> <span class=o>*</span><span class=nx>task</span><span class=p>.</span><span class=nx>Queue</span>
+
+    <span class=nx>syncStatus</span> <span class=nx>status</span><span class=p>.</span><span class=nx>Syncer</span>
+
+    <span class=nx>syncRateLimiter</span> <span class=nx>flowcontrol</span><span class=p>.</span><span class=nx>RateLimiter</span>
+
+    <span class=c1>// stopLock is used to enforce that only a single call to Stop send at
+</span><span class=c1></span>    <span class=c1>// a given time. We allow stopping through an HTTP endpoint and
+</span><span class=c1></span>    <span class=c1>// allowing concurrent stoppers leads to stack traces.
+</span><span class=c1></span>    <span class=nx>stopLock</span> <span class=o>*</span><span class=nx>sync</span><span class=p>.</span><span class=nx>Mutex</span>
+
+    <span class=nx>stopCh</span>   <span class=kd>chan</span> <span class=kd>struct</span><span class=p>{}</span>
+    <span class=nx>updateCh</span> <span class=o>*</span><span class=nx>channels</span><span class=p>.</span><span class=nx>RingChannel</span>
+
+    <span class=c1>// ngxErrCh is used to detect errors with the NGINX processes
+</span><span class=c1></span>    <span class=nx>ngxErrCh</span> <span class=kd>chan</span> <span class=kt>error</span>
+
+    <span class=c1>// runningConfig contains the running configuration in the Backend
+</span><span class=c1></span>    <span class=nx>runningConfig</span> <span class=o>*</span><span class=nx>ingress</span><span class=p>.</span><span class=nx>Configuration</span>
+
+    <span class=nx>t</span> <span class=nx>ngx_template</span><span class=p>.</span><span class=nx>TemplateWriter</span>
+
+    <span class=nx>resolver</span> <span class=p>[]</span><span class=nx>net</span><span class=p>.</span><span class=nx>IP</span>
+
+    <span class=nx>isIPV6Enabled</span> <span class=kt>bool</span>
+
+    <span class=nx>isShuttingDown</span> <span class=kt>bool</span>
+
+    <span class=nx>Proxy</span> <span class=o>*</span><span class=nx>TCPProxy</span>
+
+    <span class=nx>store</span> <span class=nx>store</span><span class=p>.</span><span class=nx>Storer</span>
+
+    <span class=nx>metricCollector</span> <span class=nx>metric</span><span class=p>.</span><span class=nx>Collector</span>
+
+    <span class=nx>validationWebhookServer</span> <span class=o>*</span><span class=nx>http</span><span class=p>.</span><span class=nx>Server</span>
+
+    <span class=nx>command</span> <span class=nx>NginxExecTester</span>
+<span class=p>}</span>
+
+</code></pre></td></tr></table></div></div><p>Start()</p><ul><li>store.Run</li><li>n.syncStatus.Run</li><li>start(cmd) NGINX启动命令</li><li>syncQueue.Run(time.Second, n.stopCh)</li><li>syncQueue.EnqueueTask(task.GetDummyObject(&ldquo;initial-sync&rdquo;))</li><li>每5分钟 cleanTempNginxCfg()</li><li>监听n.updateCh.Out()，进行syncQueue处理</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-golang data-lang=golang>
+<span class=c1>// Start starts a new NGINX master process running in the foreground.
+</span><span class=c1></span><span class=kd>func</span> <span class=p>(</span><span class=nx>n</span> <span class=o>*</span><span class=nx>NGINXController</span><span class=p>)</span> <span class=nf>Start</span><span class=p>()</span> <span class=p>{</span>
+    <span class=nx>klog</span><span class=p>.</span><span class=nf>InfoS</span><span class=p>(</span><span class=s>&#34;Starting NGINX Ingress controller&#34;</span><span class=p>)</span>
+
+    <span class=c1>// k8s informer run
+</span><span class=c1></span>    <span class=nx>n</span><span class=p>.</span><span class=nx>store</span><span class=p>.</span><span class=nf>Run</span><span class=p>(</span><span class=nx>n</span><span class=p>.</span><span class=nx>stopCh</span><span class=p>)</span>
+
+    <span class=c1>// we need to use the defined ingress class to allow multiple leaders
+</span><span class=c1></span>    <span class=c1>// in order to update information about ingress status
+</span><span class=c1></span>    <span class=nx>electionID</span> <span class=o>:=</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Sprintf</span><span class=p>(</span><span class=s>&#34;%v-%v&#34;</span><span class=p>,</span> <span class=nx>n</span><span class=p>.</span><span class=nx>cfg</span><span class=p>.</span><span class=nx>ElectionID</span><span class=p>,</span> <span class=nx>class</span><span class=p>.</span><span class=nx>DefaultClass</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>class</span><span class=p>.</span><span class=nx>IngressClass</span> <span class=o>!=</span> <span class=s>&#34;&#34;</span> <span class=p>{</span>
+        <span class=nx>electionID</span> <span class=p>=</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Sprintf</span><span class=p>(</span><span class=s>&#34;%v-%v&#34;</span><span class=p>,</span> <span class=nx>n</span><span class=p>.</span><span class=nx>cfg</span><span class=p>.</span><span class=nx>ElectionID</span><span class=p>,</span> <span class=nx>class</span><span class=p>.</span><span class=nx>IngressClass</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=c1>// 选主 启动 n.syncStatus.Run(stopCh)
+</span><span class=c1></span>    <span class=nf>setupLeaderElection</span><span class=p>(</span><span class=o>&amp;</span><span class=nx>leaderElectionConfig</span><span class=p>{</span>
+        <span class=nx>Client</span><span class=p>:</span>     <span class=nx>n</span><span class=p>.</span><span class=nx>cfg</span><span class=p>.</span><span class=nx>Client</span><span class=p>,</span>
+        <span class=nx>ElectionID</span><span class=p>:</span> <span class=nx>electionID</span><span class=p>,</span>
+        <span class=nx>OnStartedLeading</span><span class=p>:</span> <span class=kd>func</span><span class=p>(</span><span class=nx>stopCh</span> <span class=kd>chan</span> <span class=kd>struct</span><span class=p>{})</span> <span class=p>{</span>
+            <span class=k>if</span> <span class=nx>n</span><span class=p>.</span><span class=nx>syncStatus</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+                <span class=k>go</span> <span class=nx>n</span><span class=p>.</span><span class=nx>syncStatus</span><span class=p>.</span><span class=nf>Run</span><span class=p>(</span><span class=nx>stopCh</span><span class=p>)</span>
+            <span class=p>}</span>
+
+            <span class=nx>n</span><span class=p>.</span><span class=nx>metricCollector</span><span class=p>.</span><span class=nf>OnStartedLeading</span><span class=p>(</span><span class=nx>electionID</span><span class=p>)</span>
+            <span class=c1>// manually update SSL expiration metrics
+</span><span class=c1></span>            <span class=c1>// (to not wait for a reload)
+</span><span class=c1></span>            <span class=nx>n</span><span class=p>.</span><span class=nx>metricCollector</span><span class=p>.</span><span class=nf>SetSSLExpireTime</span><span class=p>(</span><span class=nx>n</span><span class=p>.</span><span class=nx>runningConfig</span><span class=p>.</span><span class=nx>Servers</span><span class=p>)</span>
+        <span class=p>},</span>
+        <span class=nx>OnStoppedLeading</span><span class=p>:</span> <span class=kd>func</span><span class=p>()</span> <span class=p>{</span>
+            <span class=nx>n</span><span class=p>.</span><span class=nx>metricCollector</span><span class=p>.</span><span class=nf>OnStoppedLeading</span><span class=p>(</span><span class=nx>electionID</span><span class=p>)</span>
+        <span class=p>},</span>
+    <span class=p>})</span>
+
+    <span class=nx>cmd</span> <span class=o>:=</span> <span class=nx>n</span><span class=p>.</span><span class=nx>command</span><span class=p>.</span><span class=nf>ExecCommand</span><span class=p>()</span>
+
+    <span class=c1>// put NGINX in another process group to prevent it
+</span><span class=c1></span>    <span class=c1>// to receive signals meant for the controller
+</span><span class=c1></span>    <span class=nx>cmd</span><span class=p>.</span><span class=nx>SysProcAttr</span> <span class=p>=</span> <span class=o>&amp;</span><span class=nx>syscall</span><span class=p>.</span><span class=nx>SysProcAttr</span><span class=p>{</span>
+        <span class=nx>Setpgid</span><span class=p>:</span> <span class=kc>true</span><span class=p>,</span>
+        <span class=nx>Pgid</span><span class=p>:</span>    <span class=mi>0</span><span class=p>,</span>
+    <span class=p>}</span>
+
+    <span class=c1>// SSLPassthrough true 启动本地tcp 代理，不使用nginx
+</span><span class=c1></span>    <span class=k>if</span> <span class=nx>n</span><span class=p>.</span><span class=nx>cfg</span><span class=p>.</span><span class=nx>EnableSSLPassthrough</span> <span class=p>{</span>
+        <span class=nx>n</span><span class=p>.</span><span class=nf>setupSSLProxy</span><span class=p>()</span>
+    <span class=p>}</span>
+
+    <span class=nx>klog</span><span class=p>.</span><span class=nf>InfoS</span><span class=p>(</span><span class=s>&#34;Starting NGINX process&#34;</span><span class=p>)</span>
+    <span class=nx>n</span><span class=p>.</span><span class=nf>start</span><span class=p>(</span><span class=nx>cmd</span><span class=p>)</span>
+
+    <span class=k>go</span> <span class=nx>n</span><span class=p>.</span><span class=nx>syncQueue</span><span class=p>.</span><span class=nf>Run</span><span class=p>(</span><span class=nx>time</span><span class=p>.</span><span class=nx>Second</span><span class=p>,</span> <span class=nx>n</span><span class=p>.</span><span class=nx>stopCh</span><span class=p>)</span>
+    <span class=c1>// force initial sync
+</span><span class=c1></span>    <span class=c1>// 起始事件 &#34;initial-sync&#34; 入队
+</span><span class=c1></span>    <span class=nx>n</span><span class=p>.</span><span class=nx>syncQueue</span><span class=p>.</span><span class=nf>EnqueueTask</span><span class=p>(</span><span class=nx>task</span><span class=p>.</span><span class=nf>GetDummyObject</span><span class=p>(</span><span class=s>&#34;initial-sync&#34;</span><span class=p>))</span>
+
+    <span class=c1>// In case of error the temporal configuration file will
+</span><span class=c1></span>    <span class=c1>// be available up to five minutes after the error
+</span><span class=c1></span>    <span class=k>go</span> <span class=kd>func</span><span class=p>()</span> <span class=p>{</span>
+        <span class=k>for</span> <span class=p>{</span>
+            <span class=nx>time</span><span class=p>.</span><span class=nf>Sleep</span><span class=p>(</span><span class=mi>5</span> <span class=o>*</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Minute</span><span class=p>)</span>
+            <span class=nx>err</span> <span class=o>:=</span> <span class=nf>cleanTempNginxCfg</span><span class=p>()</span>
+            <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+                <span class=nx>klog</span><span class=p>.</span><span class=nf>ErrorS</span><span class=p>(</span><span class=nx>err</span><span class=p>,</span> <span class=s>&#34;Unexpected error removing temporal configuration files&#34;</span><span class=p>)</span>
+            <span class=p>}</span>
+        <span class=p>}</span>
+    <span class=p>}()</span>
+
+    <span class=k>if</span> <span class=nx>n</span><span class=p>.</span><span class=nx>validationWebhookServer</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=nx>klog</span><span class=p>.</span><span class=nf>InfoS</span><span class=p>(</span><span class=s>&#34;Starting validation webhook&#34;</span><span class=p>,</span> <span class=s>&#34;address&#34;</span><span class=p>,</span> <span class=nx>n</span><span class=p>.</span><span class=nx>validationWebhookServer</span><span class=p>.</span><span class=nx>Addr</span><span class=p>,</span>
+            <span class=s>&#34;certPath&#34;</span><span class=p>,</span> <span class=nx>n</span><span class=p>.</span><span class=nx>cfg</span><span class=p>.</span><span class=nx>ValidationWebhookCertPath</span><span class=p>,</span> <span class=s>&#34;keyPath&#34;</span><span class=p>,</span> <span class=nx>n</span><span class=p>.</span><span class=nx>cfg</span><span class=p>.</span><span class=nx>ValidationWebhookKeyPath</span><span class=p>)</span>
+        <span class=k>go</span> <span class=kd>func</span><span class=p>()</span> <span class=p>{</span>
+            <span class=nx>klog</span><span class=p>.</span><span class=nf>ErrorS</span><span class=p>(</span><span class=nx>n</span><span class=p>.</span><span class=nx>validationWebhookServer</span><span class=p>.</span><span class=nf>ListenAndServeTLS</span><span class=p>(</span><span class=s>&#34;&#34;</span><span class=p>,</span> <span class=s>&#34;&#34;</span><span class=p>),</span> <span class=s>&#34;Error listening for TLS connections&#34;</span><span class=p>)</span>
+        <span class=p>}()</span>
+    <span class=p>}</span>
+
+    <span class=k>for</span> <span class=p>{</span>
+        <span class=k>select</span> <span class=p>{</span>
+        <span class=k>case</span> <span class=nx>err</span> <span class=o>:=</span> <span class=o>&lt;-</span><span class=nx>n</span><span class=p>.</span><span class=nx>ngxErrCh</span><span class=p>:</span>
+            <span class=k>if</span> <span class=nx>n</span><span class=p>.</span><span class=nx>isShuttingDown</span> <span class=p>{</span>
+                <span class=k>return</span>
+            <span class=p>}</span>
+
+            <span class=c1>// if the nginx master process dies, the workers continue to process requests
+</span><span class=c1></span>            <span class=c1>// until the failure of the configured livenessProbe and restart of the pod.
+</span><span class=c1></span>            <span class=k>if</span> <span class=nx>process</span><span class=p>.</span><span class=nf>IsRespawnIfRequired</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span> <span class=p>{</span>
+                <span class=k>return</span>
+            <span class=p>}</span>
+
+        <span class=k>case</span> <span class=nx>event</span> <span class=o>:=</span> <span class=o>&lt;-</span><span class=nx>n</span><span class=p>.</span><span class=nx>updateCh</span><span class=p>.</span><span class=nf>Out</span><span class=p>():</span>
+            <span class=k>if</span> <span class=nx>n</span><span class=p>.</span><span class=nx>isShuttingDown</span> <span class=p>{</span>
+                <span class=k>break</span>
+            <span class=p>}</span>
+
+            <span class=k>if</span> <span class=nx>evt</span><span class=p>,</span> <span class=nx>ok</span> <span class=o>:=</span> <span class=nx>event</span><span class=p>.(</span><span class=nx>store</span><span class=p>.</span><span class=nx>Event</span><span class=p>);</span> <span class=nx>ok</span> <span class=p>{</span>
+                <span class=nx>klog</span><span class=p>.</span><span class=nf>V</span><span class=p>(</span><span class=mi>3</span><span class=p>).</span><span class=nf>InfoS</span><span class=p>(</span><span class=s>&#34;Event received&#34;</span><span class=p>,</span> <span class=s>&#34;type&#34;</span><span class=p>,</span> <span class=nx>evt</span><span class=p>.</span><span class=nx>Type</span><span class=p>,</span> <span class=s>&#34;object&#34;</span><span class=p>,</span> <span class=nx>evt</span><span class=p>.</span><span class=nx>Obj</span><span class=p>)</span>
+                <span class=k>if</span> <span class=nx>evt</span><span class=p>.</span><span class=nx>Type</span> <span class=o>==</span> <span class=nx>store</span><span class=p>.</span><span class=nx>ConfigurationEvent</span> <span class=p>{</span>
+                    <span class=c1>// TODO: is this necessary? Consider removing this special case
+</span><span class=c1></span>                    <span class=nx>n</span><span class=p>.</span><span class=nx>syncQueue</span><span class=p>.</span><span class=nf>EnqueueTask</span><span class=p>(</span><span class=nx>task</span><span class=p>.</span><span class=nf>GetDummyObject</span><span class=p>(</span><span class=s>&#34;configmap-change&#34;</span><span class=p>))</span>
+                    <span class=k>continue</span>
+                <span class=p>}</span>
+
+                <span class=nx>n</span><span class=p>.</span><span class=nx>syncQueue</span><span class=p>.</span><span class=nf>EnqueueSkippableTask</span><span class=p>(</span><span class=nx>evt</span><span class=p>.</span><span class=nx>Obj</span><span class=p>)</span>
+            <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+                <span class=nx>klog</span><span class=p>.</span><span class=nf>Warningf</span><span class=p>(</span><span class=s>&#34;Unexpected event type received %T&#34;</span><span class=p>,</span> <span class=nx>event</span><span class=p>)</span>
+            <span class=p>}</span>
+        <span class=k>case</span> <span class=o>&lt;-</span><span class=nx>n</span><span class=p>.</span><span class=nx>stopCh</span><span class=p>:</span>
+            <span class=k>return</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+<span class=p>}</span>
+
+</code></pre></td></tr></table></div></div><h3 id=syncingress>syncIngress</h3><p>queue sync函数为syncIngress，主要处理：</p><ul><li>ings := n.store.ListIngresses()</li><li>hosts, servers, pcfg := n.getConfiguration(ings), servers是按host来构建的server配置</li><li>OnUpdate(*pcfg)，进行nginx config更新，实际上就是比较/etc/nginx/nginx.conf和 new-nginx-cfg是否一样，如果不一样，则按new-nginx-cfg最新的内容更新/etc/nginx/nginx.conf，并执行nginx reload</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span><span class=lnt>140
+</span><span class=lnt>141
+</span><span class=lnt>142
+</span><span class=lnt>143
+</span><span class=lnt>144
+</span><span class=lnt>145
+</span><span class=lnt>146
+</span><span class=lnt>147
+</span><span class=lnt>148
+</span><span class=lnt>149
+</span><span class=lnt>150
+</span><span class=lnt>151
+</span><span class=lnt>152
+</span><span class=lnt>153
+</span><span class=lnt>154
+</span><span class=lnt>155
+</span><span class=lnt>156
+</span><span class=lnt>157
+</span><span class=lnt>158
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-golang data-lang=golang>
+<span class=c1>// syncIngress collects all the pieces required to assemble the NGINX
+</span><span class=c1>// configuration file and passes the resulting data structures to the backend
+</span><span class=c1>// (OnUpdate) when a reload is deemed necessary.
+</span><span class=c1></span><span class=kd>func</span> <span class=p>(</span><span class=nx>n</span> <span class=o>*</span><span class=nx>NGINXController</span><span class=p>)</span> <span class=nf>syncIngress</span><span class=p>(</span><span class=kd>interface</span><span class=p>{})</span> <span class=kt>error</span> <span class=p>{</span>
+    <span class=nx>n</span><span class=p>.</span><span class=nx>syncRateLimiter</span><span class=p>.</span><span class=nf>Accept</span><span class=p>()</span>
+
+    <span class=k>if</span> <span class=nx>n</span><span class=p>.</span><span class=nx>syncQueue</span><span class=p>.</span><span class=nf>IsShuttingDown</span><span class=p>()</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>nil</span>
+    <span class=p>}</span>
+
+    <span class=nx>ings</span> <span class=o>:=</span> <span class=nx>n</span><span class=p>.</span><span class=nx>store</span><span class=p>.</span><span class=nf>ListIngresses</span><span class=p>()</span>
+    <span class=nx>hosts</span><span class=p>,</span> <span class=nx>servers</span><span class=p>,</span> <span class=nx>pcfg</span> <span class=o>:=</span> <span class=nx>n</span><span class=p>.</span><span class=nf>getConfiguration</span><span class=p>(</span><span class=nx>ings</span><span class=p>)</span>
+
+    <span class=nx>n</span><span class=p>.</span><span class=nx>metricCollector</span><span class=p>.</span><span class=nf>SetSSLExpireTime</span><span class=p>(</span><span class=nx>servers</span><span class=p>)</span>
+
+    <span class=k>if</span> <span class=nx>n</span><span class=p>.</span><span class=nx>runningConfig</span><span class=p>.</span><span class=nf>Equal</span><span class=p>(</span><span class=nx>pcfg</span><span class=p>)</span> <span class=p>{</span>
+        <span class=nx>klog</span><span class=p>.</span><span class=nf>V</span><span class=p>(</span><span class=mi>3</span><span class=p>).</span><span class=nf>Infof</span><span class=p>(</span><span class=s>&#34;No configuration change detected, skipping backend reload&#34;</span><span class=p>)</span>
+        <span class=k>return</span> <span class=kc>nil</span>
+    <span class=p>}</span>
+
+    <span class=nx>n</span><span class=p>.</span><span class=nx>metricCollector</span><span class=p>.</span><span class=nf>SetHosts</span><span class=p>(</span><span class=nx>hosts</span><span class=p>)</span>
+
+    <span class=k>if</span> <span class=p>!</span><span class=nx>n</span><span class=p>.</span><span class=nf>IsDynamicConfigurationEnough</span><span class=p>(</span><span class=nx>pcfg</span><span class=p>)</span> <span class=p>{</span>
+        <span class=nx>klog</span><span class=p>.</span><span class=nf>InfoS</span><span class=p>(</span><span class=s>&#34;Configuration changes detected, backend reload required&#34;</span><span class=p>)</span>
+
+        <span class=nx>hash</span><span class=p>,</span> <span class=nx>_</span> <span class=o>:=</span> <span class=nx>hashstructure</span><span class=p>.</span><span class=nf>Hash</span><span class=p>(</span><span class=nx>pcfg</span><span class=p>,</span> <span class=o>&amp;</span><span class=nx>hashstructure</span><span class=p>.</span><span class=nx>HashOptions</span><span class=p>{</span>
+            <span class=nx>TagName</span><span class=p>:</span> <span class=s>&#34;json&#34;</span><span class=p>,</span>
+        <span class=p>})</span>
+
+        <span class=nx>pcfg</span><span class=p>.</span><span class=nx>ConfigurationChecksum</span> <span class=p>=</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Sprintf</span><span class=p>(</span><span class=s>&#34;%v&#34;</span><span class=p>,</span> <span class=nx>hash</span><span class=p>)</span>
+
+        <span class=nx>err</span> <span class=o>:=</span> <span class=nx>n</span><span class=p>.</span><span class=nf>OnUpdate</span><span class=p>(</span><span class=o>*</span><span class=nx>pcfg</span><span class=p>)</span>
+        <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+            <span class=nx>n</span><span class=p>.</span><span class=nx>metricCollector</span><span class=p>.</span><span class=nf>IncReloadErrorCount</span><span class=p>()</span>
+            <span class=nx>n</span><span class=p>.</span><span class=nx>metricCollector</span><span class=p>.</span><span class=nf>ConfigSuccess</span><span class=p>(</span><span class=nx>hash</span><span class=p>,</span> <span class=kc>false</span><span class=p>)</span>
+            <span class=nx>klog</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Unexpected failure reloading the backend:\n%v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+            <span class=nx>n</span><span class=p>.</span><span class=nx>recorder</span><span class=p>.</span><span class=nf>Eventf</span><span class=p>(</span><span class=nx>k8s</span><span class=p>.</span><span class=nx>IngressPodDetails</span><span class=p>,</span> <span class=nx>apiv1</span><span class=p>.</span><span class=nx>EventTypeWarning</span><span class=p>,</span> <span class=s>&#34;RELOAD&#34;</span><span class=p>,</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Sprintf</span><span class=p>(</span><span class=s>&#34;Error reloading NGINX: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>))</span>
+            <span class=k>return</span> <span class=nx>err</span>
+        <span class=p>}</span>
+
+        <span class=nx>klog</span><span class=p>.</span><span class=nf>InfoS</span><span class=p>(</span><span class=s>&#34;Backend successfully reloaded&#34;</span><span class=p>)</span>
+        <span class=nx>n</span><span class=p>.</span><span class=nx>metricCollector</span><span class=p>.</span><span class=nf>ConfigSuccess</span><span class=p>(</span><span class=nx>hash</span><span class=p>,</span> <span class=kc>true</span><span class=p>)</span>
+        <span class=nx>n</span><span class=p>.</span><span class=nx>metricCollector</span><span class=p>.</span><span class=nf>IncReloadCount</span><span class=p>()</span>
+
+        <span class=nx>n</span><span class=p>.</span><span class=nx>recorder</span><span class=p>.</span><span class=nf>Eventf</span><span class=p>(</span><span class=nx>k8s</span><span class=p>.</span><span class=nx>IngressPodDetails</span><span class=p>,</span> <span class=nx>apiv1</span><span class=p>.</span><span class=nx>EventTypeNormal</span><span class=p>,</span> <span class=s>&#34;RELOAD&#34;</span><span class=p>,</span> <span class=s>&#34;NGINX reload triggered due to a change in configuration&#34;</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=nx>isFirstSync</span> <span class=o>:=</span> <span class=nx>n</span><span class=p>.</span><span class=nx>runningConfig</span><span class=p>.</span><span class=nf>Equal</span><span class=p>(</span><span class=o>&amp;</span><span class=nx>ingress</span><span class=p>.</span><span class=nx>Configuration</span><span class=p>{})</span>
+    <span class=k>if</span> <span class=nx>isFirstSync</span> <span class=p>{</span>
+        <span class=c1>// For the initial sync it always takes some time for NGINX to start listening
+</span><span class=c1></span>        <span class=c1>// For large configurations it might take a while so we loop and back off
+</span><span class=c1></span>        <span class=nx>klog</span><span class=p>.</span><span class=nf>InfoS</span><span class=p>(</span><span class=s>&#34;Initial sync, sleeping for 1 second&#34;</span><span class=p>)</span>
+        <span class=nx>time</span><span class=p>.</span><span class=nf>Sleep</span><span class=p>(</span><span class=mi>1</span> <span class=o>*</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Second</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=nx>retry</span> <span class=o>:=</span> <span class=nx>wait</span><span class=p>.</span><span class=nx>Backoff</span><span class=p>{</span>
+        <span class=nx>Steps</span><span class=p>:</span>    <span class=mi>15</span><span class=p>,</span>
+        <span class=nx>Duration</span><span class=p>:</span> <span class=mi>1</span> <span class=o>*</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Second</span><span class=p>,</span>
+        <span class=nx>Factor</span><span class=p>:</span>   <span class=mf>0.8</span><span class=p>,</span>
+        <span class=nx>Jitter</span><span class=p>:</span>   <span class=mf>0.1</span><span class=p>,</span>
+    <span class=p>}</span>
+
+    <span class=nx>err</span> <span class=o>:=</span> <span class=nx>wait</span><span class=p>.</span><span class=nf>ExponentialBackoff</span><span class=p>(</span><span class=nx>retry</span><span class=p>,</span> <span class=kd>func</span><span class=p>()</span> <span class=p>(</span><span class=kt>bool</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+        <span class=nx>err</span> <span class=o>:=</span> <span class=nx>n</span><span class=p>.</span><span class=nf>configureDynamically</span><span class=p>(</span><span class=nx>pcfg</span><span class=p>)</span>
+        <span class=k>if</span> <span class=nx>err</span> <span class=o>==</span> <span class=kc>nil</span> <span class=p>{</span>
+            <span class=nx>klog</span><span class=p>.</span><span class=nf>V</span><span class=p>(</span><span class=mi>2</span><span class=p>).</span><span class=nf>Infof</span><span class=p>(</span><span class=s>&#34;Dynamic reconfiguration succeeded.&#34;</span><span class=p>)</span>
+            <span class=k>return</span> <span class=kc>true</span><span class=p>,</span> <span class=kc>nil</span>
+        <span class=p>}</span>
+
+        <span class=nx>klog</span><span class=p>.</span><span class=nf>Warningf</span><span class=p>(</span><span class=s>&#34;Dynamic reconfiguration failed: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+        <span class=k>return</span> <span class=kc>false</span><span class=p>,</span> <span class=nx>err</span>
+    <span class=p>})</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=nx>klog</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;Unexpected failure reconfiguring NGINX:\n%v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+        <span class=k>return</span> <span class=nx>err</span>
+    <span class=p>}</span>
+
+    <span class=nx>ri</span> <span class=o>:=</span> <span class=nf>getRemovedIngresses</span><span class=p>(</span><span class=nx>n</span><span class=p>.</span><span class=nx>runningConfig</span><span class=p>,</span> <span class=nx>pcfg</span><span class=p>)</span>
+    <span class=nx>re</span> <span class=o>:=</span> <span class=nf>getRemovedHosts</span><span class=p>(</span><span class=nx>n</span><span class=p>.</span><span class=nx>runningConfig</span><span class=p>,</span> <span class=nx>pcfg</span><span class=p>)</span>
+    <span class=nx>n</span><span class=p>.</span><span class=nx>metricCollector</span><span class=p>.</span><span class=nf>RemoveMetrics</span><span class=p>(</span><span class=nx>ri</span><span class=p>,</span> <span class=nx>re</span><span class=p>)</span>
+
+    <span class=nx>n</span><span class=p>.</span><span class=nx>runningConfig</span> <span class=p>=</span> <span class=nx>pcfg</span>
+
+    <span class=k>return</span> <span class=kc>nil</span>
+<span class=p>}</span>
+
+
+
+
+<span class=c1>// OnUpdate is called by the synchronization loop whenever configuration
+</span><span class=c1>// changes were detected. The received backend Configuration is merged with the
+</span><span class=c1>// configuration ConfigMap before generating the final configuration file.
+</span><span class=c1>// Returns nil in case the backend was successfully reloaded.
+</span><span class=c1></span><span class=kd>func</span> <span class=p>(</span><span class=nx>n</span> <span class=o>*</span><span class=nx>NGINXController</span><span class=p>)</span> <span class=nf>OnUpdate</span><span class=p>(</span><span class=nx>ingressCfg</span> <span class=nx>ingress</span><span class=p>.</span><span class=nx>Configuration</span><span class=p>)</span> <span class=kt>error</span> <span class=p>{</span>
+    <span class=nx>cfg</span> <span class=o>:=</span> <span class=nx>n</span><span class=p>.</span><span class=nx>store</span><span class=p>.</span><span class=nf>GetBackendConfiguration</span><span class=p>()</span>
+    <span class=nx>cfg</span><span class=p>.</span><span class=nx>Resolver</span> <span class=p>=</span> <span class=nx>n</span><span class=p>.</span><span class=nx>resolver</span>
+
+    <span class=nx>content</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>n</span><span class=p>.</span><span class=nf>generateTemplate</span><span class=p>(</span><span class=nx>cfg</span><span class=p>,</span> <span class=nx>ingressCfg</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>err</span>
+    <span class=p>}</span>
+
+    <span class=nx>err</span> <span class=p>=</span> <span class=nf>createOpentracingCfg</span><span class=p>(</span><span class=nx>cfg</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>err</span>
+    <span class=p>}</span>
+
+    <span class=nx>err</span> <span class=p>=</span> <span class=nx>n</span><span class=p>.</span><span class=nf>testTemplate</span><span class=p>(</span><span class=nx>content</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>err</span>
+    <span class=p>}</span>
+
+    <span class=k>if</span> <span class=nx>klog</span><span class=p>.</span><span class=nf>V</span><span class=p>(</span><span class=mi>2</span><span class=p>).</span><span class=nf>Enabled</span><span class=p>()</span> <span class=p>{</span>
+        <span class=nx>src</span><span class=p>,</span> <span class=nx>_</span> <span class=o>:=</span> <span class=nx>ioutil</span><span class=p>.</span><span class=nf>ReadFile</span><span class=p>(</span><span class=nx>cfgPath</span><span class=p>)</span>
+        <span class=k>if</span> <span class=p>!</span><span class=nx>bytes</span><span class=p>.</span><span class=nf>Equal</span><span class=p>(</span><span class=nx>src</span><span class=p>,</span> <span class=nx>content</span><span class=p>)</span> <span class=p>{</span>
+            <span class=nx>tmpfile</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>ioutil</span><span class=p>.</span><span class=nf>TempFile</span><span class=p>(</span><span class=s>&#34;&#34;</span><span class=p>,</span> <span class=s>&#34;new-nginx-cfg&#34;</span><span class=p>)</span>
+            <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+                <span class=k>return</span> <span class=nx>err</span>
+            <span class=p>}</span>
+            <span class=k>defer</span> <span class=nx>tmpfile</span><span class=p>.</span><span class=nf>Close</span><span class=p>()</span>
+            <span class=nx>err</span> <span class=p>=</span> <span class=nx>ioutil</span><span class=p>.</span><span class=nf>WriteFile</span><span class=p>(</span><span class=nx>tmpfile</span><span class=p>.</span><span class=nf>Name</span><span class=p>(),</span> <span class=nx>content</span><span class=p>,</span> <span class=nx>file</span><span class=p>.</span><span class=nx>ReadWriteByUser</span><span class=p>)</span>
+            <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+                <span class=k>return</span> <span class=nx>err</span>
+            <span class=p>}</span>
+
+            <span class=nx>diffOutput</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>exec</span><span class=p>.</span><span class=nf>Command</span><span class=p>(</span><span class=s>&#34;diff&#34;</span><span class=p>,</span> <span class=s>&#34;-I&#34;</span><span class=p>,</span> <span class=s>&#34;&#39;# Configuration.*&#39;&#34;</span><span class=p>,</span> <span class=s>&#34;-u&#34;</span><span class=p>,</span> <span class=nx>cfgPath</span><span class=p>,</span> <span class=nx>tmpfile</span><span class=p>.</span><span class=nf>Name</span><span class=p>()).</span><span class=nf>CombinedOutput</span><span class=p>()</span>
+            <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+                <span class=k>if</span> <span class=nx>exitError</span><span class=p>,</span> <span class=nx>ok</span> <span class=o>:=</span> <span class=nx>err</span><span class=p>.(</span><span class=o>*</span><span class=nx>exec</span><span class=p>.</span><span class=nx>ExitError</span><span class=p>);</span> <span class=nx>ok</span> <span class=p>{</span>
+                    <span class=nx>ws</span> <span class=o>:=</span> <span class=nx>exitError</span><span class=p>.</span><span class=nf>Sys</span><span class=p>().(</span><span class=nx>syscall</span><span class=p>.</span><span class=nx>WaitStatus</span><span class=p>)</span>
+                    <span class=k>if</span> <span class=nx>ws</span><span class=p>.</span><span class=nf>ExitStatus</span><span class=p>()</span> <span class=o>==</span> <span class=mi>2</span> <span class=p>{</span>
+                        <span class=nx>klog</span><span class=p>.</span><span class=nf>Warningf</span><span class=p>(</span><span class=s>&#34;Failed to executing diff command: %v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+                    <span class=p>}</span>
+                <span class=p>}</span>
+            <span class=p>}</span>
+
+            <span class=nx>klog</span><span class=p>.</span><span class=nf>InfoS</span><span class=p>(</span><span class=s>&#34;NGINX configuration change&#34;</span><span class=p>,</span> <span class=s>&#34;diff&#34;</span><span class=p>,</span> <span class=nb>string</span><span class=p>(</span><span class=nx>diffOutput</span><span class=p>))</span>
+
+            <span class=c1>// we do not defer the deletion of temp files in order
+</span><span class=c1></span>            <span class=c1>// to keep them around for inspection in case of error
+</span><span class=c1></span>            <span class=nx>os</span><span class=p>.</span><span class=nf>Remove</span><span class=p>(</span><span class=nx>tmpfile</span><span class=p>.</span><span class=nf>Name</span><span class=p>())</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+
+    <span class=nx>err</span> <span class=p>=</span> <span class=nx>ioutil</span><span class=p>.</span><span class=nf>WriteFile</span><span class=p>(</span><span class=nx>cfgPath</span><span class=p>,</span> <span class=nx>content</span><span class=p>,</span> <span class=nx>file</span><span class=p>.</span><span class=nx>ReadWriteByUser</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>err</span>
+    <span class=p>}</span>
+
+    <span class=nx>o</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>n</span><span class=p>.</span><span class=nx>command</span><span class=p>.</span><span class=nf>ExecCommand</span><span class=p>(</span><span class=s>&#34;-s&#34;</span><span class=p>,</span> <span class=s>&#34;reload&#34;</span><span class=p>).</span><span class=nf>CombinedOutput</span><span class=p>()</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;%v\n%v&#34;</span><span class=p>,</span> <span class=nx>err</span><span class=p>,</span> <span class=nb>string</span><span class=p>(</span><span class=nx>o</span><span class=p>))</span>
+    <span class=p>}</span>
+
+    <span class=k>return</span> <span class=kc>nil</span>
+<span class=p>}</span>
+
+
+</code></pre></td></tr></table></div></div><h3 id=server>Server</h3><ul><li>Hostname</li><li>Locations</li><li>SSLPassthrough</li><li>&mldr;</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span><span class=lnt>140
+</span><span class=lnt>141
+</span><span class=lnt>142
+</span><span class=lnt>143
+</span><span class=lnt>144
+</span><span class=lnt>145
+</span><span class=lnt>146
+</span><span class=lnt>147
+</span><span class=lnt>148
+</span><span class=lnt>149
+</span><span class=lnt>150
+</span><span class=lnt>151
+</span><span class=lnt>152
+</span><span class=lnt>153
+</span><span class=lnt>154
+</span><span class=lnt>155
+</span><span class=lnt>156
+</span><span class=lnt>157
+</span><span class=lnt>158
+</span><span class=lnt>159
+</span><span class=lnt>160
+</span><span class=lnt>161
+</span><span class=lnt>162
+</span><span class=lnt>163
+</span><span class=lnt>164
+</span><span class=lnt>165
+</span><span class=lnt>166
+</span><span class=lnt>167
+</span><span class=lnt>168
+</span><span class=lnt>169
+</span><span class=lnt>170
+</span><span class=lnt>171
+</span><span class=lnt>172
+</span><span class=lnt>173
+</span><span class=lnt>174
+</span><span class=lnt>175
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-golang data-lang=golang>
+<span class=c1>// Server describes a website
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>Server</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=c1>// Hostname returns the FQDN of the server
+</span><span class=c1></span>    <span class=nx>Hostname</span> <span class=kt>string</span> <span class=s>`json:&#34;hostname&#34;`</span>
+    <span class=c1>// SSLPassthrough indicates if the TLS termination is realized in
+</span><span class=c1></span>    <span class=c1>// the server or in the remote endpoint
+</span><span class=c1></span>    <span class=nx>SSLPassthrough</span> <span class=kt>bool</span> <span class=s>`json:&#34;sslPassthrough&#34;`</span>
+    <span class=c1>// SSLCert describes the certificate that will be used on the server
+</span><span class=c1></span>    <span class=nx>SSLCert</span> <span class=o>*</span><span class=nx>SSLCert</span> <span class=s>`json:&#34;sslCert&#34;`</span>
+    <span class=c1>// Locations list of URIs configured in the server.
+</span><span class=c1></span>    <span class=nx>Locations</span> <span class=p>[]</span><span class=o>*</span><span class=nx>Location</span> <span class=s>`json:&#34;locations,omitempty&#34;`</span>
+    <span class=c1>// Aliases return the alias of the server name
+</span><span class=c1></span>    <span class=nx>Aliases</span> <span class=p>[]</span><span class=kt>string</span> <span class=s>`json:&#34;aliases,omitempty&#34;`</span>
+    <span class=c1>// RedirectFromToWWW returns if a redirect to/from prefix www is required
+</span><span class=c1></span>    <span class=nx>RedirectFromToWWW</span> <span class=kt>bool</span> <span class=s>`json:&#34;redirectFromToWWW,omitempty&#34;`</span>
+    <span class=c1>// CertificateAuth indicates the this server requires mutual authentication
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>CertificateAuth</span> <span class=nx>authtls</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;certificateAuth&#34;`</span>
+    <span class=c1>// ProxySSL indicates the this server uses client certificate to access backends
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>ProxySSL</span> <span class=nx>proxyssl</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;proxySSL&#34;`</span>
+    <span class=c1>// ServerSnippet returns the snippet of server
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>ServerSnippet</span> <span class=kt>string</span> <span class=s>`json:&#34;serverSnippet&#34;`</span>
+    <span class=c1>// SSLCiphers returns list of ciphers to be enabled
+</span><span class=c1></span>    <span class=nx>SSLCiphers</span> <span class=kt>string</span> <span class=s>`json:&#34;sslCiphers,omitempty&#34;`</span>
+    <span class=c1>// SSLPreferServerCiphers indicates that server ciphers should be preferred
+</span><span class=c1></span>    <span class=c1>// over client ciphers when using the SSLv3 and TLS protocols.
+</span><span class=c1></span>    <span class=nx>SSLPreferServerCiphers</span> <span class=kt>string</span> <span class=s>`json:&#34;sslPreferServerCiphers,omitempty&#34;`</span>
+    <span class=c1>// AuthTLSError contains the reason why the access to a server should be denied
+</span><span class=c1></span>    <span class=nx>AuthTLSError</span> <span class=kt>string</span> <span class=s>`json:&#34;authTLSError,omitempty&#34;`</span>
+<span class=p>}</span>
+
+<span class=c1>// Location describes an URI inside a server.
+</span><span class=c1>// Also contains additional information about annotations in the Ingress.
+</span><span class=c1>//
+</span><span class=c1>// In some cases when more than one annotations is defined a particular order in the execution
+</span><span class=c1>// is required.
+</span><span class=c1>// The chain in the execution order of annotations should be:
+</span><span class=c1>// - Whitelist
+</span><span class=c1>// - RateLimit
+</span><span class=c1>// - BasicDigestAuth
+</span><span class=c1>// - ExternalAuth
+</span><span class=c1>// - Redirect
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>Location</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=c1>// Path is an extended POSIX regex as defined by IEEE Std 1003.1,
+</span><span class=c1></span>    <span class=c1>// (i.e this follows the egrep/unix syntax, not the perl syntax)
+</span><span class=c1></span>    <span class=c1>// matched against the path of an incoming request. Currently it can
+</span><span class=c1></span>    <span class=c1>// contain characters disallowed from the conventional &#34;path&#34;
+</span><span class=c1></span>    <span class=c1>// part of a URL as defined by RFC 3986. Paths must begin with
+</span><span class=c1></span>    <span class=c1>// a &#39;/&#39;. If unspecified, the path defaults to a catch all sending
+</span><span class=c1></span>    <span class=c1>// traffic to the backend.
+</span><span class=c1></span>    <span class=nx>Path</span> <span class=kt>string</span> <span class=s>`json:&#34;path&#34;`</span>
+    <span class=c1>// PathType represents the type of path referred to by a HTTPIngressPath.
+</span><span class=c1></span>    <span class=nx>PathType</span> <span class=o>*</span><span class=nx>networking</span><span class=p>.</span><span class=nx>PathType</span> <span class=s>`json:&#34;pathType&#34;`</span>
+    <span class=c1>// IsDefBackend indicates if service specified in the Ingress
+</span><span class=c1></span>    <span class=c1>// contains active endpoints or not. Returning true means the location
+</span><span class=c1></span>    <span class=c1>// uses the default backend.
+</span><span class=c1></span>    <span class=nx>IsDefBackend</span> <span class=kt>bool</span> <span class=s>`json:&#34;isDefBackend&#34;`</span>
+    <span class=c1>// Ingress returns the ingress from which this location was generated
+</span><span class=c1></span>    <span class=nx>Ingress</span> <span class=o>*</span><span class=nx>Ingress</span> <span class=s>`json:&#34;ingress&#34;`</span>
+    <span class=c1>// IngressPath original path defined in the ingress rule
+</span><span class=c1></span>    <span class=nx>IngressPath</span> <span class=kt>string</span> <span class=s>`json:&#34;ingressPath&#34;`</span>
+    <span class=c1>// Backend describes the name of the backend to use.
+</span><span class=c1></span>    <span class=nx>Backend</span> <span class=kt>string</span> <span class=s>`json:&#34;backend&#34;`</span>
+    <span class=c1>// Service describes the referenced services from the ingress
+</span><span class=c1></span>    <span class=nx>Service</span> <span class=o>*</span><span class=nx>apiv1</span><span class=p>.</span><span class=nx>Service</span> <span class=s>`json:&#34;-&#34;`</span>
+    <span class=c1>// Port describes to which port from the service
+</span><span class=c1></span>    <span class=nx>Port</span> <span class=nx>intstr</span><span class=p>.</span><span class=nx>IntOrString</span> <span class=s>`json:&#34;port&#34;`</span>
+    <span class=c1>// Overwrite the Host header passed into the backend. Defaults to
+</span><span class=c1></span>    <span class=c1>// vhost of the incoming request.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>UpstreamVhost</span> <span class=kt>string</span> <span class=s>`json:&#34;upstream-vhost&#34;`</span>
+    <span class=c1>// BasicDigestAuth returns authentication configuration for
+</span><span class=c1></span>    <span class=c1>// an Ingress rule.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>BasicDigestAuth</span> <span class=nx>auth</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;basicDigestAuth,omitempty&#34;`</span>
+    <span class=c1>// Denied returns an error when this location cannot not be allowed
+</span><span class=c1></span>    <span class=c1>// Requesting a denied location should return HTTP code 403.
+</span><span class=c1></span>    <span class=nx>Denied</span> <span class=o>*</span><span class=kt>string</span> <span class=s>`json:&#34;denied,omitempty&#34;`</span>
+    <span class=c1>// CorsConfig returns the Cors Configuration for the ingress rule
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>CorsConfig</span> <span class=nx>cors</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;corsConfig,omitempty&#34;`</span>
+    <span class=c1>// ExternalAuth indicates the access to this location requires
+</span><span class=c1></span>    <span class=c1>// authentication using an external provider
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>ExternalAuth</span> <span class=nx>authreq</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;externalAuth,omitempty&#34;`</span>
+    <span class=c1>// EnableGlobalAuth indicates if the access to this location requires
+</span><span class=c1></span>    <span class=c1>// authentication using an external provider defined in controller&#39;s config
+</span><span class=c1></span>    <span class=nx>EnableGlobalAuth</span> <span class=kt>bool</span> <span class=s>`json:&#34;enableGlobalAuth&#34;`</span>
+    <span class=c1>// HTTP2PushPreload allows to configure the HTTP2 Push Preload from backend
+</span><span class=c1></span>    <span class=c1>// original location.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>HTTP2PushPreload</span> <span class=kt>bool</span> <span class=s>`json:&#34;http2PushPreload,omitempty&#34;`</span>
+    <span class=c1>// RateLimit describes a limit in the number of connections per IP
+</span><span class=c1></span>    <span class=c1>// address or connections per second.
+</span><span class=c1></span>    <span class=c1>// The Redirect annotation precedes RateLimit
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>RateLimit</span> <span class=nx>ratelimit</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;rateLimit,omitempty&#34;`</span>
+    <span class=c1>// GlobalRateLimit similar to RateLimit
+</span><span class=c1></span>    <span class=c1>// but this is applied globally across multiple replicas.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>GlobalRateLimit</span> <span class=nx>globalratelimit</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;globalRateLimit,omitempty&#34;`</span>
+    <span class=c1>// Redirect describes a temporal o permanent redirection this location.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>Redirect</span> <span class=nx>redirect</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;redirect,omitempty&#34;`</span>
+    <span class=c1>// Rewrite describes the redirection this location.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>Rewrite</span> <span class=nx>rewrite</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;rewrite,omitempty&#34;`</span>
+    <span class=c1>// Whitelist indicates only connections from certain client
+</span><span class=c1></span>    <span class=c1>// addresses or networks are allowed.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>Whitelist</span> <span class=nx>ipwhitelist</span><span class=p>.</span><span class=nx>SourceRange</span> <span class=s>`json:&#34;whitelist,omitempty&#34;`</span>
+    <span class=c1>// Proxy contains information about timeouts and buffer sizes
+</span><span class=c1></span>    <span class=c1>// to be used in connections against endpoints
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>Proxy</span> <span class=nx>proxy</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;proxy,omitempty&#34;`</span>
+    <span class=c1>// ProxySSL contains information about SSL configuration parameters
+</span><span class=c1></span>    <span class=c1>// to be used in connections against endpoints
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>ProxySSL</span> <span class=nx>proxyssl</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;proxySSL,omitempty&#34;`</span>
+    <span class=c1>// UsePortInRedirects indicates if redirects must specify the port
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>UsePortInRedirects</span> <span class=kt>bool</span> <span class=s>`json:&#34;usePortInRedirects&#34;`</span>
+    <span class=c1>// ConfigurationSnippet contains additional configuration for the backend
+</span><span class=c1></span>    <span class=c1>// to be considered in the configuration of the location
+</span><span class=c1></span>    <span class=nx>ConfigurationSnippet</span> <span class=kt>string</span> <span class=s>`json:&#34;configurationSnippet&#34;`</span>
+    <span class=c1>// Connection contains connection header to override the default Connection header
+</span><span class=c1></span>    <span class=c1>// to the request.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>Connection</span> <span class=nx>connection</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;connection&#34;`</span>
+    <span class=c1>// ClientBodyBufferSize allows for the configuration of the client body
+</span><span class=c1></span>    <span class=c1>// buffer size for a specific location.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>ClientBodyBufferSize</span> <span class=kt>string</span> <span class=s>`json:&#34;clientBodyBufferSize,omitempty&#34;`</span>
+    <span class=c1>// DefaultBackend allows the use of a custom default backend for this location.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>DefaultBackend</span> <span class=o>*</span><span class=nx>apiv1</span><span class=p>.</span><span class=nx>Service</span> <span class=s>`json:&#34;-&#34;`</span>
+    <span class=c1>// DefaultBackendUpstreamName is the upstream-formatted string for the name of
+</span><span class=c1></span>    <span class=c1>// this location&#39;s custom default backend
+</span><span class=c1></span>    <span class=nx>DefaultBackendUpstreamName</span> <span class=kt>string</span> <span class=s>`json:&#34;defaultBackendUpstreamName,omitempty&#34;`</span>
+    <span class=c1>// XForwardedPrefix allows to add a header X-Forwarded-Prefix to the request with the
+</span><span class=c1></span>    <span class=c1>// original location.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>XForwardedPrefix</span> <span class=kt>string</span> <span class=s>`json:&#34;xForwardedPrefix,omitempty&#34;`</span>
+    <span class=c1>// Logs allows to enable or disable the nginx logs
+</span><span class=c1></span>    <span class=c1>// By default access logs are enabled and rewrite logs are disabled
+</span><span class=c1></span>    <span class=nx>Logs</span> <span class=nx>log</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;logs,omitempty&#34;`</span>
+    <span class=c1>// InfluxDB allows to monitor the incoming request by sending them to an influxdb database
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>InfluxDB</span> <span class=nx>influxdb</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;influxDB,omitempty&#34;`</span>
+    <span class=c1>// BackendProtocol indicates which protocol should be used to communicate with the service
+</span><span class=c1></span>    <span class=c1>// By default this is HTTP
+</span><span class=c1></span>    <span class=nx>BackendProtocol</span> <span class=kt>string</span> <span class=s>`json:&#34;backend-protocol&#34;`</span>
+    <span class=c1>// FastCGI allows the ingress to act as a FastCGI client for a given location.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>FastCGI</span> <span class=nx>fastcgi</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;fastcgi,omitempty&#34;`</span>
+    <span class=c1>// CustomHTTPErrors specifies the error codes that should be intercepted.
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>CustomHTTPErrors</span> <span class=p>[]</span><span class=kt>int</span> <span class=s>`json:&#34;custom-http-errors&#34;`</span>
+    <span class=c1>// ModSecurity allows to enable and configure modsecurity
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>ModSecurity</span> <span class=nx>modsecurity</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;modsecurity&#34;`</span>
+    <span class=c1>// Satisfy dictates allow access if any or all is set
+</span><span class=c1></span>    <span class=nx>Satisfy</span> <span class=kt>string</span> <span class=s>`json:&#34;satisfy&#34;`</span>
+    <span class=c1>// Mirror allows you to mirror traffic to a &#34;test&#34; backend
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>Mirror</span> <span class=nx>mirror</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;mirror,omitempty&#34;`</span>
+    <span class=c1>// Opentracing allows the global opentracing setting to be overridden for a location
+</span><span class=c1></span>    <span class=c1>// +optional
+</span><span class=c1></span>    <span class=nx>Opentracing</span> <span class=nx>opentracing</span><span class=p>.</span><span class=nx>Config</span> <span class=s>`json:&#34;opentracing&#34;`</span>
+<span class=p>}</span>
+
+
+</code></pre></td></tr></table></div></div><h2 id=部署>部署</h2><p>ingress是k8s内置资源类型，只需再安装ingress controller，以ingress-nginx-controller为例</p><h3 id=ingressyaml>ingress.yaml</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span><span class=lnt>73
+</span><span class=lnt>74
+</span><span class=lnt>75
+</span><span class=lnt>76
+</span><span class=lnt>77
+</span><span class=lnt>78
+</span><span class=lnt>79
+</span><span class=lnt>80
+</span><span class=lnt>81
+</span><span class=lnt>82
+</span><span class=lnt>83
+</span><span class=lnt>84
+</span><span class=lnt>85
+</span><span class=lnt>86
+</span><span class=lnt>87
+</span><span class=lnt>88
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=w>
+</span><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>networking.k8s.io/v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Ingress</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>example-ingress</span><span class=w>
+</span><span class=w>  </span><span class=nt>annotations</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>nginx.ingress.kubernetes.io/rewrite-target</span><span class=p>:</span><span class=w> </span><span class=l>/$1</span><span class=w>
+</span><span class=w>    </span><span class=nt>kubernetes.io/ingress.class</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;nginx&#34;</span><span class=w>
+</span><span class=w>    </span><span class=c># nginx.ingress.kubernetes.io/backend-protocol: &#34;HTTPS&#34;</span><span class=w>
+</span><span class=w>    </span><span class=c># nginx.ingress.kubernetes.io/ssl-passthrough: &#34;true&#34;</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>rules</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>host</span><span class=p>:</span><span class=w> </span><span class=l>hello-world.info</span><span class=w>
+</span><span class=w>      </span><span class=nt>http</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>paths</span><span class=p>:</span><span class=w>
+</span><span class=w>          </span>- <span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/vision</span><span class=w>
+</span><span class=w>            </span><span class=nt>pathType</span><span class=p>:</span><span class=w> </span><span class=l>Prefix</span><span class=w>
+</span><span class=w>            </span><span class=nt>backend</span><span class=p>:</span><span class=w>
+</span><span class=w>              </span><span class=nt>service</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>ivision-svc</span><span class=w>
+</span><span class=w>                </span><span class=nt>port</span><span class=p>:</span><span class=w>
+</span><span class=w>                  </span><span class=nt>number</span><span class=p>:</span><span class=w> </span><span class=m>8080</span><span class=w>
+</span><span class=w>          </span>- <span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/resource</span><span class=w>
+</span><span class=w>            </span><span class=nt>pathType</span><span class=p>:</span><span class=w> </span><span class=l>Prefix</span><span class=w>
+</span><span class=w>            </span><span class=nt>backend</span><span class=p>:</span><span class=w>
+</span><span class=w>              </span><span class=nt>service</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>iresource-svc</span><span class=w>
+</span><span class=w>                </span><span class=nt>port</span><span class=p>:</span><span class=w>
+</span><span class=w>                  </span><span class=nt>number</span><span class=p>:</span><span class=w> </span><span class=m>8080</span><span class=w>
+</span><span class=w></span><span class=nn>---</span><span class=w>
+</span><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>networking.k8s.io/v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Ingress</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>test-ingress</span><span class=w>
+</span><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>aistation</span><span class=w>
+</span><span class=w>  </span><span class=nt>annotations</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=c># 这里不要使用rewrite-target的通配符/$1 或 $2，需根据实际业务场景配置</span><span class=w>
+</span><span class=w>    </span><span class=c># nginx.ingress.kubernetes.io/rewrite-target: /$1</span><span class=w>
+</span><span class=w>    </span><span class=nt>nginx.ingress.kubernetes.io/rewrite-target</span><span class=p>:</span><span class=w> </span><span class=l>/</span><span class=w>
+</span><span class=w>    </span><span class=nt>kubernetes.io/ingress.class</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;nginx&#34;</span><span class=w>
+</span><span class=w>    </span><span class=c># 后端为https服务</span><span class=w>
+</span><span class=w>    </span><span class=nt>nginx.ingress.kubernetes.io/backend-protocol</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;HTTPS&#34;</span><span class=w>
+</span><span class=w>    </span><span class=c># ssl-passthrough 会本地启动tcp代理服务，绕过了nginx，有性能损失</span><span class=w>
+</span><span class=w>    </span><span class=c># nginx.ingress.kubernetes.io/ssl-passthrough: &#34;true&#34;</span><span class=w>
+</span><span class=w>    </span><span class=c># nginx.ingress.kubernetes.io/force-ssl-redirect: &#34;false&#34;</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>rules</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=c># 域名方式</span><span class=w>
+</span><span class=w>    </span><span class=c># - host: test.example.com</span><span class=w>
+</span><span class=w>    </span><span class=c>#   http:</span><span class=w>
+</span><span class=w>    </span><span class=c>#     paths:</span><span class=w>
+</span><span class=w>    </span><span class=c>#       - path: /</span><span class=w>
+</span><span class=w>    </span><span class=c>#         pathType: Prefix</span><span class=w>
+</span><span class=w>    </span><span class=c>#         backend:</span><span class=w>
+</span><span class=w>    </span><span class=c>#           service:</span><span class=w>
+</span><span class=w>    </span><span class=c>#             name: ivision</span><span class=w>
+</span><span class=w>    </span><span class=c>#             port:</span><span class=w>
+</span><span class=w>    </span><span class=c>#               number: 8443</span><span class=w>
+</span><span class=w>
+</span><span class=w>    </span><span class=c># 可使用ip方式，匹配路径全路由</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>http</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>paths</span><span class=p>:</span><span class=w>
+</span><span class=w>          </span>- <span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/vvv</span><span class=w>
+</span><span class=w>            </span><span class=nt>pathType</span><span class=p>:</span><span class=w> </span><span class=l>Prefix</span><span class=w>
+</span><span class=w>            </span><span class=nt>backend</span><span class=p>:</span><span class=w>
+</span><span class=w>              </span><span class=nt>service</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>ivision</span><span class=w>
+</span><span class=w>                </span><span class=nt>port</span><span class=p>:</span><span class=w>
+</span><span class=w>                  </span><span class=nt>number</span><span class=p>:</span><span class=w> </span><span class=m>8443</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>http</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>paths</span><span class=p>:</span><span class=w>
+</span><span class=w>          </span>- <span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/doc</span><span class=w>
+</span><span class=w>            </span><span class=nt>pathType</span><span class=p>:</span><span class=w> </span><span class=l>Prefix</span><span class=w>
+</span><span class=w>            </span><span class=nt>backend</span><span class=p>:</span><span class=w>
+</span><span class=w>              </span><span class=nt>service</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>ivision</span><span class=w>
+</span><span class=w>                </span><span class=nt>port</span><span class=p>:</span><span class=w>
+</span><span class=w>                  </span><span class=nt>number</span><span class=p>:</span><span class=w> </span><span class=m>8443</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>http</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>paths</span><span class=p>:</span><span class=w>
+</span><span class=w>          </span>- <span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>/</span><span class=w>
+</span><span class=w>            </span><span class=nt>pathType</span><span class=p>:</span><span class=w> </span><span class=l>Prefix</span><span class=w>
+</span><span class=w>            </span><span class=nt>backend</span><span class=p>:</span><span class=w>
+</span><span class=w>              </span><span class=nt>service</span><span class=p>:</span><span class=w>
+</span><span class=w>                </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>ivision</span><span class=w>
+</span><span class=w>                </span><span class=nt>port</span><span class=p>:</span><span class=w>
+</span><span class=w>                  </span><span class=nt>number</span><span class=p>:</span><span class=w> </span><span class=m>8443</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><h3 id=deployyaml>deploy.yaml</h3><p>官方安装ingress-nginx-controller例子</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
 </span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.46.0/deploy/static/provider/baremetal/deploy.yaml
 </code></pre></td></tr></table></div></div><p>也可先把deploy.yaml下载下来</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
 </span><span class=lnt>  2
