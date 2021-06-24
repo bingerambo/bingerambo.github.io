@@ -65,27 +65,36 @@
 }*/
 
 @media only screen and (max-width: 1200px) {
+    .wrapper main .container {
+        padding: 0rem;
+    }
     .page.single {
         width: 100%;
-        padding-left: 0.1rem;
-        padding-right: 0.1rem;
+        padding-left: 0.2rem;
+        padding-right: 0.2rem;
     }
 }
 
 
 @media only screen and (max-width: 960px) {
+    .wrapper main .container {
+        padding: 0rem;
+    }
     .page.single {
-        width: 100%;
-        padding-left: 0.1rem;
-        padding-right: 0.1rem;
+        width: 99%;
+        padding-left: 0.2rem;
+        padding-right: 0.2rem;
     }
 }
 
 @media only screen and (max-width: 680px) {
+    .wrapper main .container {
+        padding: 0rem;
+    }
     .page.single {
-        width: 100%;
-        padding-left: 0.1rem;
-        padding-right: 0.1rem;
+        width: 99%;
+        padding-left: 0.2rem;
+        padding-right: 0.2rem;
     }
 }
 
