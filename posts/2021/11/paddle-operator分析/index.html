@@ -1,0 +1,780 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>paddle-operator分析 - 斌哥的小站|Binge Blog</title><meta name=Description content="斌哥的小站 | 这里是 @BingeRambo斌哥兰博的个人博客"><meta property="og:title" content="paddle-operator分析"><meta property="og:description" content="operator实际上就是控制器，核心逻辑是Reconcile
+paddle operator是在&#34;sigs.k8s.io/controller-runtime&#34;基础上实现的控制器
+源码版本： v0.3.0
+源码地址：https://github.com/PaddleFlow/paddle-operator"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2021/11/paddle-operator%E5%88%86%E6%9E%90/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2021-11-03T08:43:17+08:00"><meta property="article:modified_time" content="2021-11-03T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="paddle-operator分析"><meta name=twitter:description content="operator实际上就是控制器，核心逻辑是Reconcile
+paddle operator是在&#34;sigs.k8s.io/controller-runtime&#34;基础上实现的控制器
+源码版本： v0.3.0
+源码地址：https://github.com/PaddleFlow/paddle-operator"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2021/11/paddle-operator%E5%88%86%E6%9E%90/><link rel=prev href=http://bingerambo.com/posts/2021/11/idea%E5%B8%B8%E7%94%A8%E5%BF%AB%E6%8D%B7%E9%94%AE%E6%B1%87%E6%80%BB/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"paddle-operator分析","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2021\/11\/paddle-operator%E5%88%86%E6%9E%90\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":2881,"url":"http:\/\/bingerambo.com\/posts\/2021\/11\/paddle-operator%E5%88%86%E6%9E%90\/","datePublished":"2021-11-03T08:43:17+08:00","dateModified":"2021-11-03T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":""}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">paddle-operator分析</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2021-11-03>2021-11-03</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 2881 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 6 分钟&nbsp;
+<i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#reconcile>Reconcile</a></li><li><a href=#reconcile实现>Reconcile实现</a></li><li><a href=#synccurrentstatus>syncCurrentStatus</a></li><li><a href=#help-func>help func</a></li><li><a href=#configmap构造>configmap构造</a></li><li><a href=#pod构造>pod构造</a></li><li><a href=#状态图>状态图</a></li><li><a href=#其它>其它</a></li></ul></nav></div></div><div class=content id=content><p>operator实际上就是控制器，核心逻辑是Reconcile</p><p>paddle operator是在<code>"sigs.k8s.io/controller-runtime"</code>基础上实现的控制器</p><p>源码版本： v0.3.0</p><p>源码地址：https://github.com/PaddleFlow/paddle-operator</p><h2 id=reconcile>Reconcile</h2><p>Reconcile实现，将用户在对象中指定的状态与实际群集状态进行比较，然后执行操作，使实际群集状态反映用户指定的状态。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go>
+<span class=c1>// Request contains the information necessary to reconcile a Kubernetes object.  This includes the
+</span><span class=c1>// information to uniquely identify the object - its Name and Namespace.  It does NOT contain information about
+</span><span class=c1>// any specific Event or the object contents itself.
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>Request</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=c1>// NamespacedName is the name and namespace of the object to reconcile.
+</span><span class=c1></span>    <span class=nx>types</span><span class=p>.</span><span class=nx>NamespacedName</span>
+<span class=p>}</span>
+
+<span class=c1>// Result contains the result of a Reconciler invocation.
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>Result</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=c1>// Requeue tells the Controller to requeue the reconcile key.  Defaults to false.
+</span><span class=c1></span>    <span class=nx>Requeue</span> <span class=kt>bool</span>
+
+    <span class=c1>// RequeueAfter if greater than 0, tells the Controller to requeue the reconcile key after the Duration.
+</span><span class=c1></span>    <span class=c1>// Implies that Requeue is true, there is no need to set Requeue to true at the same time as RequeueAfter.
+</span><span class=c1></span>    <span class=nx>RequeueAfter</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Duration</span>
+<span class=p>}</span>
+
+<span class=cm>/*
+</span><span class=cm>Reconciler implements a Kubernetes API for a specific Resource by Creating, Updating or Deleting Kubernetes
+</span><span class=cm>objects, or by making changes to systems external to the cluster (e.g. cloudproviders, github, etc).
+</span><span class=cm>
+</span><span class=cm>reconcile implementations compare the state specified in an object by a user against the actual cluster state,
+</span><span class=cm>and then perform operations to make the actual cluster state reflect the state specified by the user.
+</span><span class=cm>
+</span><span class=cm>Typically, reconcile is triggered by a Controller in response to cluster Events (e.g. Creating, Updating,
+</span><span class=cm>Deleting Kubernetes objects) or external Events (GitHub Webhooks, polling external sources, etc).
+</span><span class=cm>
+</span><span class=cm>Example reconcile Logic:
+</span><span class=cm>
+</span><span class=cm>    * Read an object and all the Pods it owns.
+</span><span class=cm>    * Observe that the object spec specifies 5 replicas but actual cluster contains only 1 Pod replica.
+</span><span class=cm>    * Create 4 Pods and set their OwnerReferences to the object.
+</span><span class=cm>
+</span><span class=cm>reconcile may be implemented as either a type:
+</span><span class=cm>
+</span><span class=cm>    type reconcile struct {}
+</span><span class=cm>
+</span><span class=cm>    func (reconcile) reconcile(controller.Request) (controller.Result, error) {
+</span><span class=cm>        // Implement business logic of reading and writing objects here
+</span><span class=cm>        return controller.Result{}, nil
+</span><span class=cm>    }
+</span><span class=cm>
+</span><span class=cm>Or as a function:
+</span><span class=cm>
+</span><span class=cm>    controller.Func(func(o controller.Request) (controller.Result, error) {
+</span><span class=cm>        // Implement business logic of reading and writing objects here
+</span><span class=cm>        return controller.Result{}, nil
+</span><span class=cm>    })
+</span><span class=cm>
+</span><span class=cm>Reconciliation is level-based, meaning action isn&#39;t driven off changes in individual Events, but instead is
+</span><span class=cm>driven by actual cluster state read from the apiserver or a local cache.
+</span><span class=cm>For example if responding to a Pod Delete Event, the Request won&#39;t contain that a Pod was deleted,
+</span><span class=cm>instead the reconcile function observes this when reading the cluster state and seeing the Pod as missing.
+</span><span class=cm>*/</span>
+<span class=kd>type</span> <span class=nx>Reconciler</span> <span class=kd>interface</span> <span class=p>{</span>
+    <span class=c1>// Reconciler performs a full reconciliation for the object referred to by the Request.
+</span><span class=c1></span>    <span class=c1>// The Controller will requeue the Request to be processed again if an error is non-nil or
+</span><span class=c1></span>    <span class=c1>// Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
+</span><span class=c1></span>    <span class=nf>Reconcile</span><span class=p>(</span><span class=nx>context</span><span class=p>.</span><span class=nx>Context</span><span class=p>,</span> <span class=nx>Request</span><span class=p>)</span> <span class=p>(</span><span class=nx>Result</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span>
+<span class=p>}</span>
+
+
+</code></pre></td></tr></table></div></div><h2 id=reconcile实现>Reconcile实现</h2><p>Reconcile函数处理逻辑简化如下</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go>
+
+<span class=kd>func</span> <span class=p>(</span><span class=nx>r</span> <span class=o>*</span><span class=nx>PaddleJobReconciler</span><span class=p>)</span> <span class=nf>Reconcile</span><span class=p>(</span><span class=nx>ctx</span> <span class=nx>context</span><span class=p>.</span><span class=nx>Context</span><span class=p>,</span> <span class=nx>req</span> <span class=nx>ctrl</span><span class=p>.</span><span class=nx>Request</span><span class=p>)</span> <span class=p>(</span><span class=nx>ctrl</span><span class=p>.</span><span class=nx>Result</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+    <span class=c1>// 1 获取PaddleJob资源对象pdj
+</span><span class=c1></span>    <span class=nx>r</span><span class=p>.</span><span class=nf>Get</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>req</span><span class=p>.</span><span class=nx>NamespacedName</span><span class=p>,</span> <span class=o>&amp;</span><span class=nx>pdj</span><span class=p>)</span>
+    
+    <span class=c1>// pdj 的finalize处理
+</span><span class=c1></span>  
+    <span class=c1>// 2  获取该PaddleJob资源pdj对象关联的pod资源列表
+</span><span class=c1></span>    <span class=nx>r</span><span class=p>.</span><span class=nf>List</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=o>&amp;</span><span class=nx>childPods</span><span class=p>,</span> <span class=nx>client</span><span class=p>.</span><span class=nf>InNamespace</span><span class=p>(</span><span class=nx>req</span><span class=p>.</span><span class=nx>Namespace</span><span class=p>),</span> <span class=nx>client</span><span class=p>.</span><span class=nx>MatchingFields</span><span class=p>{</span><span class=nx>ctrlRefKey</span><span class=p>:</span> <span class=nx>req</span><span class=p>.</span><span class=nx>Name</span><span class=p>})</span>
+    
+    <span class=c1>// 3 根据最新的pods状态，来同步更新pdj的状态
+</span><span class=c1></span>    <span class=nx>r</span><span class=p>.</span><span class=nf>syncCurrentStatus</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=o>&amp;</span><span class=nx>pdj</span><span class=p>,</span> <span class=nx>childPods</span><span class=p>)</span>
+
+    <span class=c1>// 4 删除不需要的pod，如pod的副本数 &gt; pdj.GetSpecs定义的数量 
+</span><span class=c1></span>    <span class=nx>r</span><span class=p>.</span><span class=nf>deleteResource</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=o>&amp;</span><span class=nx>pdj</span><span class=p>,</span> <span class=o>&amp;</span><span class=nx>childPods</span><span class=p>.</span><span class=nx>Items</span><span class=p>[</span><span class=nx>i</span><span class=p>])</span>
+    <span class=c1>// 5 如果 pdj.Spec.Intranet == pdv1.Service，为pdj关联的每个pod 创建 svc
+</span><span class=c1></span>    
+    <span class=c1>// 6 按策略清理删除Failed和Completed状态的pod和svc
+</span><span class=c1></span>    <span class=nf>cleanOne</span><span class=p>()</span>
+    
+    <span class=c1>// 7 根据pdj.GetStatuses和pdj.GetSpecs的比较判断，进行pod创建 
+</span><span class=c1></span>    <span class=nf>createPod</span><span class=p>(</span><span class=nx>res</span><span class=p>,</span> <span class=nx>i</span><span class=p>)</span>
+    <span class=c1>// constructPod
+</span><span class=c1></span>    
+    <span class=c1>// 8 当未设置Spec.Elastic，需等待pdj的所有pod全部运行（应该是ready）起来后，再为该pdj创建configmap
+</span><span class=c1></span>    <span class=c1>// Create configmap of global env for all pods after all pods are running
+</span><span class=c1></span>    <span class=c1>// 说明： 这里isAllPodsReady准确的含义如下
+</span><span class=c1></span>    <span class=c1>// Since the ip or alternative information of pods are collected to the configmap,  the configmap will be created after the pods allocated but the pods will not running until configmap ready.
+</span><span class=c1></span>    <span class=c1>// 还要保证所有pod的ip已分配，即pod.Status.PodIP，才能为该pdj创建configmap
+</span><span class=c1></span>    <span class=k>if</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Elastic</span> <span class=o>==</span> <span class=kc>nil</span> <span class=o>&amp;&amp;</span> <span class=nf>isAllPodsReady</span><span class=p>(</span><span class=o>&amp;</span><span class=nx>pdj</span><span class=p>)</span> <span class=p>{</span>
+        <span class=nx>cm</span> <span class=o>:=</span> <span class=nf>constructConfigMap</span><span class=p>(</span><span class=o>&amp;</span><span class=nx>pdj</span><span class=p>,</span> <span class=nx>childPods</span><span class=p>)</span>
+        <span class=nx>r</span><span class=p>.</span><span class=nf>createResource</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=o>&amp;</span><span class=nx>pdj</span><span class=p>,</span> <span class=nx>cm</span><span class=p>)</span>
+    <span class=p>}</span>
+<span class=p>}</span>
+</code></pre></td></tr></table></div></div><h2 id=synccurrentstatus>syncCurrentStatus</h2><p>同步更新pdj.Status</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=c1>// 根据最新的pods状态，来同步更新pdj的状态
+</span><span class=c1></span><span class=kd>func</span> <span class=p>(</span><span class=nx>r</span> <span class=o>*</span><span class=nx>PaddleJobReconciler</span><span class=p>)</span> <span class=nf>syncCurrentStatus</span><span class=p>(</span><span class=nx>ctx</span> <span class=nx>context</span><span class=p>.</span><span class=nx>Context</span><span class=p>,</span> <span class=nx>pdj</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>PaddleJob</span><span class=p>,</span> <span class=nx>childPods</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>PodList</span><span class=p>)</span> <span class=p>{</span>
+    <span class=nx>syncStatusByPod</span> <span class=o>:=</span> <span class=kd>func</span><span class=p>(</span><span class=nx>ss</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>ResourceStatus</span><span class=p>,</span> <span class=nx>pod</span> <span class=o>*</span><span class=nx>corev1</span><span class=p>.</span><span class=nx>Pod</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>if</span> <span class=nx>pod</span><span class=p>.</span><span class=nx>CreationTimestamp</span><span class=p>.</span><span class=nf>Before</span><span class=p>(</span><span class=o>&amp;</span><span class=nx>pdj</span><span class=p>.</span><span class=nx>CreationTimestamp</span><span class=p>)</span> <span class=p>{</span>
+            <span class=k>return</span>
+        <span class=p>}</span>
+        <span class=c1>// pod status -&gt; pdj status的映射转换
+</span><span class=c1></span>        <span class=k>switch</span> <span class=nx>pod</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>Phase</span> <span class=p>{</span>
+        <span class=k>case</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>PodPending</span><span class=p>:</span>
+            <span class=nx>ss</span><span class=p>.</span><span class=nx>Pending</span><span class=o>++</span>
+        <span class=k>case</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>PodRunning</span><span class=p>:</span>
+            <span class=c1>// 进一步检查pod中的容器状态是否ready和running
+</span><span class=c1></span>            <span class=k>if</span> <span class=nf>isPodRealRuning</span><span class=p>(</span><span class=nx>pod</span><span class=p>)</span> <span class=p>{</span>
+                <span class=nx>ss</span><span class=p>.</span><span class=nx>Running</span><span class=o>++</span>
+            <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+                <span class=c1>// 此时pod中的容器尚未全部起来
+</span><span class=c1></span>                <span class=nx>ss</span><span class=p>.</span><span class=nx>Starting</span><span class=o>++</span>
+            <span class=p>}</span>
+        <span class=k>case</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>PodFailed</span><span class=p>:</span>
+            <span class=nx>ss</span><span class=p>.</span><span class=nx>Failed</span><span class=o>++</span>
+        <span class=k>case</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>PodSucceeded</span><span class=p>:</span>
+            <span class=nx>ss</span><span class=p>.</span><span class=nx>Succeeded</span><span class=o>++</span>
+        <span class=p>}</span>
+        <span class=nx>pref</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>ref</span><span class=p>.</span><span class=nf>GetReference</span><span class=p>(</span><span class=nx>r</span><span class=p>.</span><span class=nx>Scheme</span><span class=p>,</span> <span class=nx>pod</span><span class=p>)</span>
+        <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+            <span class=k>return</span>
+        <span class=p>}</span>
+        <span class=c1>// 更新pdj status的refs
+</span><span class=c1></span>        <span class=nx>ss</span><span class=p>.</span><span class=nx>Refs</span> <span class=p>=</span> <span class=nb>append</span><span class=p>(</span><span class=nx>ss</span><span class=p>.</span><span class=nx>Refs</span><span class=p>,</span> <span class=o>*</span><span class=nx>pref</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span> <span class=p>=</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>PaddleJobStatus</span><span class=p>{</span>
+        <span class=nx>Phase</span><span class=p>:</span>          <span class=nf>getPaddleJobPhase</span><span class=p>(</span><span class=nx>pdj</span><span class=p>),</span>
+        <span class=nx>Mode</span><span class=p>:</span>           <span class=nf>getPaddleJobMode</span><span class=p>(</span><span class=nx>pdj</span><span class=p>),</span>
+        <span class=nx>StartTime</span><span class=p>:</span>      <span class=nf>getPaddleJobStartTime</span><span class=p>(</span><span class=nx>pdj</span><span class=p>),</span>
+        <span class=nx>CompletionTime</span><span class=p>:</span> <span class=nf>getPaddleJobCompleteTime</span><span class=p>(</span><span class=nx>pdj</span><span class=p>),</span>
+    <span class=p>}</span>
+
+    <span class=nx>statuses</span> <span class=o>:=</span> <span class=kd>map</span><span class=p>[</span><span class=kt>string</span><span class=p>]</span><span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>ResourceStatus</span><span class=p>{}</span>
+    <span class=k>for</span> <span class=nx>i</span><span class=p>,</span> <span class=nx>pod</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>childPods</span><span class=p>.</span><span class=nx>Items</span> <span class=p>{</span>
+        <span class=nx>resType</span> <span class=o>:=</span> <span class=nx>pod</span><span class=p>.</span><span class=nx>Annotations</span><span class=p>[</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>ResourceAnnotation</span><span class=p>]</span>
+        <span class=k>if</span> <span class=nx>statuses</span><span class=p>[</span><span class=nx>resType</span><span class=p>]</span> <span class=o>==</span> <span class=kc>nil</span> <span class=p>{</span>
+            <span class=nx>statuses</span><span class=p>[</span><span class=nx>resType</span><span class=p>]</span> <span class=p>=</span> <span class=o>&amp;</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>ResourceStatus</span><span class=p>{}</span>
+        <span class=p>}</span>
+        <span class=nf>syncStatusByPod</span><span class=p>(</span><span class=nx>statuses</span><span class=p>[</span><span class=nx>resType</span><span class=p>],</span> <span class=o>&amp;</span><span class=nx>childPods</span><span class=p>.</span><span class=nx>Items</span><span class=p>[</span><span class=nx>i</span><span class=p>])</span>
+    <span class=p>}</span>
+    <span class=k>for</span> <span class=nx>resType</span><span class=p>,</span> <span class=nx>status</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>statuses</span> <span class=p>{</span>
+        <span class=nx>pdj</span><span class=p>.</span><span class=nf>SetStatus</span><span class=p>(</span><span class=nx>resType</span><span class=p>,</span> <span class=nx>status</span><span class=p>)</span>
+    <span class=p>}</span>
+<span class=p>}</span>
+
+<span class=kd>func</span> <span class=p>(</span><span class=nx>pdj</span> <span class=o>*</span><span class=nx>PaddleJob</span><span class=p>)</span> <span class=nf>SetStatus</span><span class=p>(</span><span class=nx>resType</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>status</span> <span class=o>*</span><span class=nx>ResourceStatus</span><span class=p>)</span> <span class=p>{</span>
+    <span class=k>switch</span> <span class=nx>resType</span> <span class=p>{</span>
+    <span class=k>case</span> <span class=nx>ResourcePS</span><span class=p>:</span>
+        <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>PS</span> <span class=p>=</span> <span class=nx>status</span>
+    <span class=k>case</span> <span class=nx>ResourceWorker</span><span class=p>:</span>
+        <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>Worker</span> <span class=p>=</span> <span class=nx>status</span>
+    <span class=k>case</span> <span class=nx>ResourceHeter</span><span class=p>:</span>
+        <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>Heter</span> <span class=p>=</span> <span class=nx>status</span>
+    <span class=p>}</span>
+
+<span class=p>}</span>
+
+
+</code></pre></td></tr></table></div></div><h2 id=help-func>help func</h2><p>pdj的状态判断函数</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=kd>func</span> <span class=nf>isAllPodsReady</span><span class=p>(</span><span class=nx>pdj</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>PaddleJob</span><span class=p>)</span> <span class=kt>bool</span> <span class=p>{</span>
+    <span class=nx>specs</span> <span class=o>:=</span> <span class=nx>pdj</span><span class=p>.</span><span class=nf>GetSpecs</span><span class=p>()</span>
+    <span class=nx>statuses</span> <span class=o>:=</span> <span class=nx>pdj</span><span class=p>.</span><span class=nf>GetStatuses</span><span class=p>()</span>
+    <span class=k>for</span> <span class=nx>k</span><span class=p>,</span> <span class=nx>_</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>specs</span> <span class=p>{</span>
+        <span class=k>if</span> <span class=p>!</span><span class=nf>isPodReady</span><span class=p>(</span><span class=nx>specs</span><span class=p>[</span><span class=nx>k</span><span class=p>],</span> <span class=nx>statuses</span><span class=p>[</span><span class=nx>k</span><span class=p>])</span> <span class=p>{</span>
+            <span class=k>return</span> <span class=kc>false</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+    <span class=k>return</span> <span class=kc>true</span>
+<span class=p>}</span>
+
+<span class=kd>func</span> <span class=nf>isPodReady</span><span class=p>(</span><span class=nx>spec</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>ResourceSpec</span><span class=p>,</span> <span class=nx>status</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>ResourceStatus</span><span class=p>)</span> <span class=kt>bool</span> <span class=p>{</span>
+    <span class=k>if</span> <span class=nx>spec</span> <span class=o>==</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>true</span>
+    <span class=p>}</span>
+    <span class=k>if</span> <span class=nx>status</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=o>&amp;&amp;</span> <span class=nb>len</span><span class=p>(</span><span class=nx>status</span><span class=p>.</span><span class=nx>Refs</span><span class=p>)</span> <span class=o>==</span> <span class=nx>spec</span><span class=p>.</span><span class=nx>Replicas</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>true</span>
+    <span class=p>}</span>
+    <span class=k>return</span> <span class=kc>false</span>
+<span class=p>}</span>
+
+<span class=kd>func</span> <span class=nf>isFailed</span><span class=p>(</span><span class=nx>status</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>ResourceStatus</span><span class=p>)</span> <span class=kt>bool</span> <span class=p>{</span>
+    <span class=k>return</span> <span class=nx>status</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=o>&amp;&amp;</span> <span class=nx>status</span><span class=p>.</span><span class=nx>Failed</span> <span class=p>&gt;</span> <span class=mi>0</span>
+<span class=p>}</span>
+<span class=kd>func</span> <span class=nf>isPending</span><span class=p>(</span><span class=nx>status</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>ResourceStatus</span><span class=p>)</span> <span class=kt>bool</span> <span class=p>{</span>
+    <span class=k>return</span> <span class=nx>status</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=o>&amp;&amp;</span> <span class=nx>status</span><span class=p>.</span><span class=nx>Pending</span> <span class=p>&gt;</span> <span class=mi>0</span>
+<span class=p>}</span>
+<span class=kd>func</span> <span class=nf>isStarting</span><span class=p>(</span><span class=nx>status</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>ResourceStatus</span><span class=p>)</span> <span class=kt>bool</span> <span class=p>{</span>
+    <span class=k>return</span> <span class=nx>status</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=o>&amp;&amp;</span> <span class=nx>status</span><span class=p>.</span><span class=nx>Starting</span> <span class=p>&gt;</span> <span class=mi>0</span>
+<span class=p>}</span>
+<span class=kd>func</span> <span class=nf>isRunning</span><span class=p>(</span><span class=nx>spec</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>ResourceSpec</span><span class=p>,</span> <span class=nx>status</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>ResourceStatus</span><span class=p>)</span> <span class=kt>bool</span> <span class=p>{</span>
+    <span class=k>return</span> <span class=nx>spec</span> <span class=o>==</span> <span class=kc>nil</span> <span class=o>||</span> <span class=p>(</span><span class=nx>status</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=o>&amp;&amp;</span> <span class=nx>spec</span><span class=p>.</span><span class=nx>Replicas</span> <span class=o>==</span> <span class=nx>status</span><span class=p>.</span><span class=nx>Running</span><span class=p>)</span>
+<span class=p>}</span>
+<span class=kd>func</span> <span class=nf>isCompleted</span><span class=p>(</span><span class=nx>spec</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>ResourceSpec</span><span class=p>,</span> <span class=nx>status</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>ResourceStatus</span><span class=p>)</span> <span class=kt>bool</span> <span class=p>{</span>
+    <span class=k>return</span> <span class=nx>spec</span> <span class=o>==</span> <span class=kc>nil</span> <span class=o>||</span> <span class=p>(</span><span class=nx>status</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=o>&amp;&amp;</span> <span class=nx>spec</span><span class=p>.</span><span class=nx>Replicas</span> <span class=o>==</span> <span class=nx>status</span><span class=p>.</span><span class=nx>Succeeded</span><span class=p>)</span>
+<span class=p>}</span>
+</code></pre></td></tr></table></div></div><h2 id=configmap构造>configmap构造</h2><img src=pdj_cm.png width=100%><h2 id=pod构造>pod构造</h2><p>operator 会给pod自动注入一些配置字段，如configmap</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span><span class=lnt>73
+</span><span class=lnt>74
+</span><span class=lnt>75
+</span><span class=lnt>76
+</span><span class=lnt>77
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=kd>func</span> <span class=nf>constructPod</span><span class=p>(</span><span class=nx>pdj</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>PaddleJob</span><span class=p>,</span> <span class=nx>resType</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>idx</span> <span class=kt>int</span><span class=p>)</span> <span class=p>(</span><span class=nx>pod</span> <span class=o>*</span><span class=nx>corev1</span><span class=p>.</span><span class=nx>Pod</span><span class=p>)</span> <span class=p>{</span>
+    
+    <span class=c1>// ...
+</span><span class=c1></span>    <span class=nx>envIP</span> <span class=o>:=</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>EnvVar</span><span class=p>{</span>
+        <span class=nx>Name</span><span class=p>:</span> <span class=s>&#34;POD_IP&#34;</span><span class=p>,</span>
+    <span class=p>}</span>
+    <span class=k>if</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Intranet</span> <span class=o>==</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>Service</span> <span class=p>{</span>
+        <span class=nx>envIP</span><span class=p>.</span><span class=nx>Value</span> <span class=p>=</span> <span class=nx>name</span>
+    <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+        <span class=nx>envIP</span><span class=p>.</span><span class=nx>ValueFrom</span> <span class=p>=</span> <span class=o>&amp;</span><span class=nx>corev1</span><span class=p>.</span><span class=nx>EnvVarSource</span><span class=p>{</span>
+            <span class=nx>FieldRef</span><span class=p>:</span> <span class=o>&amp;</span><span class=nx>corev1</span><span class=p>.</span><span class=nx>ObjectFieldSelector</span><span class=p>{</span>
+                <span class=nx>FieldPath</span><span class=p>:</span> <span class=s>&#34;status.podIP&#34;</span><span class=p>,</span>
+            <span class=p>},</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+    <span class=nx>envRank</span> <span class=o>:=</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>EnvVar</span><span class=p>{</span>
+        <span class=nx>Name</span><span class=p>:</span>  <span class=s>&#34;PADDLE_TRAINER_ID&#34;</span><span class=p>,</span>
+        <span class=nx>Value</span><span class=p>:</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Sprintf</span><span class=p>(</span><span class=s>&#34;%d&#34;</span><span class=p>,</span> <span class=nx>idx</span><span class=p>),</span>
+    <span class=p>}</span>
+    <span class=nx>envRole</span> <span class=o>:=</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>EnvVar</span><span class=p>{</span>
+        <span class=nx>Name</span><span class=p>:</span>  <span class=s>&#34;TRAINING_ROLE&#34;</span><span class=p>,</span>
+        <span class=nx>Value</span><span class=p>:</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>TrainingRole</span><span class=p>[</span><span class=nx>resType</span><span class=p>],</span>
+    <span class=p>}</span>
+    <span class=nx>envRole2</span> <span class=o>:=</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>EnvVar</span><span class=p>{</span>
+        <span class=nx>Name</span><span class=p>:</span>  <span class=s>&#34;PADDLE_TRAINING_ROLE&#34;</span><span class=p>,</span>
+        <span class=nx>Value</span><span class=p>:</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>TrainingRole</span><span class=p>[</span><span class=nx>resType</span><span class=p>],</span>
+    <span class=p>}</span>
+    <span class=nx>pod</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Containers</span><span class=p>[</span><span class=mi>0</span><span class=p>].</span><span class=nx>Env</span> <span class=p>=</span> <span class=nb>append</span><span class=p>(</span><span class=nx>pod</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Containers</span><span class=p>[</span><span class=mi>0</span><span class=p>].</span><span class=nx>Env</span><span class=p>,</span> <span class=nx>envIP</span><span class=p>,</span> <span class=nx>envRank</span><span class=p>,</span> <span class=nx>envRole</span><span class=p>,</span> <span class=nx>envRole2</span><span class=p>)</span>
+    <span class=c1>// pod字段 按下面2种场景区别设置
+</span><span class=c1></span>    <span class=c1>// 场景1. pdj.Spec.Elastic时，pod无需使用pdj的configmap
+</span><span class=c1></span>    <span class=k>if</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Elastic</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=nx>envJobID</span> <span class=o>:=</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>EnvVar</span><span class=p>{</span>
+            <span class=nx>Name</span><span class=p>:</span>  <span class=s>&#34;PADDLE_ELASTIC_JOB_ID&#34;</span><span class=p>,</span>
+            <span class=nx>Value</span><span class=p>:</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Sprintf</span><span class=p>(</span><span class=s>&#34;%s-%s&#34;</span><span class=p>,</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Namespace</span><span class=p>,</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Name</span><span class=p>),</span>
+        <span class=p>}</span>
+        <span class=nx>envNP</span> <span class=o>:=</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>EnvVar</span><span class=p>{</span>
+            <span class=nx>Name</span><span class=p>:</span>  <span class=s>&#34;PADDLE_ELASTIC_NP&#34;</span><span class=p>,</span>
+            <span class=nx>Value</span><span class=p>:</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Sprintf</span><span class=p>(</span><span class=s>&#34;%d&#34;</span><span class=p>,</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Worker</span><span class=p>.</span><span class=nx>Replicas</span><span class=p>),</span>
+        <span class=p>}</span>
+        <span class=nx>envTimeout</span> <span class=o>:=</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>EnvVar</span><span class=p>{</span>
+            <span class=nx>Name</span><span class=p>:</span>  <span class=s>&#34;PADDLE_ELASTIC_TIMEOUT&#34;</span><span class=p>,</span>
+            <span class=nx>Value</span><span class=p>:</span> <span class=s>&#34;60&#34;</span><span class=p>,</span>
+        <span class=p>}</span>
+
+        <span class=nx>pod</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Containers</span><span class=p>[</span><span class=mi>0</span><span class=p>].</span><span class=nx>Env</span> <span class=p>=</span> <span class=nb>append</span><span class=p>(</span><span class=nx>pod</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Containers</span><span class=p>[</span><span class=mi>0</span><span class=p>].</span><span class=nx>Env</span><span class=p>,</span> <span class=nx>envJobID</span><span class=p>,</span> <span class=nx>envNP</span><span class=p>,</span> <span class=nx>envTimeout</span><span class=p>)</span>
+    <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+        <span class=c1>// 场景2. 无pdj.Spec.Elastic时，pod的Containers需要使用pdj构造好的configmap
+</span><span class=c1></span>        <span class=nx>envF</span> <span class=o>:=</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>EnvFromSource</span><span class=p>{</span>
+            <span class=nx>ConfigMapRef</span><span class=p>:</span> <span class=o>&amp;</span><span class=nx>corev1</span><span class=p>.</span><span class=nx>ConfigMapEnvSource</span><span class=p>{</span>
+                <span class=nx>LocalObjectReference</span><span class=p>:</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>LocalObjectReference</span><span class=p>{</span>
+                    <span class=nx>Name</span><span class=p>:</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Name</span><span class=p>,</span>
+                <span class=p>},</span>
+            <span class=p>},</span>
+        <span class=p>}</span>
+
+        <span class=nx>pod</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Containers</span><span class=p>[</span><span class=mi>0</span><span class=p>].</span><span class=nx>EnvFrom</span> <span class=p>=</span> <span class=nb>append</span><span class=p>(</span><span class=nx>pod</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Containers</span><span class=p>[</span><span class=mi>0</span><span class=p>].</span><span class=nx>EnvFrom</span><span class=p>,</span> <span class=nx>envF</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=k>if</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Intranet</span> <span class=o>==</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>Service</span> <span class=p>{</span>
+        <span class=c1>// 给容器添加端口PADDLE_PORT 2379
+</span><span class=c1></span>        <span class=nx>pod</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Containers</span><span class=p>[</span><span class=mi>0</span><span class=p>].</span><span class=nx>Ports</span> <span class=p>=</span> <span class=nb>append</span><span class=p>(</span><span class=nx>pod</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Containers</span><span class=p>[</span><span class=mi>0</span><span class=p>].</span><span class=nx>Ports</span><span class=p>,</span> <span class=nx>corev1</span><span class=p>.</span><span class=nx>ContainerPort</span><span class=p>{</span><span class=nx>ContainerPort</span><span class=p>:</span> <span class=nx>PADDLE_PORT</span><span class=p>})</span>
+    <span class=p>}</span> <span class=k>else</span> <span class=k>if</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Intranet</span> <span class=o>==</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>HostNetwork</span> <span class=p>{</span>
+        <span class=nx>pod</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>HostNetwork</span> <span class=p>=</span> <span class=kc>true</span>
+    <span class=p>}</span>
+    <span class=c1>// 配置pod RestartPolicy
+</span><span class=c1></span>    <span class=k>if</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Elastic</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=nx>pod</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>RestartPolicy</span> <span class=p>=</span> <span class=s>&#34;OnFailure&#34;</span>
+    <span class=p>}</span> <span class=k>else</span> <span class=k>if</span> <span class=nx>pod</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>RestartPolicy</span> <span class=o>==</span> <span class=s>&#34;&#34;</span> <span class=p>{</span>
+        <span class=k>if</span> <span class=nx>resType</span> <span class=o>==</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>ResourceWorker</span> <span class=o>&amp;&amp;</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Intranet</span> <span class=o>==</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>Service</span> <span class=p>{</span>
+            <span class=nx>pod</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>RestartPolicy</span> <span class=p>=</span> <span class=s>&#34;OnFailure&#34;</span>
+        <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+            <span class=nx>pod</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>RestartPolicy</span> <span class=p>=</span> <span class=s>&#34;Never&#34;</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+
+    <span class=k>return</span> <span class=nx>pod</span>
+<span class=p>}</span>
+</code></pre></td></tr></table></div></div><h2 id=状态图>状态图</h2><p>paddle job状态图，如下：</p><img src=paddle-opertator-status.png width=100%><p>说明：</p><ul><li>operator目前处理使用的 padddle job状态有：<ul><li>Pending</li><li>Starting</li><li>Running</li><li>Completed</li><li>Failed</li></ul></li><li>Pending为初态</li><li>Failed和Completed是终态</li><li>operator对pod 真正Running判断成立条件：pod的status和其所有容器的status都是running，且容器ready</li><li>Starting是operator的paddle job自定义状态ResourceStatus.Starting:，从k8s Running pod进一步处理得出：<ul><li>对Running pod进行了细分，表示pod是否RealRunning，即pod中的容器是否ready</li></ul></li></ul><h2 id=其它>其它</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=c1>// PaddleJob status
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>ResourceStatus</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=c1>// Pending
+</span><span class=c1></span>    <span class=nx>Pending</span> <span class=kt>int</span> <span class=s>`json:&#34;pending,omitempty&#34;`</span>
+    <span class=c1>// Starting
+</span><span class=c1></span>    <span class=nx>Starting</span> <span class=kt>int</span> <span class=s>`json:&#34;starting,omitempty&#34;`</span>
+    <span class=c1>// Running
+</span><span class=c1></span>    <span class=nx>Running</span> <span class=kt>int</span> <span class=s>`json:&#34;running,omitempty&#34;`</span>
+    <span class=c1>// Failed
+</span><span class=c1></span>    <span class=nx>Failed</span> <span class=kt>int</span> <span class=s>`json:&#34;failed,omitempty&#34;`</span>
+    <span class=c1>// Success
+</span><span class=c1></span>    <span class=nx>Succeeded</span> <span class=kt>int</span> <span class=s>`json:&#34;succeeded,omitempty&#34;`</span>
+    <span class=c1>// Unknown
+</span><span class=c1></span>    <span class=nx>Unknown</span> <span class=kt>int</span> <span class=s>`json:&#34;unknown,omitempty&#34;`</span>
+    <span class=c1>// A list of pointer to pods
+</span><span class=c1></span>    <span class=nx>Refs</span> <span class=p>[]</span><span class=nx>corev1</span><span class=p>.</span><span class=nx>ObjectReference</span> <span class=s>`json:&#34;refs,omitempty&#34;`</span>
+<span class=p>}</span>
+
+
+<span class=kd>func</span> <span class=p>(</span><span class=nx>pdj</span> <span class=o>*</span><span class=nx>PaddleJob</span><span class=p>)</span> <span class=nf>GetSpecs</span><span class=p>()</span> <span class=kd>map</span><span class=p>[</span><span class=kt>string</span><span class=p>]</span><span class=o>*</span><span class=nx>ResourceSpec</span> <span class=p>{</span>
+    <span class=k>return</span> <span class=kd>map</span><span class=p>[</span><span class=kt>string</span><span class=p>]</span><span class=o>*</span><span class=nx>ResourceSpec</span><span class=p>{</span>
+        <span class=nx>ResourcePS</span><span class=p>:</span>     <span class=nx>pdj</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>PS</span><span class=p>,</span>
+        <span class=nx>ResourceWorker</span><span class=p>:</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Worker</span><span class=p>,</span>
+        <span class=nx>ResourceHeter</span><span class=p>:</span>  <span class=nx>pdj</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Heter</span><span class=p>,</span>
+    <span class=p>}</span>
+<span class=p>}</span>
+
+<span class=kd>func</span> <span class=p>(</span><span class=nx>pdj</span> <span class=o>*</span><span class=nx>PaddleJob</span><span class=p>)</span> <span class=nf>GetStatuses</span><span class=p>()</span> <span class=kd>map</span><span class=p>[</span><span class=kt>string</span><span class=p>]</span><span class=o>*</span><span class=nx>ResourceStatus</span> <span class=p>{</span>
+    <span class=k>return</span> <span class=kd>map</span><span class=p>[</span><span class=kt>string</span><span class=p>]</span><span class=o>*</span><span class=nx>ResourceStatus</span><span class=p>{</span>
+        <span class=nx>ResourcePS</span><span class=p>:</span>     <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>PS</span><span class=p>,</span>
+        <span class=nx>ResourceWorker</span><span class=p>:</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>Worker</span><span class=p>,</span>
+        <span class=nx>ResourceHeter</span><span class=p>:</span>  <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>Heter</span><span class=p>,</span>
+    <span class=p>}</span>
+<span class=p>}</span>
+
+
+<span class=c1>//----------------------------- 
+</span><span class=c1>//----------------------------- 
+</span><span class=c1>// pdj的一些状态设置函数
+</span><span class=c1>//----------------------------- 
+</span><span class=c1>//----------------------------- 
+</span><span class=c1></span><span class=kd>func</span> <span class=nf>getPaddleJobPhase</span><span class=p>(</span><span class=nx>pdj</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>PaddleJob</span><span class=p>)</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>PaddleJobPhase</span> <span class=p>{</span>
+
+    <span class=c1>// final phase won&#39;t change any more
+</span><span class=c1></span>    <span class=k>if</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>Phase</span> <span class=o>==</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>Completed</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>Completed</span>
+    <span class=p>}</span> <span class=k>else</span> <span class=k>if</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>Phase</span> <span class=o>==</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>Failed</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>Failed</span>
+    <span class=p>}</span>
+
+    <span class=nx>specs</span> <span class=o>:=</span> <span class=nx>pdj</span><span class=p>.</span><span class=nf>GetSpecs</span><span class=p>()</span>
+    <span class=nx>statuses</span> <span class=o>:=</span> <span class=nx>pdj</span><span class=p>.</span><span class=nf>GetStatuses</span><span class=p>()</span>
+    <span class=k>for</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>status</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>statuses</span> <span class=p>{</span>
+        <span class=k>if</span> <span class=nf>isFailed</span><span class=p>(</span><span class=nx>status</span><span class=p>)</span> <span class=p>{</span>
+            <span class=k>return</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>Failed</span>
+        <span class=p>}</span> <span class=k>else</span> <span class=k>if</span> <span class=nf>isPending</span><span class=p>(</span><span class=nx>status</span><span class=p>)</span> <span class=p>{</span>
+            <span class=k>return</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>Pending</span>
+        <span class=p>}</span> <span class=k>else</span> <span class=k>if</span> <span class=nf>isStarting</span><span class=p>(</span><span class=nx>status</span><span class=p>)</span> <span class=p>{</span>
+            <span class=k>return</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>Starting</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+    <span class=nx>checkAll</span> <span class=o>:=</span> <span class=kd>func</span><span class=p>(</span><span class=nx>check</span> <span class=kd>func</span><span class=p>(</span><span class=nx>spec</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>ResourceSpec</span><span class=p>,</span> <span class=nx>status</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>ResourceStatus</span><span class=p>)</span> <span class=kt>bool</span><span class=p>)</span> <span class=kt>bool</span> <span class=p>{</span>
+        <span class=k>for</span> <span class=nx>k</span><span class=p>,</span> <span class=nx>_</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>statuses</span> <span class=p>{</span>
+            <span class=k>if</span> <span class=p>!</span><span class=nf>check</span><span class=p>(</span><span class=nx>specs</span><span class=p>[</span><span class=nx>k</span><span class=p>],</span> <span class=nx>statuses</span><span class=p>[</span><span class=nx>k</span><span class=p>])</span> <span class=p>{</span>
+                <span class=k>return</span> <span class=kc>false</span>
+            <span class=p>}</span>
+        <span class=p>}</span>
+        <span class=k>return</span> <span class=kc>true</span>
+    <span class=p>}</span>
+    <span class=k>if</span> <span class=nf>checkAll</span><span class=p>(</span><span class=nx>isRunning</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>Running</span>
+    <span class=p>}</span>
+    <span class=k>if</span> <span class=nf>checkAll</span><span class=p>(</span><span class=nx>isCompleted</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>Completed</span>
+    <span class=p>}</span>
+
+    <span class=k>if</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>Phase</span> <span class=o>==</span> <span class=s>&#34;&#34;</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>Pending</span>
+    <span class=p>}</span>
+
+    <span class=k>return</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>Phase</span>
+<span class=p>}</span>
+
+<span class=kd>func</span> <span class=nf>getPaddleJobStartTime</span><span class=p>(</span><span class=nx>pdj</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>PaddleJob</span><span class=p>)</span> <span class=o>*</span><span class=nx>metav1</span><span class=p>.</span><span class=nx>Time</span> <span class=p>{</span>
+    <span class=k>if</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>StartTime</span><span class=p>.</span><span class=nf>IsZero</span><span class=p>()</span> <span class=o>&amp;&amp;</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>Phase</span> <span class=o>==</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>Running</span> <span class=p>{</span>
+        <span class=nx>tmp</span> <span class=o>:=</span> <span class=nx>metav1</span><span class=p>.</span><span class=nf>Now</span><span class=p>()</span>
+        <span class=k>return</span> <span class=o>&amp;</span><span class=nx>tmp</span>
+    <span class=p>}</span>
+    <span class=k>return</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>StartTime</span>
+<span class=p>}</span>
+
+<span class=kd>func</span> <span class=nf>getPaddleJobCompleteTime</span><span class=p>(</span><span class=nx>pdj</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>PaddleJob</span><span class=p>)</span> <span class=o>*</span><span class=nx>metav1</span><span class=p>.</span><span class=nx>Time</span> <span class=p>{</span>
+    <span class=k>if</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>CompletionTime</span><span class=p>.</span><span class=nf>IsZero</span><span class=p>()</span> <span class=o>&amp;&amp;</span> <span class=p>(</span><span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>Phase</span> <span class=o>==</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>Completed</span> <span class=o>||</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>Phase</span> <span class=o>==</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>Failed</span><span class=p>)</span> <span class=p>{</span>
+        <span class=nx>tmp</span> <span class=o>:=</span> <span class=nx>metav1</span><span class=p>.</span><span class=nf>Now</span><span class=p>()</span>
+        <span class=k>return</span> <span class=o>&amp;</span><span class=nx>tmp</span>
+    <span class=p>}</span>
+    <span class=k>return</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>CompletionTime</span>
+<span class=p>}</span>
+
+<span class=kd>func</span> <span class=nf>getPaddleJobMode</span><span class=p>(</span><span class=nx>pdj</span> <span class=o>*</span><span class=nx>pdv1</span><span class=p>.</span><span class=nx>PaddleJob</span><span class=p>)</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>PaddleJobMode</span> <span class=p>{</span>
+    <span class=k>if</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>PS</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>PaddleJobModePS</span>
+    <span class=p>}</span> <span class=k>else</span> <span class=k>if</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Worker</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=o>&amp;&amp;</span> <span class=nx>pdj</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Worker</span><span class=p>.</span><span class=nx>Replicas</span> <span class=p>&gt;</span> <span class=mi>1</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>PaddleJobModeCollective</span>
+    <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>pdv1</span><span class=p>.</span><span class=nx>PaddleJobModeSingle</span>
+    <span class=p>}</span>
+<span class=p>}</span>
+</code></pre></td></tr></table></div></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2021-11-03</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/k8s/>K8S</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2021/11/idea%E5%B8%B8%E7%94%A8%E5%BF%AB%E6%8D%B7%E9%94%AE%E6%B1%87%E6%80%BB/ class=prev rel=prev title=IDEA常用快捷键汇总><i class="fas fa-angle-left fa-fw"></i>IDEA常用快捷键汇总</a></div></div><div id=comments><div id=utterances></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://utteranc.es/>Utterances</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2021</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
+<script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i></a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css><script type=text/javascript src=https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script><script type=text/javascript>window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{"utterances":{"darkTheme":"github-dark","issueTerm":"pathname","label":"","lightTheme":"github-light","repo":"bingerambo/myblog-comments"}},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type=text/javascript src=/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-81425808-1',{'anonymize_ip':true});</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script><script src=https://libs.baidu.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js></script><script type=text/javascript src=/js/custom.js></script><script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script></body></html>
