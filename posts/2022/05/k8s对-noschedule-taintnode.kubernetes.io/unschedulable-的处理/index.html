@@ -1,0 +1,334 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>k8s对 noschedule taint：node.kubernetes.io/unschedulable 的处理 - 斌哥的小站|Binge Blog</title><meta name=Description content="k8s对 noschedule taint：node.kubernetes.io/unschedulable 的处理"><meta property="og:title" content="k8s对 noschedule taint：node.kubernetes.io/unschedulable 的处理"><meta property="og:description" content="k8s对 noschedule taint：node.kubernetes.io/unschedulable 的处理"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2022/05/k8s%E5%AF%B9-noschedule-taintnode.kubernetes.io/unschedulable-%E7%9A%84%E5%A4%84%E7%90%86/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2022-05-31T08:43:17+08:00"><meta property="article:modified_time" content="2022-05-31T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="k8s对 noschedule taint：node.kubernetes.io/unschedulable 的处理"><meta name=twitter:description content="k8s对 noschedule taint：node.kubernetes.io/unschedulable 的处理"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2022/05/k8s%E5%AF%B9-noschedule-taintnode.kubernetes.io/unschedulable-%E7%9A%84%E5%A4%84%E7%90%86/><link rel=prev href=http://bingerambo.com/posts/2022/04/k8s%E7%9A%84%E4%B8%9A%E5%8A%A1pod%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8Fenvs%E8%A6%86%E7%9B%96k8s%E6%8F%92%E4%BB%B6devicplugin%E8%AE%BE%E7%BD%AE%E7%9A%84envs/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"k8s对 noschedule taint：node.kubernetes.io/unschedulable 的处理","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2022\/05\/k8s%E5%AF%B9-noschedule-taintnode.kubernetes.io\/unschedulable-%E7%9A%84%E5%A4%84%E7%90%86\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":1633,"url":"http:\/\/bingerambo.com\/posts\/2022\/05\/k8s%E5%AF%B9-noschedule-taintnode.kubernetes.io\/unschedulable-%E7%9A%84%E5%A4%84%E7%90%86\/","datePublished":"2022-05-31T08:43:17+08:00","dateModified":"2022-05-31T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":"k8s对 noschedule taint：node.kubernetes.io/unschedulable 的处理"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">k8s对 noschedule taint：node.kubernetes.io/unschedulable 的处理</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2022-05-31>2022-05-31</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 1633 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 4 分钟&nbsp;
+<i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#问题nodekubernetesiounschedulable-给节点设置为不可调度未能生效>问题：node.kubernetes.io/unschedulable 给节点设置为不可调度，未能生效</a></li><li><a href=#node-lifecycle-controller>node-lifecycle-controller</a><ul><li><a href=#well_known_taints>well_known_taints</a></li><li><a href=#nodelifecycle>NodeLifecycle</a></li><li><a href=#taint>Taint</a></li><li><a href=#donoscheduletaintingpass>doNoScheduleTaintingPass</a></li></ul></li><li><a href=#附录>附录</a></li></ul></nav></div></div><div class=content id=content><h2 id=问题nodekubernetesiounschedulable-给节点设置为不可调度未能生效>问题：node.kubernetes.io/unschedulable 给节点设置为不可调度，未能生效</h2><p>k8s版本：1.20.5</p><ul><li>通过kubect taintl命令给节点设置为不可调度，并驱逐pod</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>kubectl taint nodes node3 node.kubernetes.io/unschedulable<span class=o>=</span>:NoSchedule
+
+kubectl taint nodes node3 node.kubernetes.io/unschedulable<span class=o>=</span>:NoExecute
+</code></pre></td></tr></table></div></div><p>发现命令执行成功，但node的taints为空，node.kubernetes.io/unschedulable 的 key：effect没有生效。</p><p>此时节点仍可调度。</p><ul><li>而执行其它的taints标签操作，操作成功并生效</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+kubectl taint nodes node3 node-role.kubernetes.io/node<span class=o>=</span>:NoSchedule
+
+kubectl taint nodes node3 node-role.kubernetes.io/node<span class=o>=</span>:NoExecute
+
+
+kubectl taint nodes node3 node-role.kubernetes.io/node<span class=o>=</span>:NoSchedule-
+
+kubectl taint nodes node3 node-role.kubernetes.io/node<span class=o>=</span>:NoExecute-
+</code></pre></td></tr></table></div></div><p>此时，节点设置为不可调度，并能驱逐pod</p><h2 id=node-lifecycle-controller>node-lifecycle-controller</h2><p>Kube-controller-manager之node-lifecycle-controller 处理了node的状态信息</p><h3 id=well_known_taints>well_known_taints</h3><p>可以看到k8s node 已内置了一些taints key</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=kn>package</span> <span class=nx>v1</span>
+
+<span class=kd>const</span> <span class=p>(</span>
+   <span class=c1>// TaintNodeNotReady will be added when node is not ready
+</span><span class=c1></span>   <span class=c1>// and removed when node becomes ready.
+</span><span class=c1></span>   <span class=nx>TaintNodeNotReady</span> <span class=p>=</span> <span class=s>&#34;node.kubernetes.io/not-ready&#34;</span>
+
+   <span class=c1>// TaintNodeUnreachable will be added when node becomes unreachable
+</span><span class=c1></span>   <span class=c1>// (corresponding to NodeReady status ConditionUnknown)
+</span><span class=c1></span>   <span class=c1>// and removed when node becomes reachable (NodeReady status ConditionTrue).
+</span><span class=c1></span>   <span class=nx>TaintNodeUnreachable</span> <span class=p>=</span> <span class=s>&#34;node.kubernetes.io/unreachable&#34;</span>
+
+   <span class=c1>// TaintNodeUnschedulable will be added when node becomes unschedulable
+</span><span class=c1></span>   <span class=c1>// and removed when node becomes scheduable.
+</span><span class=c1></span>    <span class=c1>// 目前设置不可调度用到的taint key
+</span><span class=c1></span>   <span class=nx>TaintNodeUnschedulable</span> <span class=p>=</span> <span class=s>&#34;node.kubernetes.io/unschedulable&#34;</span>
+
+   <span class=c1>// TaintNodeMemoryPressure will be added when node has memory pressure
+</span><span class=c1></span>   <span class=c1>// and removed when node has enough memory.
+</span><span class=c1></span>   <span class=nx>TaintNodeMemoryPressure</span> <span class=p>=</span> <span class=s>&#34;node.kubernetes.io/memory-pressure&#34;</span>
+
+   <span class=c1>// TaintNodeDiskPressure will be added when node has disk pressure
+</span><span class=c1></span>   <span class=c1>// and removed when node has enough disk.
+</span><span class=c1></span>   <span class=nx>TaintNodeDiskPressure</span> <span class=p>=</span> <span class=s>&#34;node.kubernetes.io/disk-pressure&#34;</span>
+
+   <span class=c1>// TaintNodeNetworkUnavailable will be added when node&#39;s network is unavailable
+</span><span class=c1></span>   <span class=c1>// and removed when network becomes ready.
+</span><span class=c1></span>   <span class=nx>TaintNodeNetworkUnavailable</span> <span class=p>=</span> <span class=s>&#34;node.kubernetes.io/network-unavailable&#34;</span>
+
+   <span class=c1>// TaintNodePIDPressure will be added when node has pid pressure
+</span><span class=c1></span>   <span class=c1>// and removed when node has enough disk.
+</span><span class=c1></span>   <span class=nx>TaintNodePIDPressure</span> <span class=p>=</span> <span class=s>&#34;node.kubernetes.io/pid-pressure&#34;</span>
+<span class=p>)</span>
+</code></pre></td></tr></table></div></div><h3 id=nodelifecycle>NodeLifecycle</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go>
+<span class=c1>// NewNodeLifecycleController returns a new taint controller.
+</span><span class=c1></span><span class=kd>func</span> <span class=nf>NewNodeLifecycleController</span><span class=p>(</span>
+	<span class=nx>leaseInformer</span> <span class=nx>coordinformers</span><span class=p>.</span><span class=nx>LeaseInformer</span><span class=p>,</span>
+	<span class=nx>podInformer</span> <span class=nx>coreinformers</span><span class=p>.</span><span class=nx>PodInformer</span><span class=p>,</span>
+	<span class=nx>nodeInformer</span> <span class=nx>coreinformers</span><span class=p>.</span><span class=nx>NodeInformer</span><span class=p>,</span>
+	<span class=nx>daemonSetInformer</span> <span class=nx>appsv1informers</span><span class=p>.</span><span class=nx>DaemonSetInformer</span><span class=p>,</span>
+	<span class=nx>kubeClient</span> <span class=nx>clientset</span><span class=p>.</span><span class=nx>Interface</span><span class=p>,</span>
+	<span class=nx>nodeMonitorPeriod</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Duration</span><span class=p>,</span>
+	<span class=nx>nodeStartupGracePeriod</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Duration</span><span class=p>,</span>
+	<span class=nx>nodeMonitorGracePeriod</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Duration</span><span class=p>,</span>
+	<span class=nx>podEvictionTimeout</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Duration</span><span class=p>,</span>
+	<span class=nx>evictionLimiterQPS</span> <span class=kt>float32</span><span class=p>,</span>
+	<span class=nx>secondaryEvictionLimiterQPS</span> <span class=kt>float32</span><span class=p>,</span>
+	<span class=nx>largeClusterThreshold</span> <span class=kt>int32</span><span class=p>,</span>
+	<span class=nx>unhealthyZoneThreshold</span> <span class=kt>float32</span><span class=p>,</span>
+	<span class=nx>runTaintManager</span> <span class=kt>bool</span><span class=p>,</span>
+<span class=p>)</span> <span class=p>(</span><span class=o>*</span><span class=nx>Controller</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+    <span class=c1>// ...
+</span><span class=c1></span><span class=p>}</span>
+    
+</code></pre></td></tr></table></div></div><h3 id=taint>Taint</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=c1>// The node this Taint is attached to has the &#34;effect&#34; on
+</span><span class=c1>// any pod that does not tolerate the Taint.
+</span><span class=c1></span><span class=kd>type</span> <span class=nx>Taint</span> <span class=kd>struct</span> <span class=p>{</span>
+   <span class=c1>// Required. The taint key to be applied to a node.
+</span><span class=c1></span>   <span class=nx>Key</span> <span class=kt>string</span> <span class=s>`json:&#34;key&#34; protobuf:&#34;bytes,1,opt,name=key&#34;`</span>
+   <span class=c1>// The taint value corresponding to the taint key.
+</span><span class=c1></span>   <span class=c1>// +optional
+</span><span class=c1></span>   <span class=nx>Value</span> <span class=kt>string</span> <span class=s>`json:&#34;value,omitempty&#34; protobuf:&#34;bytes,2,opt,name=value&#34;`</span>
+   <span class=c1>// Required. The effect of the taint on pods
+</span><span class=c1></span>   <span class=c1>// that do not tolerate the taint.
+</span><span class=c1></span>   <span class=c1>// Valid effects are NoSchedule, PreferNoSchedule and NoExecute.
+</span><span class=c1></span>   <span class=nx>Effect</span> <span class=nx>TaintEffect</span> <span class=s>`json:&#34;effect&#34; protobuf:&#34;bytes,3,opt,name=effect,casttype=TaintEffect&#34;`</span>
+   <span class=c1>// TimeAdded represents the time at which the taint was added.
+</span><span class=c1></span>   <span class=c1>// It is only written for NoExecute taints.
+</span><span class=c1></span>   <span class=c1>// +optional
+</span><span class=c1></span>   <span class=nx>TimeAdded</span> <span class=o>*</span><span class=nx>metav1</span><span class=p>.</span><span class=nx>Time</span> <span class=s>`json:&#34;timeAdded,omitempty&#34; protobuf:&#34;bytes,4,opt,name=timeAdded&#34;`</span>
+<span class=p>}</span>
+
+<span class=kd>type</span> <span class=nx>TaintEffect</span> <span class=kt>string</span>
+
+<span class=kd>const</span> <span class=p>(</span>
+   <span class=c1>// Do not allow new pods to schedule onto the node unless they tolerate the taint,
+</span><span class=c1></span>   <span class=c1>// but allow all pods submitted to Kubelet without going through the scheduler
+</span><span class=c1></span>   <span class=c1>// to start, and allow all already-running pods to continue running.
+</span><span class=c1></span>   <span class=c1>// Enforced by the scheduler.
+</span><span class=c1></span>   <span class=nx>TaintEffectNoSchedule</span> <span class=nx>TaintEffect</span> <span class=p>=</span> <span class=s>&#34;NoSchedule&#34;</span>
+   <span class=c1>// Like TaintEffectNoSchedule, but the scheduler tries not to schedule
+</span><span class=c1></span>   <span class=c1>// new pods onto the node, rather than prohibiting new pods from scheduling
+</span><span class=c1></span>   <span class=c1>// onto the node entirely. Enforced by the scheduler.
+</span><span class=c1></span>   <span class=nx>TaintEffectPreferNoSchedule</span> <span class=nx>TaintEffect</span> <span class=p>=</span> <span class=s>&#34;PreferNoSchedule&#34;</span>
+   <span class=c1>// NOT YET IMPLEMENTED. TODO: Uncomment field once it is implemented.
+</span><span class=c1></span>   <span class=c1>// Like TaintEffectNoSchedule, but additionally do not allow pods submitted to
+</span><span class=c1></span>   <span class=c1>// Kubelet without going through the scheduler to start.
+</span><span class=c1></span>   <span class=c1>// Enforced by Kubelet and the scheduler.
+</span><span class=c1></span>   <span class=c1>// TaintEffectNoScheduleNoAdmit TaintEffect = &#34;NoScheduleNoAdmit&#34;
+</span><span class=c1></span>
+   <span class=c1>// Evict any already-running pods that do not tolerate the taint.
+</span><span class=c1></span>   <span class=c1>// Currently enforced by NodeController.
+</span><span class=c1></span>   <span class=nx>TaintEffectNoExecute</span> <span class=nx>TaintEffect</span> <span class=p>=</span> <span class=s>&#34;NoExecute&#34;</span>
+<span class=p>)</span>
+</code></pre></td></tr></table></div></div><h3 id=donoscheduletaintingpass>doNoScheduleTaintingPass</h3><p>注意这里对taints的处理</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-go data-lang=go><span class=kd>func</span> <span class=p>(</span><span class=nx>nc</span> <span class=o>*</span><span class=nx>Controller</span><span class=p>)</span> <span class=nf>doNoScheduleTaintingPass</span><span class=p>(</span><span class=nx>nodeName</span> <span class=kt>string</span><span class=p>)</span> <span class=kt>error</span> <span class=p>{</span>
+   <span class=nx>node</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>nc</span><span class=p>.</span><span class=nx>nodeLister</span><span class=p>.</span><span class=nf>Get</span><span class=p>(</span><span class=nx>nodeName</span><span class=p>)</span>
+   <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+      <span class=c1>// If node not found, just ignore it.
+</span><span class=c1></span>      <span class=k>if</span> <span class=nx>apierrors</span><span class=p>.</span><span class=nf>IsNotFound</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span> <span class=p>{</span>
+         <span class=k>return</span> <span class=kc>nil</span>
+      <span class=p>}</span>
+      <span class=k>return</span> <span class=nx>err</span>
+   <span class=p>}</span>
+
+   <span class=c1>// Map node&#39;s condition to Taints.
+</span><span class=c1></span>   <span class=kd>var</span> <span class=nx>taints</span> <span class=p>[]</span><span class=nx>v1</span><span class=p>.</span><span class=nx>Taint</span>
+   <span class=k>for</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>condition</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>node</span><span class=p>.</span><span class=nx>Status</span><span class=p>.</span><span class=nx>Conditions</span> <span class=p>{</span>
+      <span class=k>if</span> <span class=nx>taintMap</span><span class=p>,</span> <span class=nx>found</span> <span class=o>:=</span> <span class=nx>nodeConditionToTaintKeyStatusMap</span><span class=p>[</span><span class=nx>condition</span><span class=p>.</span><span class=nx>Type</span><span class=p>];</span> <span class=nx>found</span> <span class=p>{</span>
+         <span class=k>if</span> <span class=nx>taintKey</span><span class=p>,</span> <span class=nx>found</span> <span class=o>:=</span> <span class=nx>taintMap</span><span class=p>[</span><span class=nx>condition</span><span class=p>.</span><span class=nx>Status</span><span class=p>];</span> <span class=nx>found</span> <span class=p>{</span>
+            <span class=nx>taints</span> <span class=p>=</span> <span class=nb>append</span><span class=p>(</span><span class=nx>taints</span><span class=p>,</span> <span class=nx>v1</span><span class=p>.</span><span class=nx>Taint</span><span class=p>{</span>
+               <span class=nx>Key</span><span class=p>:</span>    <span class=nx>taintKey</span><span class=p>,</span>
+               <span class=nx>Effect</span><span class=p>:</span> <span class=nx>v1</span><span class=p>.</span><span class=nx>TaintEffectNoSchedule</span><span class=p>,</span>
+            <span class=p>})</span>
+         <span class=p>}</span>
+      <span class=p>}</span>
+   <span class=p>}</span>
+   <span class=c1>// 这里，先判断了node.Spec.Unschedulable，只有node.Spec.Unschedulable=true，
+</span><span class=c1></span>    <span class=c1>// 才配置了TaintNodeUnschedulable key: &#34;node.kubernetes.io/unschedulable&#34;
+</span><span class=c1></span>   <span class=k>if</span> <span class=nx>node</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Unschedulable</span> <span class=p>{</span>
+      <span class=c1>// If unschedulable, append related taint.
+</span><span class=c1></span>      <span class=nx>taints</span> <span class=p>=</span> <span class=nb>append</span><span class=p>(</span><span class=nx>taints</span><span class=p>,</span> <span class=nx>v1</span><span class=p>.</span><span class=nx>Taint</span><span class=p>{</span>
+         <span class=nx>Key</span><span class=p>:</span>    <span class=nx>v1</span><span class=p>.</span><span class=nx>TaintNodeUnschedulable</span><span class=p>,</span>
+         <span class=nx>Effect</span><span class=p>:</span> <span class=nx>v1</span><span class=p>.</span><span class=nx>TaintEffectNoSchedule</span><span class=p>,</span>
+      <span class=p>})</span>
+   <span class=p>}</span>
+
+   <span class=c1>// Get exist taints of node.
+</span><span class=c1></span>    <span class=c1>// 这里做了过滤处理，获取node内置taintKeyToNodeConditionMap的key对应的taints
+</span><span class=c1></span>   <span class=nx>nodeTaints</span> <span class=o>:=</span> <span class=nx>taintutils</span><span class=p>.</span><span class=nf>TaintSetFilter</span><span class=p>(</span><span class=nx>node</span><span class=p>.</span><span class=nx>Spec</span><span class=p>.</span><span class=nx>Taints</span><span class=p>,</span> <span class=kd>func</span><span class=p>(</span><span class=nx>t</span> <span class=o>*</span><span class=nx>v1</span><span class=p>.</span><span class=nx>Taint</span><span class=p>)</span> <span class=kt>bool</span> <span class=p>{</span>
+      <span class=c1>// only NoSchedule taints are candidates to be compared with &#34;taints&#34; later
+</span><span class=c1></span>      <span class=k>if</span> <span class=nx>t</span><span class=p>.</span><span class=nx>Effect</span> <span class=o>!=</span> <span class=nx>v1</span><span class=p>.</span><span class=nx>TaintEffectNoSchedule</span> <span class=p>{</span>
+         <span class=k>return</span> <span class=kc>false</span>
+      <span class=p>}</span>
+      <span class=c1>// Find unschedulable taint of node.
+</span><span class=c1></span>      <span class=k>if</span> <span class=nx>t</span><span class=p>.</span><span class=nx>Key</span> <span class=o>==</span> <span class=nx>v1</span><span class=p>.</span><span class=nx>TaintNodeUnschedulable</span> <span class=p>{</span>
+         <span class=k>return</span> <span class=kc>true</span>
+      <span class=p>}</span>
+      <span class=c1>// Find node condition taints of node.
+</span><span class=c1></span>      <span class=nx>_</span><span class=p>,</span> <span class=nx>found</span> <span class=o>:=</span> <span class=nx>taintKeyToNodeConditionMap</span><span class=p>[</span><span class=nx>t</span><span class=p>.</span><span class=nx>Key</span><span class=p>]</span>
+      <span class=k>return</span> <span class=nx>found</span>
+   <span class=p>})</span>
+   <span class=c1>// 比较taints, nodeTaints
+</span><span class=c1></span>   <span class=nx>taintsToAdd</span><span class=p>,</span> <span class=nx>taintsToDel</span> <span class=o>:=</span> <span class=nx>taintutils</span><span class=p>.</span><span class=nf>TaintSetDiff</span><span class=p>(</span><span class=nx>taints</span><span class=p>,</span> <span class=nx>nodeTaints</span><span class=p>)</span>
+   <span class=c1>// If nothing to add not delete, return true directly.
+</span><span class=c1></span>   <span class=k>if</span> <span class=nb>len</span><span class=p>(</span><span class=nx>taintsToAdd</span><span class=p>)</span> <span class=o>==</span> <span class=mi>0</span> <span class=o>&amp;&amp;</span> <span class=nb>len</span><span class=p>(</span><span class=nx>taintsToDel</span><span class=p>)</span> <span class=o>==</span> <span class=mi>0</span> <span class=p>{</span>
+      <span class=k>return</span> <span class=kc>nil</span>
+   <span class=p>}</span>
+   <span class=k>if</span> <span class=p>!</span><span class=nx>nodeutil</span><span class=p>.</span><span class=nf>SwapNodeControllerTaint</span><span class=p>(</span><span class=nx>nc</span><span class=p>.</span><span class=nx>kubeClient</span><span class=p>,</span> <span class=nx>taintsToAdd</span><span class=p>,</span> <span class=nx>taintsToDel</span><span class=p>,</span> <span class=nx>node</span><span class=p>)</span> <span class=p>{</span>
+      <span class=k>return</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Errorf</span><span class=p>(</span><span class=s>&#34;failed to swap taints of node %+v&#34;</span><span class=p>,</span> <span class=nx>node</span><span class=p>)</span>
+   <span class=p>}</span>
+   <span class=k>return</span> <span class=kc>nil</span>
+<span class=p>}</span>
+</code></pre></td></tr></table></div></div><p><strong>总结：k8s对节点的TaintNodeUnschedulable taints处理，是需要根据node.Spec.Unschedulable标识，进行过滤处理的。在k8s1.20.5版本测试中，当仅设置node.Spec.Unschedulable为true时，k8s默认会自动添加TaintNodeUnschedulable key: &ldquo;node.kubernetes.io/unschedulable&rdquo;</strong></p><h2 id=附录>附录</h2><p>除了taint，还要考虑tolerance容忍度对污点标签taint的影响，可以参考下面文章</p><p>k8s 的污点（Taint）和容忍度（Toleration）https://zhuanlan.zhihu.com/p/405348246</p></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2022-05-31</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/k8s/>K8S</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2022/04/k8s%E7%9A%84%E4%B8%9A%E5%8A%A1pod%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8Fenvs%E8%A6%86%E7%9B%96k8s%E6%8F%92%E4%BB%B6devicplugin%E8%AE%BE%E7%BD%AE%E7%9A%84envs/ class=prev rel=prev title=k8s的业务pod环境变量envs覆盖k8s插件devicplugin设置的envs><i class="fas fa-angle-left fa-fw"></i>k8s的业务pod环境变量envs覆盖k8s插件devicplugin设置的envs</a></div></div><div id=comments><div id=utterances></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://utteranc.es/>Utterances</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2022</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
+<script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i></a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css><script type=text/javascript src=https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script><script type=text/javascript>window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{"utterances":{"darkTheme":"github-dark","issueTerm":"pathname","label":"","lightTheme":"github-light","repo":"bingerambo/myblog-comments"}},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type=text/javascript src=/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-81425808-1',{'anonymize_ip':true});</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script><script src=https://libs.baidu.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js></script><script type=text/javascript src=/js/custom.js></script><script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script></body></html>
