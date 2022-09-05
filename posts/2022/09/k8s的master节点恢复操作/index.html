@@ -1,0 +1,1321 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>k8s的master节点恢复操作 - 斌哥的小站|Binge Blog</title><meta name=Description content="斌哥的小站 | 这里是 @BingeRambo斌哥兰博的个人博客"><meta property="og:title" content="k8s的master节点恢复操作"><meta property="og:description" content="项目笔记：k8s的master节点恢复操作"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2022/09/k8s%E7%9A%84master%E8%8A%82%E7%82%B9%E6%81%A2%E5%A4%8D%E6%93%8D%E4%BD%9C/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2022-09-03T08:43:17+08:00"><meta property="article:modified_time" content="2022-09-03T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="k8s的master节点恢复操作"><meta name=twitter:description content="项目笔记：k8s的master节点恢复操作"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2022/09/k8s%E7%9A%84master%E8%8A%82%E7%82%B9%E6%81%A2%E5%A4%8D%E6%93%8D%E4%BD%9C/><link rel=prev href=http://bingerambo.com/posts/2022/09/arm%E5%B9%B3%E5%8F%B0%E9%95%9C%E5%83%8F%E9%80%82%E9%85%8D%E6%93%8D%E4%BD%9C/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"k8s的master节点恢复操作","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2022\/09\/k8s%E7%9A%84master%E8%8A%82%E7%82%B9%E6%81%A2%E5%A4%8D%E6%93%8D%E4%BD%9C\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":2739,"url":"http:\/\/bingerambo.com\/posts\/2022\/09\/k8s%E7%9A%84master%E8%8A%82%E7%82%B9%E6%81%A2%E5%A4%8D%E6%93%8D%E4%BD%9C\/","datePublished":"2022-09-03T08:43:17+08:00","dateModified":"2022-09-03T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":""}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">k8s的master节点恢复操作</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2022-09-03>2022-09-03</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 2739 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 6 分钟&nbsp;
+<i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#自动化恢复脚本>自动化恢复脚本</a></li></ul></nav></div></div><div class=content id=content><p>项目笔记：k8s的master节点恢复操作</p><p>如果k8s的master节点异常，更新节点设备后，需要对该master节点进行k8s恢复。
+场景：k8s高可用环境中，某master节点异常，少了一个master节点，会导致etcd的高可用状态不稳定。所以需要进行该master节点恢复。</p><h2 id=自动化恢复脚本>自动化恢复脚本</h2><p>recover_k8s_master.sh</p><p>此脚本处理k8s1.14.8版本的master组件恢复，包括：hosts_config、[docker-conf、] etcd、kubelet、master、calico</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span><span class=lnt>140
+</span><span class=lnt>141
+</span><span class=lnt>142
+</span><span class=lnt>143
+</span><span class=lnt>144
+</span><span class=lnt>145
+</span><span class=lnt>146
+</span><span class=lnt>147
+</span><span class=lnt>148
+</span><span class=lnt>149
+</span><span class=lnt>150
+</span><span class=lnt>151
+</span><span class=lnt>152
+</span><span class=lnt>153
+</span><span class=lnt>154
+</span><span class=lnt>155
+</span><span class=lnt>156
+</span><span class=lnt>157
+</span><span class=lnt>158
+</span><span class=lnt>159
+</span><span class=lnt>160
+</span><span class=lnt>161
+</span><span class=lnt>162
+</span><span class=lnt>163
+</span><span class=lnt>164
+</span><span class=lnt>165
+</span><span class=lnt>166
+</span><span class=lnt>167
+</span><span class=lnt>168
+</span><span class=lnt>169
+</span><span class=lnt>170
+</span><span class=lnt>171
+</span><span class=lnt>172
+</span><span class=lnt>173
+</span><span class=lnt>174
+</span><span class=lnt>175
+</span><span class=lnt>176
+</span><span class=lnt>177
+</span><span class=lnt>178
+</span><span class=lnt>179
+</span><span class=lnt>180
+</span><span class=lnt>181
+</span><span class=lnt>182
+</span><span class=lnt>183
+</span><span class=lnt>184
+</span><span class=lnt>185
+</span><span class=lnt>186
+</span><span class=lnt>187
+</span><span class=lnt>188
+</span><span class=lnt>189
+</span><span class=lnt>190
+</span><span class=lnt>191
+</span><span class=lnt>192
+</span><span class=lnt>193
+</span><span class=lnt>194
+</span><span class=lnt>195
+</span><span class=lnt>196
+</span><span class=lnt>197
+</span><span class=lnt>198
+</span><span class=lnt>199
+</span><span class=lnt>200
+</span><span class=lnt>201
+</span><span class=lnt>202
+</span><span class=lnt>203
+</span><span class=lnt>204
+</span><span class=lnt>205
+</span><span class=lnt>206
+</span><span class=lnt>207
+</span><span class=lnt>208
+</span><span class=lnt>209
+</span><span class=lnt>210
+</span><span class=lnt>211
+</span><span class=lnt>212
+</span><span class=lnt>213
+</span><span class=lnt>214
+</span><span class=lnt>215
+</span><span class=lnt>216
+</span><span class=lnt>217
+</span><span class=lnt>218
+</span><span class=lnt>219
+</span><span class=lnt>220
+</span><span class=lnt>221
+</span><span class=lnt>222
+</span><span class=lnt>223
+</span><span class=lnt>224
+</span><span class=lnt>225
+</span><span class=lnt>226
+</span><span class=lnt>227
+</span><span class=lnt>228
+</span><span class=lnt>229
+</span><span class=lnt>230
+</span><span class=lnt>231
+</span><span class=lnt>232
+</span><span class=lnt>233
+</span><span class=lnt>234
+</span><span class=lnt>235
+</span><span class=lnt>236
+</span><span class=lnt>237
+</span><span class=lnt>238
+</span><span class=lnt>239
+</span><span class=lnt>240
+</span><span class=lnt>241
+</span><span class=lnt>242
+</span><span class=lnt>243
+</span><span class=lnt>244
+</span><span class=lnt>245
+</span><span class=lnt>246
+</span><span class=lnt>247
+</span><span class=lnt>248
+</span><span class=lnt>249
+</span><span class=lnt>250
+</span><span class=lnt>251
+</span><span class=lnt>252
+</span><span class=lnt>253
+</span><span class=lnt>254
+</span><span class=lnt>255
+</span><span class=lnt>256
+</span><span class=lnt>257
+</span><span class=lnt>258
+</span><span class=lnt>259
+</span><span class=lnt>260
+</span><span class=lnt>261
+</span><span class=lnt>262
+</span><span class=lnt>263
+</span><span class=lnt>264
+</span><span class=lnt>265
+</span><span class=lnt>266
+</span><span class=lnt>267
+</span><span class=lnt>268
+</span><span class=lnt>269
+</span><span class=lnt>270
+</span><span class=lnt>271
+</span><span class=lnt>272
+</span><span class=lnt>273
+</span><span class=lnt>274
+</span><span class=lnt>275
+</span><span class=lnt>276
+</span><span class=lnt>277
+</span><span class=lnt>278
+</span><span class=lnt>279
+</span><span class=lnt>280
+</span><span class=lnt>281
+</span><span class=lnt>282
+</span><span class=lnt>283
+</span><span class=lnt>284
+</span><span class=lnt>285
+</span><span class=lnt>286
+</span><span class=lnt>287
+</span><span class=lnt>288
+</span><span class=lnt>289
+</span><span class=lnt>290
+</span><span class=lnt>291
+</span><span class=lnt>292
+</span><span class=lnt>293
+</span><span class=lnt>294
+</span><span class=lnt>295
+</span><span class=lnt>296
+</span><span class=lnt>297
+</span><span class=lnt>298
+</span><span class=lnt>299
+</span><span class=lnt>300
+</span><span class=lnt>301
+</span><span class=lnt>302
+</span><span class=lnt>303
+</span><span class=lnt>304
+</span><span class=lnt>305
+</span><span class=lnt>306
+</span><span class=lnt>307
+</span><span class=lnt>308
+</span><span class=lnt>309
+</span><span class=lnt>310
+</span><span class=lnt>311
+</span><span class=lnt>312
+</span><span class=lnt>313
+</span><span class=lnt>314
+</span><span class=lnt>315
+</span><span class=lnt>316
+</span><span class=lnt>317
+</span><span class=lnt>318
+</span><span class=lnt>319
+</span><span class=lnt>320
+</span><span class=lnt>321
+</span><span class=lnt>322
+</span><span class=lnt>323
+</span><span class=lnt>324
+</span><span class=lnt>325
+</span><span class=lnt>326
+</span><span class=lnt>327
+</span><span class=lnt>328
+</span><span class=lnt>329
+</span><span class=lnt>330
+</span><span class=lnt>331
+</span><span class=lnt>332
+</span><span class=lnt>333
+</span><span class=lnt>334
+</span><span class=lnt>335
+</span><span class=lnt>336
+</span><span class=lnt>337
+</span><span class=lnt>338
+</span><span class=lnt>339
+</span><span class=lnt>340
+</span><span class=lnt>341
+</span><span class=lnt>342
+</span><span class=lnt>343
+</span><span class=lnt>344
+</span><span class=lnt>345
+</span><span class=lnt>346
+</span><span class=lnt>347
+</span><span class=lnt>348
+</span><span class=lnt>349
+</span><span class=lnt>350
+</span><span class=lnt>351
+</span><span class=lnt>352
+</span><span class=lnt>353
+</span><span class=lnt>354
+</span><span class=lnt>355
+</span><span class=lnt>356
+</span><span class=lnt>357
+</span><span class=lnt>358
+</span><span class=lnt>359
+</span><span class=lnt>360
+</span><span class=lnt>361
+</span><span class=lnt>362
+</span><span class=lnt>363
+</span><span class=lnt>364
+</span><span class=lnt>365
+</span><span class=lnt>366
+</span><span class=lnt>367
+</span><span class=lnt>368
+</span><span class=lnt>369
+</span><span class=lnt>370
+</span><span class=lnt>371
+</span><span class=lnt>372
+</span><span class=lnt>373
+</span><span class=lnt>374
+</span><span class=lnt>375
+</span><span class=lnt>376
+</span><span class=lnt>377
+</span><span class=lnt>378
+</span><span class=lnt>379
+</span><span class=lnt>380
+</span><span class=lnt>381
+</span><span class=lnt>382
+</span><span class=lnt>383
+</span><span class=lnt>384
+</span><span class=lnt>385
+</span><span class=lnt>386
+</span><span class=lnt>387
+</span><span class=lnt>388
+</span><span class=lnt>389
+</span><span class=lnt>390
+</span><span class=lnt>391
+</span><span class=lnt>392
+</span><span class=lnt>393
+</span><span class=lnt>394
+</span><span class=lnt>395
+</span><span class=lnt>396
+</span><span class=lnt>397
+</span><span class=lnt>398
+</span><span class=lnt>399
+</span><span class=lnt>400
+</span><span class=lnt>401
+</span><span class=lnt>402
+</span><span class=lnt>403
+</span><span class=lnt>404
+</span><span class=lnt>405
+</span><span class=lnt>406
+</span><span class=lnt>407
+</span><span class=lnt>408
+</span><span class=lnt>409
+</span><span class=lnt>410
+</span><span class=lnt>411
+</span><span class=lnt>412
+</span><span class=lnt>413
+</span><span class=lnt>414
+</span><span class=lnt>415
+</span><span class=lnt>416
+</span><span class=lnt>417
+</span><span class=lnt>418
+</span><span class=lnt>419
+</span><span class=lnt>420
+</span><span class=lnt>421
+</span><span class=lnt>422
+</span><span class=lnt>423
+</span><span class=lnt>424
+</span><span class=lnt>425
+</span><span class=lnt>426
+</span><span class=lnt>427
+</span><span class=lnt>428
+</span><span class=lnt>429
+</span><span class=lnt>430
+</span><span class=lnt>431
+</span><span class=lnt>432
+</span><span class=lnt>433
+</span><span class=lnt>434
+</span><span class=lnt>435
+</span><span class=lnt>436
+</span><span class=lnt>437
+</span><span class=lnt>438
+</span><span class=lnt>439
+</span><span class=lnt>440
+</span><span class=lnt>441
+</span><span class=lnt>442
+</span><span class=lnt>443
+</span><span class=lnt>444
+</span><span class=lnt>445
+</span><span class=lnt>446
+</span><span class=lnt>447
+</span><span class=lnt>448
+</span><span class=lnt>449
+</span><span class=lnt>450
+</span><span class=lnt>451
+</span><span class=lnt>452
+</span><span class=lnt>453
+</span><span class=lnt>454
+</span><span class=lnt>455
+</span><span class=lnt>456
+</span><span class=lnt>457
+</span><span class=lnt>458
+</span><span class=lnt>459
+</span><span class=lnt>460
+</span><span class=lnt>461
+</span><span class=lnt>462
+</span><span class=lnt>463
+</span><span class=lnt>464
+</span><span class=lnt>465
+</span><span class=lnt>466
+</span><span class=lnt>467
+</span><span class=lnt>468
+</span><span class=lnt>469
+</span><span class=lnt>470
+</span><span class=lnt>471
+</span><span class=lnt>472
+</span><span class=lnt>473
+</span><span class=lnt>474
+</span><span class=lnt>475
+</span><span class=lnt>476
+</span><span class=lnt>477
+</span><span class=lnt>478
+</span><span class=lnt>479
+</span><span class=lnt>480
+</span><span class=lnt>481
+</span><span class=lnt>482
+</span><span class=lnt>483
+</span><span class=lnt>484
+</span><span class=lnt>485
+</span><span class=lnt>486
+</span><span class=lnt>487
+</span><span class=lnt>488
+</span><span class=lnt>489
+</span><span class=lnt>490
+</span><span class=lnt>491
+</span><span class=lnt>492
+</span><span class=lnt>493
+</span><span class=lnt>494
+</span><span class=lnt>495
+</span><span class=lnt>496
+</span><span class=lnt>497
+</span><span class=lnt>498
+</span><span class=lnt>499
+</span><span class=lnt>500
+</span><span class=lnt>501
+</span><span class=lnt>502
+</span><span class=lnt>503
+</span><span class=lnt>504
+</span><span class=lnt>505
+</span><span class=lnt>506
+</span><span class=lnt>507
+</span><span class=lnt>508
+</span><span class=lnt>509
+</span><span class=lnt>510
+</span><span class=lnt>511
+</span><span class=lnt>512
+</span><span class=lnt>513
+</span><span class=lnt>514
+</span><span class=lnt>515
+</span><span class=lnt>516
+</span><span class=lnt>517
+</span><span class=lnt>518
+</span><span class=lnt>519
+</span><span class=lnt>520
+</span><span class=lnt>521
+</span><span class=lnt>522
+</span><span class=lnt>523
+</span><span class=lnt>524
+</span><span class=lnt>525
+</span><span class=lnt>526
+</span><span class=lnt>527
+</span><span class=lnt>528
+</span><span class=lnt>529
+</span><span class=lnt>530
+</span><span class=lnt>531
+</span><span class=lnt>532
+</span><span class=lnt>533
+</span><span class=lnt>534
+</span><span class=lnt>535
+</span><span class=lnt>536
+</span><span class=lnt>537
+</span><span class=lnt>538
+</span><span class=lnt>539
+</span><span class=lnt>540
+</span><span class=lnt>541
+</span><span class=lnt>542
+</span><span class=lnt>543
+</span><span class=lnt>544
+</span><span class=lnt>545
+</span><span class=lnt>546
+</span><span class=lnt>547
+</span><span class=lnt>548
+</span><span class=lnt>549
+</span><span class=lnt>550
+</span><span class=lnt>551
+</span><span class=lnt>552
+</span><span class=lnt>553
+</span><span class=lnt>554
+</span><span class=lnt>555
+</span><span class=lnt>556
+</span><span class=lnt>557
+</span><span class=lnt>558
+</span><span class=lnt>559
+</span><span class=lnt>560
+</span><span class=lnt>561
+</span><span class=lnt>562
+</span><span class=lnt>563
+</span><span class=lnt>564
+</span><span class=lnt>565
+</span><span class=lnt>566
+</span><span class=lnt>567
+</span><span class=lnt>568
+</span><span class=lnt>569
+</span><span class=lnt>570
+</span><span class=lnt>571
+</span><span class=lnt>572
+</span><span class=lnt>573
+</span><span class=lnt>574
+</span><span class=lnt>575
+</span><span class=lnt>576
+</span><span class=lnt>577
+</span><span class=lnt>578
+</span><span class=lnt>579
+</span><span class=lnt>580
+</span><span class=lnt>581
+</span><span class=lnt>582
+</span><span class=lnt>583
+</span><span class=lnt>584
+</span><span class=lnt>585
+</span><span class=lnt>586
+</span><span class=lnt>587
+</span><span class=lnt>588
+</span><span class=lnt>589
+</span><span class=lnt>590
+</span><span class=lnt>591
+</span><span class=lnt>592
+</span><span class=lnt>593
+</span><span class=lnt>594
+</span><span class=lnt>595
+</span><span class=lnt>596
+</span><span class=lnt>597
+</span><span class=lnt>598
+</span><span class=lnt>599
+</span><span class=lnt>600
+</span><span class=lnt>601
+</span><span class=lnt>602
+</span><span class=lnt>603
+</span><span class=lnt>604
+</span><span class=lnt>605
+</span><span class=lnt>606
+</span><span class=lnt>607
+</span><span class=lnt>608
+</span><span class=lnt>609
+</span><span class=lnt>610
+</span><span class=lnt>611
+</span><span class=lnt>612
+</span><span class=lnt>613
+</span><span class=lnt>614
+</span><span class=lnt>615
+</span><span class=lnt>616
+</span><span class=lnt>617
+</span><span class=lnt>618
+</span><span class=lnt>619
+</span><span class=lnt>620
+</span><span class=lnt>621
+</span><span class=lnt>622
+</span><span class=lnt>623
+</span><span class=lnt>624
+</span><span class=lnt>625
+</span><span class=lnt>626
+</span><span class=lnt>627
+</span><span class=lnt>628
+</span><span class=lnt>629
+</span><span class=lnt>630
+</span><span class=lnt>631
+</span><span class=lnt>632
+</span><span class=lnt>633
+</span><span class=lnt>634
+</span><span class=lnt>635
+</span><span class=lnt>636
+</span><span class=lnt>637
+</span><span class=lnt>638
+</span><span class=lnt>639
+</span><span class=lnt>640
+</span><span class=lnt>641
+</span><span class=lnt>642
+</span><span class=lnt>643
+</span><span class=lnt>644
+</span><span class=lnt>645
+</span><span class=lnt>646
+</span><span class=lnt>647
+</span><span class=lnt>648
+</span><span class=lnt>649
+</span><span class=lnt>650
+</span><span class=lnt>651
+</span><span class=lnt>652
+</span><span class=lnt>653
+</span><span class=lnt>654
+</span><span class=lnt>655
+</span><span class=lnt>656
+</span><span class=lnt>657
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash><span class=cp>#!/bin/bash
+</span><span class=cp></span><span class=c1># 此脚本处理k8s1.14.8版本的master组件恢复，包括：hosts_config、[docker-conf、] etcd、kubelet、master、calico</span>
+
+<span class=c1># k8s恢复脚本执行预置条件：</span>
+<span class=c1># 1. 新节点已配置待恢复节点的ip和hostname</span>
+<span class=c1># 2. 新节点已配置集群节点hosts，并能与原集群节点免密访问</span>
+<span class=c1># 3. 新节点已安装了etcd和k8s相关组件</span>
+<span class=c1># 4. 已知要执行恢复操作的版本是 v3_1(k8s1.14.8) 还是 v3_2(k8s1.20.5)</span>
+<span class=c1># 5. 已知原节点的hostname、ip、etcdname和待恢复节点的hostname、ip、etcdname</span>
+
+
+stop_commons<span class=o>(){</span>
+	<span class=c1>#systemctl stop harbor</span>
+
+	systemctl stop kubelet
+
+	systemctl stop etcd
+
+	systemctl stop docker
+
+<span class=o>}</span>
+
+start_commons<span class=o>(){</span>
+	systemctl daemon-reload
+	systemctl restart docker
+	<span class=c1>#sleep 2s</span>
+	systemctl restart etcd
+	sleep 2s
+	systemctl <span class=nb>enable</span> kubelet
+	systemctl restart kubelet
+	sleep 5s
+<span class=o>}</span>
+
+
+hosts_config<span class=o>(){</span>
+
+<span class=c1>## 1. hosts-conf</span>
+<span class=nb>set</span> -e
+scp -r <span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span>:/etc/hosts /etc/hosts
+
+<span class=nb>set</span> +e
+<span class=o>}</span>
+
+
+etcd_collect_config<span class=o>(){</span>
+	
+	<span class=c1># src_ip=10.151.11.61</span>
+	<span class=c1># new_ip=192.168.100.3</span>
+	<span class=c1># src_hostname=node1</span>
+	<span class=c1># new_hostname=node3</span>
+	<span class=c1># src_etcdname=etcd1</span>
+	<span class=c1># new_etcdname=etcd3</span>
+	<span class=nb>set</span> -e
+	scp -r  <span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span>:/etc/ssl/etcd /home/recover/etc/
+	<span class=nb>set</span> +e
+	cp -r /etc/ssl/etcd /home/tmp/etcd
+
+	rm -rf /etc/ssl/etcd
+	cp -r /home/recover/etc/etcd  /etc/ssl/
+
+
+	<span class=c1>## check etcd ssl </span>
+	<span class=c1># grep_ret=$(ls /etc/ssl/etcd/ssl |grep node1|wc -l)</span>
+	<span class=nv>grep_ret</span><span class=o>=</span><span class=k>$(</span>ls /etc/ssl/etcd/ssl <span class=p>|</span>grep <span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span> <span class=p>|</span>wc -l<span class=k>)</span>
+
+	<span class=k>if</span> <span class=o>[[</span> <span class=si>${</span><span class=nv>grep_ret</span><span class=si>}</span> <span class=o>==</span> <span class=m>0</span> <span class=o>]]</span><span class=p>;</span> <span class=k>then</span>
+		<span class=c1>#statements</span>
+		<span class=nb>echo</span> <span class=s2>&#34;Failed to etcd_collect_config etcd ssl.&#34;</span>
+		<span class=nb>exit</span> <span class=m>11</span>
+	<span class=k>fi</span>
+
+	<span class=c1>## etcd cofig</span>
+	<span class=nb>set</span> -e
+	scp -r <span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span>:/etc/etcd.env /etc/etcd.env
+	scp -r <span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span>:/etc/systemd/system/etcd.service  /etc/systemd/system/etcd.service
+	scp -r <span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span>:/usr/local/bin/etcd  /usr/local/bin/etcd
+	scp -r <span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span>:/usr/local/bin/etcdctl /usr/local/bin/etcdctl
+	<span class=c1># scp -r ${src_ip}:/usr/local/bin/etcd-scripts /usr/local/bin/etcd-scripts</span>
+
+	<span class=nb>set</span> +e
+<span class=o>}</span>
+
+etcd_common_config<span class=o>(){</span>
+	<span class=nb>set</span> -e
+	<span class=c1>## vi /etc/etcd.env</span>
+
+	<span class=nv>etcd_env</span><span class=o>=</span>/etc/etcd.env
+
+	<span class=c1># src_ip=10.151.11.61</span>
+	<span class=c1># new_ip=192.168.100.3</span>
+	<span class=c1># src_hostname=node1</span>
+	<span class=c1># new_hostname=node3</span>
+	<span class=c1># src_etcdname=etcd1</span>
+	<span class=c1># new_etcdname=etcd3</span>
+
+	
+	<span class=c1># sed -n &#39;/^ETCD_INITIAL_CLUSTER=/!s/&#39;${src_ip}&#39;/&#39;${new_ip}&#39;/gp&#39; ${etcd_env}</span>
+	sed -i <span class=s1>&#39;/^ETCD_INITIAL_CLUSTER=/!s/&#39;</span><span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span><span class=s1>&#39;/&#39;</span><span class=si>${</span><span class=nv>new_ip</span><span class=si>}</span><span class=s1>&#39;/g&#39;</span> <span class=si>${</span><span class=nv>etcd_env</span><span class=si>}</span>
+	sed -i <span class=s1>&#39;s|ETCD_NAME=.*$|ETCD_NAME=&#39;</span><span class=si>${</span><span class=nv>new_etcdname</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>etcd_env</span><span class=si>}</span>
+	sed -i <span class=s1>&#39;s|&#39;</span><span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span><span class=s1>&#39;|&#39;</span><span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>etcd_env</span><span class=si>}</span>
+
+	<span class=c1>## vi /etc/systemd/system/etcd.service</span>
+
+	<span class=nv>etcd_service</span><span class=o>=</span>/etc/systemd/system/etcd.service
+	sed -i <span class=s1>&#39;s|&#39;</span><span class=si>${</span><span class=nv>src_etcdname</span><span class=si>}</span><span class=s1>&#39;|&#39;</span><span class=si>${</span><span class=nv>new_etcdname</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>etcd_service</span><span class=si>}</span>
+
+
+	<span class=c1>## vi /usr/local/bin/etcd</span>
+	<span class=nv>etcd_bin</span><span class=o>=</span>/usr/local/bin/etcd
+	sed -i <span class=s1>&#39;s|&#39;</span><span class=si>${</span><span class=nv>src_etcdname</span><span class=si>}</span><span class=s1>&#39;|&#39;</span><span class=si>${</span><span class=nv>new_etcdname</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>etcd_bin</span><span class=si>}</span>
+	
+	<span class=nb>set</span> +e
+	
+	
+	<span class=c1>## config new etcd member </span>
+	
+	systemctl stop etcd
+	<span class=c1># ETCDCTL_API=3 etcdctl --endpoints=https://100.7.36.106:2379 --cacert=/etc/ssl/etcd/ssl/ca.pem --cert=/etc/ssl/etcd/ssl/member-node1.pem --key=/etc/ssl/etcd/ssl/member-node1-key.pem member list |grep etcd3 |cut -d&#34;,&#34; -f1</span>
+	
+	
+	rm -rf  /var/lib/etcd/
+	
+	<span class=c1>## get new_etcdid</span>
+	<span class=nv>new_etcdid</span><span class=o>=</span><span class=k>$(</span><span class=nv>ETCDCTL_API</span><span class=o>=</span><span class=m>3</span> etcdctl --endpoints<span class=o>=</span>https://<span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span>:2379 --cacert<span class=o>=</span>/etc/ssl/etcd/ssl/ca.pem --cert<span class=o>=</span>/etc/ssl/etcd/ssl/member-<span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span>.pem --key<span class=o>=</span>/etc/ssl/etcd/ssl/member-<span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span>-key.pem member list <span class=p>|</span>grep <span class=si>${</span><span class=nv>new_etcdname</span><span class=si>}</span> <span class=p>|</span>cut -d<span class=s2>&#34;,&#34;</span> -f1<span class=k>)</span>
+	
+	<span class=k>if</span> <span class=o>[[</span> <span class=s2>&#34;x&#34;</span><span class=si>${</span><span class=nv>new_etcdid</span><span class=si>}</span><span class=s2>&#34;x&#34;</span> <span class=o>==</span> <span class=s2>&#34;xx&#34;</span> <span class=o>]]</span><span class=p>;</span><span class=k>then</span>
+        <span class=nb>echo</span> <span class=s2>&#34;Warning: Failed to find </span><span class=si>${</span><span class=nv>new_etcdname</span><span class=si>}</span><span class=s2> in etcd member list. Check the new_etcdname validity&#34;</span>
+        <span class=nb>exit</span> <span class=m>12</span>
+    <span class=k>fi</span>
+	
+	
+	<span class=c1>## remove this new_etcdid member</span>
+	<span class=nv>ETCDCTL_API</span><span class=o>=</span><span class=m>3</span> etcdctl --endpoints<span class=o>=</span>https://<span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span>:2379 --cacert<span class=o>=</span>/etc/ssl/etcd/ssl/ca.pem --cert<span class=o>=</span>/etc/ssl/etcd/ssl/member-<span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span>.pem --key<span class=o>=</span>/etc/ssl/etcd/ssl/member-<span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span>-key.pem member remove <span class=si>${</span><span class=nv>new_etcdid</span><span class=si>}</span>
+	<span class=c1>## add this new_etcdname member</span>
+	<span class=nv>ETCDCTL_API</span><span class=o>=</span><span class=m>3</span> etcdctl --endpoints<span class=o>=</span>https://<span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span>:2379 --cacert<span class=o>=</span>/etc/ssl/etcd/ssl/ca.pem --cert<span class=o>=</span>/etc/ssl/etcd/ssl/member-<span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span>.pem --key<span class=o>=</span>/etc/ssl/etcd/ssl/member-<span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span>-key.pem member add <span class=si>${</span><span class=nv>new_etcdname</span><span class=si>}</span> --peer-urls<span class=o>=</span>https://<span class=si>${</span><span class=nv>new_ip</span><span class=si>}</span>:2380
+
+	
+
+	systemctl daemon-reload
+	systemctl start docker
+	systemctl <span class=nb>enable</span> etcd
+	systemctl restart etcd
+
+	sleep 15s
+
+	<span class=c1>## check etcd</span>
+	<span class=nv>ETCDCTL_API</span><span class=o>=</span><span class=m>3</span> etcdctl --endpoints<span class=o>=</span>https://<span class=si>${</span><span class=nv>new_ip</span><span class=si>}</span>:2379 --cacert<span class=o>=</span>/etc/ssl/etcd/ssl/ca.pem --cert<span class=o>=</span>/etc/ssl/etcd/ssl/member-<span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span>.pem --key<span class=o>=</span>/etc/ssl/etcd/ssl/member-<span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span>-key.pem member list
+	<span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+	<span class=nv>ETCDCTL_API</span><span class=o>=</span><span class=m>3</span> etcdctl --endpoints<span class=o>=</span>https://<span class=si>${</span><span class=nv>new_ip</span><span class=si>}</span>:2379 --cacert<span class=o>=</span>/etc/ssl/etcd/ssl/ca.pem --cert<span class=o>=</span>/etc/ssl/etcd/ssl/member-<span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span>.pem --key<span class=o>=</span>/etc/ssl/etcd/ssl/member-<span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span>-key.pem endpoint status --cluster -w table
+
+	<span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+	<span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+	<span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+<span class=o>}</span>
+
+<span class=c1># config aist-v3.1: etcd v3.3.10</span>
+etcd_config_v3_1<span class=o>(){</span>
+	etcd_common_config
+<span class=o>}</span>
+
+<span class=c1># config aist-v3.2: etcd v3.4.13</span>
+etcd_config_v3_2<span class=o>(){</span>
+	etcd_common_config
+<span class=o>}</span>
+
+
+
+k8s_collect_config<span class=o>(){</span>
+
+	<span class=c1># src_ip=10.151.11.61</span>
+	<span class=c1># new_ip=192.168.100.3</span>
+	<span class=c1># src_hostname=node1</span>
+	<span class=c1># new_hostname=node3</span>
+	<span class=c1># src_etcdname=etcd1</span>
+	<span class=c1># new_etcdname=etcd3</span>
+
+	<span class=c1># 1. 收集k8s etc config</span>
+	<span class=c1>## 备份拷贝到临时目录</span>
+	cp -r /etc/kubernetes /home/tmp/kubernetes
+	<span class=c1>## 收集配置文件</span>
+	<span class=nb>set</span> -e
+	scp -r <span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span>:/etc/kubernetes /home/recover/kubernetes
+	<span class=nb>set</span> +e
+
+	rm -rf /etc/kubernetes
+	cp -r /home/recover/kubernetes /etc/kubernetes
+
+	<span class=c1># 2. 收集kubelet</span>
+	<span class=c1>## 拷贝过程会提示kubelet.sock无法拷贝，无影响</span>
+
+	rm -rf /var/lib/kubelet
+
+	scp -r  <span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span>:/var/lib/kubelet /var/lib/kubelet
+	scp -r <span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span>:/etc/systemd/system/kubelet.service /etc/systemd/system/kubelet.service
+
+
+	<span class=c1>#3 . 收集cni配置和程序文件</span>
+	<span class=c1>## 备份拷贝到临时目录</span>
+	cp -r /etc/cni /home/tmp/cni
+	cp -r /opt/cni /home/tmp/cni
+
+	<span class=c1>## --cni-conf-dir=/etc/cni/net.d --cni-bin-dir=/opt/cni/bin</span>
+	<span class=c1>## 直接拷贝到目标目录</span>
+
+	rm -rf /etc/cni
+	rm -rf /opt/cni
+	<span class=nb>set</span> -e
+	scp -r  <span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span>:/etc/cni /etc/cni
+	scp -r  <span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span>:/opt/cni /opt/cni
+	<span class=nb>set</span> +e
+<span class=o>}</span>
+
+
+
+calico_common_config<span class=o>(){</span>
+	<span class=c1># src_ip=10.151.11.61</span>
+	<span class=c1># new_ip=192.168.100.3</span>
+	<span class=c1># src_hostname=node1</span>
+	<span class=c1># new_hostname=node3</span>
+	<span class=c1># src_etcdname=etcd1</span>
+	<span class=c1># new_etcdname=etcd3</span>
+	<span class=nb>set</span> -e
+	<span class=c1># vi /etc/cni/net.d/calico.conflist.template /etc/cni/net.d/10-calico.conflist </span>
+	<span class=nv>calico_conflist_template</span><span class=o>=</span>/etc/cni/net.d/calico.conflist.template
+	<span class=nv>calico_conflist</span><span class=o>=</span>/etc/cni/net.d/10-calico.conflist
+	<span class=c1>#sed -i &#39;s|&#34;nodename&#34;: &#34;&#39;${src_hostname}&#39;&#34;|&#34;nodename&#34;: &#34;&#39;${new_hostname}&#39;&#34;|g&#39; ${calico_conflist}</span>
+	
+	sed -i <span class=s1>&#39;s|&#39;</span><span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span><span class=s1>&#39;|&#39;</span><span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>calico_conflist_template</span><span class=si>}</span>
+
+	sed -i <span class=s1>&#39;s|&#39;</span><span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span><span class=s1>&#39;|&#39;</span><span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>calico_conflist</span><span class=si>}</span>
+
+	
+	
+	<span class=c1># vi /var/lib/calico/nodename</span>
+	<span class=nb>echo</span> <span class=s2>&#34;</span><span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span><span class=s2>&#34;</span> &gt; /var/lib/calico/nodename
+	
+	<span class=nb>set</span> +e
+	rm -rf /var/lib/cni/cache
+
+<span class=o>}</span>
+
+<span class=c1># calico_crerts_config for aist-v3.1: k8s1.14.8</span>
+calico_crerts_config<span class=o>(){</span>
+	<span class=nv>calico_cert_dir</span><span class=o>=</span>/etc/calico/certs
+	<span class=nv>kube_etcd_cacert_file</span><span class=o>=</span>ca.pem
+	<span class=nv>kube_etcd_cert_file</span><span class=o>=</span>node-<span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span>.pem
+	<span class=nv>kube_etcd_key_file</span><span class=o>=</span>node-<span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span>-key.pem
+
+	rm -rf <span class=si>${</span><span class=nv>calico_cert_dir</span><span class=si>}</span>
+	mkdir -p <span class=si>${</span><span class=nv>calico_cert_dir</span><span class=si>}</span>
+
+	<span class=nb>cd</span> /etc/ssl/etcd/ssl
+
+	/bin/cp -rf <span class=si>${</span><span class=nv>kube_etcd_cacert_file</span><span class=si>}</span> <span class=si>${</span><span class=nv>calico_cert_dir</span><span class=si>}</span>/ca_cert.crt
+
+	/bin/cp -rf <span class=si>${</span><span class=nv>kube_etcd_cert_file</span><span class=si>}</span> <span class=si>${</span><span class=nv>calico_cert_dir</span><span class=si>}</span>/cert.crt
+
+	/bin/cp -rf <span class=si>${</span><span class=nv>kube_etcd_key_file</span><span class=si>}</span> <span class=si>${</span><span class=nv>calico_cert_dir</span><span class=si>}</span>/key.pem
+
+	<span class=c1># ll ${calico_cert_dir}</span>
+
+	<span class=nv>grep_ret</span><span class=o>=</span><span class=k>$(</span>ls <span class=si>${</span><span class=nv>calico_cert_dir</span><span class=si>}</span> <span class=p>|</span>wc -l<span class=k>)</span>
+
+	<span class=k>if</span> <span class=o>[[</span> <span class=si>${</span><span class=nv>grep_ret</span><span class=si>}</span> !<span class=o>=</span> <span class=m>3</span> <span class=o>]]</span><span class=p>;</span> <span class=k>then</span>
+		<span class=c1>#statements</span>
+		<span class=nb>echo</span> <span class=s2>&#34;Failed to calico_crerts_config crerts.&#34;</span>
+		<span class=nb>exit</span> <span class=m>31</span>
+	<span class=k>fi</span>
+
+	<span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+	<span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+
+
+<span class=o>}</span>
+
+
+<span class=c1># config aist-v3.1: k8s v1.14.8</span>
+calico_config_v3_1<span class=o>(){</span>
+	calico_common_config
+	calico_crerts_config
+
+<span class=o>}</span>
+
+<span class=c1># config aist-v3.2: k8s v1.20.5</span>
+calico_config_v3_2<span class=o>(){</span>
+	calico_common_config
+
+<span class=o>}</span>
+
+sysctl_config_v3_2<span class=o>(){</span>
+	scp -r  <span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span>:/etc/sysctl.d/bridge-nf-call.conf  /etc/sysctl.d/bridge-nf-call.conf
+	sysctl -p /etc/sysctl.d/bridge-nf-call.conf
+
+<span class=o>}</span>
+
+label_master_node<span class=o>(){</span>
+	kubectl label --overwrite nodes <span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span> node-role.kubernetes.io/master<span class=o>=</span><span class=nb>true</span>
+	
+	<span class=k>if</span> <span class=o>[[</span> <span class=nv>$?</span> !<span class=o>=</span> <span class=m>0</span> <span class=o>]]</span><span class=p>;</span> <span class=k>then</span>
+		<span class=c1>#statements</span>
+		<span class=nb>echo</span> <span class=s2>&#34;Failed to kubectl label --overwrite nodes </span><span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span><span class=s2> node-role.kubernetes.io/master=true, and to retry...&#34;</span>
+		sleep 3s
+		kubectl label --overwrite nodes <span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span> node-role.kubernetes.io/master<span class=o>=</span><span class=nb>true</span>
+	<span class=k>fi</span>
+<span class=o>}</span>
+
+
+<span class=c1># config aist-v3.1: k8s v1.14.8</span>
+k8s_config_v3_1<span class=o>(){</span>
+
+	<span class=c1># src_ip=10.151.11.61</span>
+	<span class=c1># new_ip=192.168.100.3</span>
+	<span class=c1># src_hostname=node1</span>
+	<span class=c1># new_hostname=node3</span>
+	<span class=c1># src_etcdname=etcd1</span>
+	<span class=c1># new_etcdname=etcd3</span>
+	
+	stop_commons
+
+	calico_config_v3_1
+	
+	<span class=nb>set</span> -e
+	<span class=c1>## vi /etc/kubernetes/kubelet.env</span>
+
+	<span class=nv>kubelet_env</span><span class=o>=</span>/etc/kubernetes/kubelet.env
+	<span class=c1># kubelet_env=kubelet.env</span>
+
+	sed -i <span class=s1>&#39;s|--address=&#39;</span><span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span><span class=s1>&#39;|--address=&#39;</span><span class=si>${</span><span class=nv>new_ip</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>kubelet_env</span><span class=si>}</span>
+	sed -i <span class=s1>&#39;s|--node-ip=&#39;</span><span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span><span class=s1>&#39;|--node-ip=&#39;</span><span class=si>${</span><span class=nv>new_ip</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>kubelet_env</span><span class=si>}</span>
+	sed -i <span class=s1>&#39;s|--hostname-override=&#39;</span><span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span><span class=s1>&#39;|--hostname-override=&#39;</span><span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>kubelet_env</span><span class=si>}</span>
+
+
+	<span class=c1>## vi /etc/kubernetes/kubeadm-config.yaml</span>
+	
+	<span class=nv>kubeadm_config</span><span class=o>=</span>/etc/kubernetes/kubeadm-config.yaml
+	<span class=c1># kubeadm_config=kubeadm-config.yaml</span>
+
+	<span class=c1># advertiseAddress: 10.151.11.61</span>
+	sed -i <span class=s1>&#39;s|advertiseAddress: &#39;</span><span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span><span class=s1>&#39;|advertiseAddress: &#39;</span><span class=si>${</span><span class=nv>new_ip</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>kubeadm_config</span><span class=si>}</span>
+	<span class=c1># sed -n &#39;s|^[#]*[ ]*name: &#39;${src_hostname}&#39;|  name: &#39;${new_hostname}&#39;|gp&#39; ${kubeadm_config}</span>
+	<span class=c1># sed -n &#39;s|  name: &#39;${src_hostname}&#39;|  name: &#39;${new_hostname}&#39;|gp&#39; ${kubeadm_config}</span>
+	sed -i <span class=s1>&#39;s|  name: &#39;</span><span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span><span class=s1>&#39;|  name: &#39;</span><span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>kubeadm_config</span><span class=si>}</span>
+
+	<span class=c1># sed -n &#39;s|/etc/ssl/etcd/ssl/node-&#39;${src_hostname}&#39;.pem|/etc/ssl/etcd/ssl/node-&#39;${new_hostname}&#39;.pem|gp&#39; ${kubeadm_config}</span>
+	<span class=c1># sed -n &#39;s|/etc/ssl/etcd/ssl/node-&#39;${src_hostname}&#39;-key.pem|/etc/ssl/etcd/ssl/node-&#39;${new_hostname}&#39;-key.pem|gp&#39; ${kubeadm_config}</span>
+	sed -i <span class=s1>&#39;s|/etc/ssl/etcd/ssl/node-&#39;</span><span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span><span class=s1>&#39;.pem|/etc/ssl/etcd/ssl/node-&#39;</span><span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span><span class=s1>&#39;.pem|g&#39;</span> <span class=si>${</span><span class=nv>kubeadm_config</span><span class=si>}</span>
+	sed -i <span class=s1>&#39;s|/etc/ssl/etcd/ssl/node-&#39;</span><span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span><span class=s1>&#39;-key.pem|/etc/ssl/etcd/ssl/node-&#39;</span><span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span><span class=s1>&#39;-key.pem|g&#39;</span> <span class=si>${</span><span class=nv>kubeadm_config</span><span class=si>}</span>
+
+
+	sed -i <span class=s1>&#39;s|    bind-address: &#39;</span><span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span><span class=s1>&#39;|    bind-address: &#39;</span><span class=si>${</span><span class=nv>new_ip</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>kubeadm_config</span><span class=si>}</span>
+	sed -i <span class=s1>&#39;s|    insecure-bind-address: &#39;</span><span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span><span class=s1>&#39;|    insecure-bind-address: &#39;</span><span class=si>${</span><span class=nv>new_ip</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>kubeadm_config</span><span class=si>}</span>
+
+
+	sed -i <span class=s1>&#39;s|hostnameOverride: &#39;</span><span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span><span class=s1>&#39;|hostnameOverride: &#39;</span><span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>kubeadm_config</span><span class=si>}</span>
+	<span class=nb>set</span> +e
+
+
+
+	<span class=c1>## cache delete</span>
+
+	rm -rf /etc/kubernetes/admin.conf
+ 
+	rm -rf /etc/kubernetes/kubelet.conf
+
+	<span class=c1># 删除kubelet的pki</span>
+	rm -rf /var/lib/kubelet/pki
+	<span class=c1># 如果安装包指定kubelet其它数据目录（如：/var/lib/data/kubelet/），则也同样删除</span>
+	rm -rf /var/lib/data/kubelet/pki
+
+
+	<span class=nb>cd</span> /etc/kubernetes
+	/usr/local/bin/kubeadm init --config<span class=o>=</span>/etc/kubernetes/kubeadm-config.yaml --ignore-preflight-errors<span class=o>=</span>all
+
+	<span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+	<span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+	<span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+
+	<span class=c1># debug</span>
+	<span class=c1># cat /etc/kubernetes/admin.conf</span>
+	<span class=c1># cat /etc/kubernetes/kubelet.conf</span>
+
+
+
+	mkdir -p /root/.kube
+	sudo /bin/cp -rf /etc/kubernetes/admin.conf /root/.kube/config
+
+	
+
+	start_commons
+	
+	label_master_node
+
+	sleep 5s
+
+
+<span class=o>}</span>
+
+<span class=c1># config aist-v3.2: k8s v1.20.5</span>
+k8s_config_v3_2<span class=o>(){</span>
+
+	<span class=c1># src_ip=10.151.11.61</span>
+	<span class=c1># new_ip=192.168.100.3</span>
+	<span class=c1># src_hostname=node1</span>
+	<span class=c1># new_hostname=node3</span>
+	<span class=c1># src_etcdname=etcd1</span>
+	<span class=c1># new_etcdname=etcd3</span>
+	
+	stop_commons
+
+	calico_config_v3_2
+	
+	
+	<span class=nb>set</span> -e
+	<span class=c1>## vi /etc/kubernetes/kubelet.env</span>
+
+	<span class=nv>kubelet_env</span><span class=o>=</span>/etc/kubernetes/kubelet.env
+	<span class=c1># kubelet_env=kubelet.env</span>
+
+	sed -i <span class=s1>&#39;s|--address=&#39;</span><span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span><span class=s1>&#39;|--address=&#39;</span><span class=si>${</span><span class=nv>new_ip</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>kubelet_env</span><span class=si>}</span>
+	sed -i <span class=s1>&#39;s|--node-ip=&#39;</span><span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span><span class=s1>&#39;|--node-ip=&#39;</span><span class=si>${</span><span class=nv>new_ip</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>kubelet_env</span><span class=si>}</span>
+	sed -i <span class=s1>&#39;s|--hostname-override=&#39;</span><span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span><span class=s1>&#39;|--hostname-override=&#39;</span><span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>kubelet_env</span><span class=si>}</span>
+
+
+	<span class=c1>## vi /etc/kubernetes/kubeadm-config.yaml</span>
+	
+	<span class=nv>kubeadm_config</span><span class=o>=</span>/etc/kubernetes/kubeadm-config.yaml
+	<span class=c1>#kubeadm_config=kubeadm-config.yaml</span>
+
+	<span class=c1># advertiseAddress: 10.151.11.61</span>
+	sed -i <span class=s1>&#39;s|advertiseAddress: &#39;</span><span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span><span class=s1>&#39;|advertiseAddress: &#39;</span><span class=si>${</span><span class=nv>new_ip</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>kubeadm_config</span><span class=si>}</span>
+	<span class=c1># sed -n &#39;s|^[#]*[ ]*name: &#39;${src_hostname}&#39;|  name: &#39;${new_hostname}&#39;|gp&#39; ${kubeadm_config}</span>
+	<span class=c1># sed -n &#39;s|  name: &#39;${src_hostname}&#39;|  name: &#39;${new_hostname}&#39;|gp&#39; ${kubeadm_config}</span>
+	sed -i <span class=s1>&#39;s|  name: &#39;</span><span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span><span class=s1>&#39;|  name: &#39;</span><span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>kubeadm_config</span><span class=si>}</span>
+
+	<span class=c1># sed -n &#39;s|/etc/ssl/etcd/ssl/node-&#39;${src_hostname}&#39;.pem|/etc/ssl/etcd/ssl/node-&#39;${new_hostname}&#39;.pem|gp&#39; ${kubeadm_config}</span>
+	<span class=c1># sed -n &#39;s|/etc/ssl/etcd/ssl/node-&#39;${src_hostname}&#39;-key.pem|/etc/ssl/etcd/ssl/node-&#39;${new_hostname}&#39;-key.pem|gp&#39; ${kubeadm_config}</span>
+	sed -i <span class=s1>&#39;s|/etc/ssl/etcd/ssl/node-&#39;</span><span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span><span class=s1>&#39;.pem|/etc/ssl/etcd/ssl/node-&#39;</span><span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span><span class=s1>&#39;.pem|g&#39;</span> <span class=si>${</span><span class=nv>kubeadm_config</span><span class=si>}</span>
+	sed -i <span class=s1>&#39;s|/etc/ssl/etcd/ssl/node-&#39;</span><span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span><span class=s1>&#39;-key.pem|/etc/ssl/etcd/ssl/node-&#39;</span><span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span><span class=s1>&#39;-key.pem|g&#39;</span> <span class=si>${</span><span class=nv>kubeadm_config</span><span class=si>}</span>
+
+
+	sed -i <span class=s1>&#39;s|    bind-address: &#39;</span><span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span><span class=s1>&#39;|    bind-address: &#39;</span><span class=si>${</span><span class=nv>new_ip</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>kubeadm_config</span><span class=si>}</span>
+	<span class=c1># k8s1.20.5: insecure-bind-address=0</span>
+	<span class=c1># sed -i &#39;s|    insecure-bind-address: &#39;${src_ip}&#39;|    insecure-bind-address: &#39;${new_ip}&#39;|g&#39; ${kubeadm_config}</span>
+
+
+	sed -i <span class=s1>&#39;s|hostnameOverride: &#39;</span><span class=si>${</span><span class=nv>src_hostname</span><span class=si>}</span><span class=s1>&#39;|hostnameOverride: &#39;</span><span class=si>${</span><span class=nv>new_hostname</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> <span class=si>${</span><span class=nv>kubeadm_config</span><span class=si>}</span>
+	<span class=nb>set</span> +e
+
+
+
+	<span class=c1>## cache delete</span>
+
+	rm -rf /etc/kubernetes/admin.conf
+ 
+	rm -rf /etc/kubernetes/kubelet.conf
+
+	<span class=c1># 删除kubelet的pki</span>
+	rm -rf /var/lib/kubelet/pki
+	<span class=c1># 如果安装包指定kubelet其它数据目录（如：/var/lib/data/kubelet/），则也同样删除</span>
+	rm -rf /var/lib/data/kubelet/pki
+
+
+	<span class=nb>cd</span> /etc/kubernetes
+	/usr/local/bin/kubeadm init --config<span class=o>=</span>/etc/kubernetes/kubeadm-config.yaml --ignore-preflight-errors<span class=o>=</span>all
+
+	<span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+	<span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+	<span class=nb>echo</span> <span class=s2>&#34;&#34;</span>
+
+	<span class=c1># debug</span>
+	<span class=c1># cat /etc/kubernetes/admin.conf</span>
+	<span class=c1># cat /etc/kubernetes/kubelet.conf</span>
+
+
+
+	mkdir -p /root/.kube
+	sudo /bin/cp -rf /etc/kubernetes/admin.conf /root/.kube/config
+
+	
+
+	<span class=c1># only for v3_2 基于spray 这个不是必需的了</span>
+	<span class=c1># sysctl_config_v3_2</span>
+
+
+	start_commons
+	
+	label_master_node
+	
+	sleep 5s
+<span class=o>}</span>
+
+
+
+
+recover_k8s_v3_1<span class=o>(){</span>
+	<span class=nb>echo</span> <span class=s2>&#34;recover_k8s_v3_1 START...&#34;</span>
+	<span class=c1># 2. etcd</span>
+	<span class=nb>echo</span> <span class=s2>&#34;etcd_config ...&#34;</span>
+	etcd_collect_config
+	etcd_config_v3_1
+
+
+	<span class=c1># 3. k8s</span>
+	<span class=nb>echo</span> <span class=s2>&#34;k8s_config ...&#34;</span>
+	k8s_collect_config
+	k8s_config_v3_1
+	<span class=nb>echo</span> <span class=s2>&#34;recover_k8s_v3_1 END...&#34;</span>
+
+<span class=o>}</span>
+
+recover_k8s_v3_2<span class=o>(){</span>
+	<span class=nb>echo</span> <span class=s2>&#34;recover_k8s_v3_2 START...&#34;</span>
+	<span class=c1># 2. etcd</span>
+	<span class=nb>echo</span> <span class=s2>&#34;etcd_config ...&#34;</span>
+	etcd_collect_config
+	etcd_config_v3_2
+
+
+	<span class=c1># 3. k8s</span>
+	<span class=nb>echo</span> <span class=s2>&#34;k8s_config ...&#34;</span>
+	k8s_collect_config
+	k8s_config_v3_2
+	<span class=nb>echo</span> <span class=s2>&#34;recover_k8s_v3_2 END...&#34;</span>
+
+<span class=o>}</span>
+
+
+k8s_vip_config<span class=o>(){</span>
+	<span class=nb>echo</span> <span class=s2>&#34;k8s_vip_config ...&#34;</span>
+	scp -r  <span class=si>${</span><span class=nv>src_ip</span><span class=si>}</span>:/etc/kolla/haproxy/k8s.cfg  /etc/kolla/haproxy/k8s.cfg
+	docker restart haproxy
+	<span class=nb>echo</span> <span class=s2>&#34;k8s_vip_config END...&#34;</span>
+	
+<span class=o>}</span>
+
+
+k8s_deploy_config<span class=o>(){</span>
+	<span class=nb>echo</span> <span class=s2>&#34;k8s_deploy_config ...&#34;</span>
+	<span class=c1># fix deploy version mismatch bug</span>
+	
+	<span class=k>if</span> <span class=o>[</span> ! -f <span class=s2>&#34;/etc/kubernetes/coredns-deployment.yml&#34;</span> <span class=o>]</span><span class=p>;</span><span class=k>then</span>
+		cp -r /tmp/coredns-deployment.yml /etc/kubernetes/coredns-deployment.yml
+		<span class=c1># 100.2.126.55:5000/com.inspur</span>
+		<span class=nv>imageRepository</span><span class=o>=</span><span class=k>$(</span>grep imageRepository /etc/kubernetes/kubeadm-images.yaml <span class=p>|</span>cut -d<span class=s2>&#34;\&#34;&#34;</span> -f2<span class=k>)</span>
+		
+		sed -i <span class=s1>&#39;s|HARBOR_IP/com.inspur|&#39;</span><span class=si>${</span><span class=nv>imageRepository</span><span class=si>}</span><span class=s1>&#39;|g&#39;</span> /etc/kubernetes/coredns-deployment.yml		
+	
+	<span class=k>fi</span>
+	
+	kubectl delete -f /etc/kubernetes/coredns-deployment.yml
+	kubectl apply -f /etc/kubernetes/coredns-deployment.yml
+	<span class=nb>echo</span> <span class=s2>&#34;k8s_deploy_config END...&#34;</span>
+	
+<span class=o>}</span>
+
+<span class=c1>######################################</span>
+<span class=c1>######################################</span>
+<span class=c1>######################################</span>
+<span class=c1># main()</span>
+
+
+<span class=k>if</span> <span class=o>[[</span> <span class=nv>$#</span> !<span class=o>=</span> <span class=m>7</span> <span class=o>]]</span><span class=p>;</span> <span class=k>then</span>
+    <span class=nb>echo</span> <span class=s2>&#34;usage </span><span class=nv>$0</span><span class=s2>  version src_hostname src_ip src_etcdname new_hostname new_ip new_etcdname&#34;</span>
+    <span class=nb>echo</span> <span class=s2>&#34;version: v3_1 or v3_2&#34;</span>
+    <span class=nb>echo</span> <span class=s2>&#34;for example, recover process: </span><span class=nv>$0</span><span class=s2> v3_1 node1 192.168.100.1 etcd1 node3 192.168.100.3 etcd3&#34;</span>
+    <span class=nb>exit</span> <span class=m>1</span>
+<span class=k>fi</span>
+
+
+
+<span class=c1># check version</span>
+
+<span class=k>if</span> <span class=o>[[</span> <span class=nv>$1</span> !<span class=o>=</span> <span class=s2>&#34;v3_1&#34;</span> <span class=o>&amp;&amp;</span> <span class=nv>$1</span> !<span class=o>=</span> <span class=s2>&#34;v3_2&#34;</span> <span class=o>]]</span><span class=p>;</span> <span class=k>then</span>
+    <span class=c1>#statements</span>
+    <span class=nb>echo</span> <span class=s2>&#34;</span><span class=nv>$0</span><span class=s2> param:</span><span class=nv>$1</span><span class=s2> must be &#39;v3_1&#39; or &#39;v3_2&#39;&#34;</span>
+    <span class=nb>echo</span> <span class=s2>&#34;usage </span><span class=nv>$0</span><span class=s2>  version src_hostname src_ip src_etcdname new_hostname new_ip new_etcdname&#34;</span>
+    <span class=nb>echo</span> <span class=s2>&#34;version: v3_1 or v3_2&#34;</span>
+    <span class=nb>echo</span> <span class=s2>&#34;for example, recover process: </span><span class=nv>$0</span><span class=s2> v3_1 node1 192.168.100.1 etcd1 node3 192.168.100.3 etcd3&#34;</span>
+    <span class=nb>exit</span> <span class=m>2</span>
+<span class=k>fi</span>
+
+
+
+<span class=c1># params setting</span>
+<span class=nv>version</span><span class=o>=</span><span class=nv>$1</span>
+
+<span class=nv>src_hostname</span><span class=o>=</span><span class=nv>$2</span>
+<span class=nv>src_ip</span><span class=o>=</span><span class=nv>$3</span>
+<span class=nv>src_etcdname</span><span class=o>=</span><span class=nv>$4</span>
+
+<span class=nv>new_hostname</span><span class=o>=</span><span class=nv>$5</span>
+<span class=nv>new_ip</span><span class=o>=</span><span class=nv>$6</span>
+<span class=nv>new_etcdname</span><span class=o>=</span><span class=nv>$7</span>
+
+
+
+
+
+<span class=c1># 0. 停止新节点已安装组件</span>
+
+stop_commons
+
+<span class=c1>## 1. hosts-conf</span>
+
+hosts_config
+
+<span class=c1>## 1. docker-conf</span>
+
+<span class=c1>## scp -r node1:/etc/systemd/system/docker.service.d/* /etc/systemd/system/docker.service.d/</span>
+<span class=c1>## scp -r node1:/etc/systemd/system/docker.service /etc/systemd/system/docker.service</span>
+<span class=c1>#set -e</span>
+<span class=c1>#scp -r ${src_ip}:/etc/systemd/system/docker.service.d/* /etc/systemd/system/docker.service.d/</span>
+<span class=c1>#scp -r ${src_ip}:/etc/systemd/system/docker.service /etc/systemd/system/docker.service</span>
+<span class=c1>#set +e</span>
+
+<span class=c1>#systemctl daemon-reload</span>
+<span class=c1>## systemctl restart docker</span>
+<span class=c1>#systemctl enable docker</span>
+
+<span class=c1>## check harbor</span>
+<span class=c1># echo eb5a7c0df3494817845d1fcd21133afa | docker login -u admin --password-stdin  100.2.126.121:5000</span>
+
+
+
+<span class=c1>### 停止新节点已安装组件 retry</span>
+<span class=c1>#stop_commons</span>
+
+
+
+
+<span class=c1># 拷贝到新节node3本地临时目录，临时目录/home/recover/和/home/tmp/在完成全部恢复操作（etcd和k8s）后删除</span>
+
+rm -rf /home/recover/
+rm -rf /home/tmp/
+
+mkdir -p /home/recover/
+mkdir -p /home/recover/etc/etcd
+mkdir -p /home/tmp/
+
+
+<span class=c1>## 2. k8s-conf</span>
+<span class=k>if</span> <span class=o>[[</span> <span class=si>${</span><span class=nv>version</span><span class=si>}</span> <span class=o>==</span> <span class=s2>&#34;v3_1&#34;</span> <span class=o>]]</span><span class=p>;</span> <span class=k>then</span>
+    recover_k8s_v3_1
+	<span class=c1>### 2.1 k8s_deploy_config</span>
+	k8s_deploy_config
+<span class=k>elif</span> <span class=o>[[</span> <span class=si>${</span><span class=nv>action</span><span class=si>}</span> <span class=o>==</span> <span class=s2>&#34;v3_2&#34;</span> <span class=o>]]</span><span class=p>;</span> <span class=k>then</span>
+    recover_k8s_v3_2
+<span class=k>fi</span>
+
+<span class=c1>## 3. k8s_vip_config</span>
+k8s_vip_config
+
+
+
+<span class=c1># clear cache tmp dir</span>
+rm -rf /home/recover/
+rm -rf /home/tmp/
+</code></pre></td></tr></table></div></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2022-09-03</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/k8s/>K8S</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2022/09/arm%E5%B9%B3%E5%8F%B0%E9%95%9C%E5%83%8F%E9%80%82%E9%85%8D%E6%93%8D%E4%BD%9C/ class=prev rel=prev title=arm平台镜像适配操作><i class="fas fa-angle-left fa-fw"></i>arm平台镜像适配操作</a></div></div><div id=comments><div id=utterances></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://utteranc.es/>Utterances</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2022</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
+<script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i></a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css><script type=text/javascript src=https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script><script type=text/javascript>window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{"utterances":{"darkTheme":"github-dark","issueTerm":"pathname","label":"","lightTheme":"github-light","repo":"bingerambo/myblog-comments"}},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type=text/javascript src=/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-81425808-1',{'anonymize_ip':true});</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script><script src=https://libs.baidu.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js></script><script type=text/javascript src=/js/custom.js></script><script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script></body></html>
