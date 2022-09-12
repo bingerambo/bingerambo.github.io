@@ -1,0 +1,527 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>java 8 特性：Stream的使用方法 - 斌哥的小站|Binge Blog</title><meta name=Description content="斌哥的小站 | 这里是 @BingeRambo斌哥兰博的个人博客"><meta property="og:title" content="java 8 特性：Stream的使用方法"><meta property="og:description" content="简单介绍Java的Stream用法"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2022/09/java-8-%E7%89%B9%E6%80%A7stream%E7%9A%84%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2022-09-12T08:43:17+08:00"><meta property="article:modified_time" content="2022-09-12T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="java 8 特性：Stream的使用方法"><meta name=twitter:description content="简单介绍Java的Stream用法"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2022/09/java-8-%E7%89%B9%E6%80%A7stream%E7%9A%84%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95/><link rel=prev href=http://bingerambo.com/posts/2022/09/linux%E8%BF%90%E7%BB%B4%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E6%9B%B4%E6%96%B0%E4%B8%AD~~~~/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"java 8 特性：Stream的使用方法","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2022\/09\/java-8-%E7%89%B9%E6%80%A7stream%E7%9A%84%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"Java","wordcount":2110,"url":"http:\/\/bingerambo.com\/posts\/2022\/09\/java-8-%E7%89%B9%E6%80%A7stream%E7%9A%84%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95\/","datePublished":"2022-09-12T08:43:17+08:00","dateModified":"2022-09-12T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":""}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">java 8 特性：Stream的使用方法</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/java/><i class="far fa-folder fa-fw"></i>Java</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2022-09-12>2022-09-12</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 2110 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 5 分钟&nbsp;
+<i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#stream简介>Stream简介</a></li><li><a href=#stream方法>Stream方法</a></li><li><a href=#测试demo>测试demo</a></li></ul></nav></div></div><div class=content id=content><p>简单介绍Java的Stream用法</p><h2 id=stream简介>Stream简介</h2><p>Stream是Java8提供的一个新的API，它位于java.util.stream包下。Stream API提供了一种新的方式来对Java集合进行操作，这种操作方式极大的提高了Java程序员的生产力，让程序员写出高效率、干净、简洁的代码。
+我们可以将元素集合看作一种流， 流在管道中传输， 并且可以在管道的节点上进行处理， 比如筛选， 排序，聚合等。元素流在管道中经过中间操作的处理，最后由最终操作得到前面处理的结果</p><h2 id=stream方法>Stream方法</h2><ul><li><strong>示例代码</strong></li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-java data-lang=java><span class=kd>class</span> <span class=nc>Employee</span> <span class=o>{</span>
+    <span class=kd>private</span> <span class=n>Long</span> <span class=n>empno</span><span class=o>;</span> <span class=c1>//员工号
+</span><span class=c1></span>    <span class=kd>private</span> <span class=n>String</span> <span class=n>ename</span><span class=o>;</span> <span class=c1>//员工姓名
+</span><span class=c1></span>    <span class=kd>private</span> <span class=n>Integer</span> <span class=n>salary</span><span class=o>;</span> <span class=c1>//薪水
+</span><span class=c1></span>    <span class=kd>private</span> <span class=n>Integer</span> <span class=n>deptno</span><span class=o>;</span> <span class=c1>//所属部门号
+</span><span class=c1></span>    <span class=c1>//此处省略get/set方法、构造方法以及toString方法
+</span><span class=c1></span><span class=o>}</span>
+<span class=n>Employee</span> <span class=n>e1</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Employee</span><span class=o>(</span><span class=n>7369L</span><span class=o>,</span> <span class=s>&#34;SMITH&#34;</span><span class=o>,</span> <span class=n>800</span><span class=o>,</span> <span class=n>20</span><span class=o>);</span>
+<span class=n>Employee</span> <span class=n>e2</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Employee</span><span class=o>(</span><span class=n>7499L</span><span class=o>,</span> <span class=s>&#34;ALLEN&#34;</span><span class=o>,</span> <span class=n>1600</span><span class=o>,</span> <span class=n>30</span><span class=o>);</span>
+<span class=n>Employee</span> <span class=n>e3</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Employee</span><span class=o>(</span><span class=n>7521L</span><span class=o>,</span> <span class=s>&#34;WARD&#34;</span><span class=o>,</span> <span class=n>1250</span><span class=o>,</span> <span class=n>30</span><span class=o>);</span>
+<span class=n>Employee</span> <span class=n>e4</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Employee</span><span class=o>(</span><span class=n>7782L</span><span class=o>,</span> <span class=s>&#34;CLARK&#34;</span><span class=o>,</span> <span class=n>2450</span><span class=o>,</span> <span class=n>10</span><span class=o>);</span>
+<span class=n>Employee</span> <span class=n>e5</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Employee</span><span class=o>(</span><span class=n>7876L</span><span class=o>,</span> <span class=s>&#34;ADAMS&#34;</span><span class=o>,</span> <span class=n>1100</span><span class=o>,</span> <span class=n>20</span><span class=o>);</span>
+
+<span class=n>List</span><span class=o>&lt;</span><span class=n>Employee</span><span class=o>&gt;</span> <span class=n>employees</span> <span class=o>=</span> <span class=n>Arrays</span><span class=o>.</span><span class=na>asList</span><span class=o>(</span><span class=n>e1</span><span class=o>,</span> <span class=n>e2</span><span class=o>,</span> <span class=n>e3</span><span class=o>,</span> <span class=n>e4</span><span class=o>,</span> <span class=n>e5</span><span class=o>);</span>
+</code></pre></td></tr></table></div></div><ul><li><strong>forEach方法</strong>
+forEach方法用于迭代stream流中的每一个元素</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-java data-lang=java><span class=n>employees</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>forEach</span><span class=o>(</span><span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>::</span><span class=n>println</span><span class=o>);</span>
+</code></pre></td></tr></table></div></div><p>执行结果：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>Employee{empno=7369, ename=&#39;SMITH&#39;, salary=800, deptno=20}
+Employee{empno=7499, ename=&#39;ALLEN&#39;, salary=1600, deptno=30}
+Employee{empno=7521, ename=&#39;WARD&#39;, salary=1250, deptno=30}
+Employee{empno=7782, ename=&#39;CLARK&#39;, salary=2450, deptno=10}
+Employee{empno=7876, ename=&#39;ADAMS&#39;, salary=1100, deptno=20}
+</code></pre></td></tr></table></div></div><ul><li><strong>map方法</strong>
+map方法用于根据自定义的规则对stream流中的数据做一对一的映射</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-java data-lang=java><span class=c1>//获取所有员工的姓名
+</span><span class=c1></span><span class=n>List</span><span class=o>&lt;</span><span class=n>String</span><span class=o>&gt;</span> <span class=n>enames</span> <span class=o>=</span> <span class=n>employees</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>map</span><span class=o>(</span><span class=n>employee</span> <span class=o>-&gt;</span> <span class=n>employee</span><span class=o>.</span><span class=na>getEname</span><span class=o>()).</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>toList</span><span class=o>());</span>
+<span class=n>enames</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>forEach</span><span class=o>(</span><span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>::</span><span class=n>println</span><span class=o>);</span>
+</code></pre></td></tr></table></div></div><p>执行结果：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>SMITH
+ALLEN
+WARD
+CLARK
+ADAMS
+</code></pre></td></tr></table></div></div><ul><li><strong>mapToInt/mapToLong/mapToDouble方法</strong>
+这几个方法主要用来对stream流中的元素产生单个的统计结果</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-java data-lang=java> <span class=c1>//获取所有员工的薪水总和
+</span><span class=c1></span><span class=kt>int</span> <span class=n>totalSalary</span> <span class=o>=</span> <span class=n>employees</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>mapToInt</span><span class=o>(</span><span class=n>employee</span> <span class=o>-&gt;</span> <span class=n>employee</span><span class=o>.</span><span class=na>getSalary</span><span class=o>()).</span><span class=na>sum</span><span class=o>();</span>
+<span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;薪水总和：&#34;</span> <span class=o>+</span> <span class=n>totalSalary</span><span class=o>);</span>
+</code></pre></td></tr></table></div></div><p>执行结果：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>薪水总和：7200
+</code></pre></td></tr></table></div></div><ul><li><strong>filter方法</strong>
+filter方法用于根据设置的条件对stream流中的数据做过滤操作</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-java data-lang=java><span class=c1>//获取薪水超过1500的员工
+</span><span class=c1></span><span class=n>List</span><span class=o>&lt;</span><span class=n>Employee</span><span class=o>&gt;</span> <span class=n>filterEmp</span> <span class=o>=</span> <span class=n>employees</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>filter</span><span class=o>(</span><span class=n>employee</span> <span class=o>-&gt;</span> <span class=n>employee</span><span class=o>.</span><span class=na>getSalary</span><span class=o>()&gt;</span><span class=n>1500</span><span class=o>).</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>toList</span><span class=o>());</span>
+<span class=n>filterEmp</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>forEach</span><span class=o>(</span><span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>::</span><span class=n>println</span><span class=o>);</span>
+</code></pre></td></tr></table></div></div><p>执行结果：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>Employee{empno=7499, ename=&#39;ALLEN&#39;, salary=1600, deptno=30}
+Employee{empno=7782, ename=&#39;CLARK&#39;, salary=2450, deptno=10}
+</code></pre></td></tr></table></div></div><ul><li><strong>sorted方法</strong>
+sorted方法用于对流中的元素进行排序</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-java data-lang=java><span class=c1>//按员工的薪水由低到高排序
+</span><span class=c1></span><span class=n>List</span><span class=o>&lt;</span><span class=n>Employee</span><span class=o>&gt;</span> <span class=n>sortedEmp</span> <span class=o>=</span> <span class=n>employees</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>sorted</span><span class=o>(</span><span class=n>Comparator</span><span class=o>.</span><span class=na>comparing</span><span class=o>(</span><span class=n>Employee</span><span class=o>::</span><span class=n>getSalary</span><span class=o>)).</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>toList</span><span class=o>());</span>
+<span class=n>sortedEmp</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>forEach</span><span class=o>(</span><span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>::</span><span class=n>println</span><span class=o>);</span>
+</code></pre></td></tr></table></div></div><p>执行结果：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>Employee{empno=7369, ename=&#39;SMITH&#39;, salary=800, deptno=20}
+Employee{empno=7876, ename=&#39;ADAMS&#39;, salary=1100, deptno=20}
+Employee{empno=7521, ename=&#39;WARD&#39;, salary=1250, deptno=30}
+Employee{empno=7499, ename=&#39;ALLEN&#39;, salary=1600, deptno=30}
+Employee{empno=7782, ename=&#39;CLARK&#39;, salary=2450, deptno=10}
+</code></pre></td></tr></table></div></div><ul><li><strong>Collectors类</strong>
+Collectors 类实现了很多归约操作，例如将流转换成集合和聚合元素。Collectors 可用于返回列表或字符串</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-java data-lang=java><span class=c1>//按员工所属部门号进行分类
+</span><span class=c1></span><span class=n>Map</span><span class=o>&lt;</span><span class=n>Integer</span><span class=o>,</span> <span class=n>List</span><span class=o>&lt;</span><span class=n>Employee</span><span class=o>&gt;&gt;</span> <span class=n>map</span> <span class=o>=</span> <span class=n>employees</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>groupingBy</span><span class=o>(</span><span class=n>employee</span> <span class=o>-&gt;</span> <span class=n>employee</span><span class=o>.</span><span class=na>getDeptno</span><span class=o>()));</span>
+<span class=k>for</span><span class=o>(</span><span class=n>Map</span><span class=o>.</span><span class=na>Entry</span><span class=o>&lt;</span><span class=n>Integer</span><span class=o>,</span> <span class=n>List</span><span class=o>&lt;</span><span class=n>Employee</span><span class=o>&gt;&gt;</span> <span class=n>entry</span> <span class=o>:</span> <span class=n>map</span><span class=o>.</span><span class=na>entrySet</span><span class=o>())</span> <span class=o>{</span>
+    <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;key: &#34;</span> <span class=o>+</span> <span class=n>entry</span><span class=o>.</span><span class=na>getKey</span><span class=o>()</span> <span class=o>+</span> <span class=s>&#34;  value：&#34;</span> <span class=o>+</span> <span class=n>entry</span><span class=o>.</span><span class=na>getValue</span><span class=o>());</span>
+<span class=o>}</span>
+
+<span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>();</span>
+
+<span class=c1>//获取员工姓名，用&#34;,&#34;进行拼接
+</span><span class=c1></span><span class=n>String</span> <span class=n>enameString</span> <span class=o>=</span> <span class=n>employees</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>map</span><span class=o>(</span><span class=n>employee</span> <span class=o>-&gt;</span> <span class=n>employee</span><span class=o>.</span><span class=na>getEname</span><span class=o>()).</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>joining</span><span class=o>(</span><span class=s>&#34;,&#34;</span><span class=o>));</span>
+<span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=n>enameString</span><span class=o>);</span>
+</code></pre></td></tr></table></div></div><p>执行结果：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>key: 20  value：[Employee{empno=7369, ename=&#39;SMITH&#39;, salary=800, deptno=20}, Employee{empno=7876, ename=&#39;ADAMS&#39;, salary=1100, deptno=20}]
+key: 10  value：[Employee{empno=7782, ename=&#39;CLARK&#39;, salary=2450, deptno=10}]
+key: 30  value：[Employee{empno=7499, ename=&#39;ALLEN&#39;, salary=1600, deptno=30}, Employee{empno=7521, ename=&#39;WARD&#39;, salary=1250, deptno=30}]
+
+SMITH,ALLEN,WARD,CLARK,ADAMS
+</code></pre></td></tr></table></div></div><ul><li><strong>方法串联</strong>
+Stream API提供的多个方法可以在一行代码中同时串联使用</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-java data-lang=java><span class=c1>//获取20号部门员工姓名,按薪水从高到低排序
+</span><span class=c1></span><span class=n>List</span><span class=o>&lt;</span><span class=n>String</span><span class=o>&gt;</span> <span class=n>names</span> <span class=o>=</span> <span class=n>employees</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>filter</span><span class=o>(</span><span class=n>employee</span> <span class=o>-&gt;</span> <span class=n>employee</span><span class=o>.</span><span class=na>getDeptno</span><span class=o>().</span><span class=na>equals</span><span class=o>(</span><span class=n>20</span><span class=o>)).</span><span class=na>sorted</span><span class=o>(</span><span class=n>Comparator</span><span class=o>.</span><span class=na>comparing</span><span class=o>(</span><span class=n>Employee</span><span class=o>::</span><span class=n>getSalary</span><span class=o>).</span><span class=na>reversed</span><span class=o>()).</span><span class=na>map</span><span class=o>(</span><span class=n>employee</span> <span class=o>-&gt;</span> <span class=n>employee</span><span class=o>.</span><span class=na>getEname</span><span class=o>()).</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>toList</span><span class=o>());</span>
+<span class=n>names</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>forEach</span><span class=o>(</span><span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>::</span><span class=n>println</span><span class=o>);</span>
+</code></pre></td></tr></table></div></div><p>执行结果：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>ADAMS
+SMITH
+</code></pre></td></tr></table></div></div><ul><li><ul><li><strong>总结</strong>
+Stream API提供了多个方法对集合进行映射、过滤、排序等操作，相比于Java7，大大简化了代码的开发。<strong>记住：Stream API中的方法并不会影响原始集合</strong></li></ul></li></ul><h2 id=测试demo>测试demo</h2><p>StreamList.java</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span><span class=lnt>140
+</span><span class=lnt>141
+</span><span class=lnt>142
+</span><span class=lnt>143
+</span><span class=lnt>144
+</span><span class=lnt>145
+</span><span class=lnt>146
+</span><span class=lnt>147
+</span><span class=lnt>148
+</span><span class=lnt>149
+</span><span class=lnt>150
+</span><span class=lnt>151
+</span><span class=lnt>152
+</span><span class=lnt>153
+</span><span class=lnt>154
+</span><span class=lnt>155
+</span><span class=lnt>156
+</span><span class=lnt>157
+</span><span class=lnt>158
+</span><span class=lnt>159
+</span><span class=lnt>160
+</span><span class=lnt>161
+</span><span class=lnt>162
+</span><span class=lnt>163
+</span><span class=lnt>164
+</span><span class=lnt>165
+</span><span class=lnt>166
+</span><span class=lnt>167
+</span><span class=lnt>168
+</span><span class=lnt>169
+</span><span class=lnt>170
+</span><span class=lnt>171
+</span><span class=lnt>172
+</span><span class=lnt>173
+</span><span class=lnt>174
+</span><span class=lnt>175
+</span><span class=lnt>176
+</span><span class=lnt>177
+</span><span class=lnt>178
+</span><span class=lnt>179
+</span><span class=lnt>180
+</span><span class=lnt>181
+</span><span class=lnt>182
+</span><span class=lnt>183
+</span><span class=lnt>184
+</span><span class=lnt>185
+</span><span class=lnt>186
+</span><span class=lnt>187
+</span><span class=lnt>188
+</span><span class=lnt>189
+</span><span class=lnt>190
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-java data-lang=java><span class=kn>package</span> <span class=nn>com.imooc.zhangxiaoxi.stream</span><span class=o>;</span>
+
+<span class=kn>import</span> <span class=nn>com.imooc.zhangxiaoxi.lambda.cart.CartService</span><span class=o>;</span>
+<span class=kn>import</span> <span class=nn>com.imooc.zhangxiaoxi.lambda.cart.Sku</span><span class=o>;</span>
+<span class=kn>import</span> <span class=nn>lombok.Data</span><span class=o>;</span>
+<span class=kn>import</span> <span class=nn>org.junit.Before</span><span class=o>;</span>
+<span class=kn>import</span> <span class=nn>org.junit.Test</span><span class=o>;</span>
+
+<span class=kn>import</span> <span class=nn>java.util.*</span><span class=o>;</span>
+<span class=kn>import</span> <span class=nn>java.util.stream.Collectors</span><span class=o>;</span>
+
+<span class=nd>@Data</span>
+<span class=kd>class</span> <span class=nc>Employee</span> <span class=o>{</span>
+    <span class=kd>private</span> <span class=n>Long</span> <span class=n>empno</span><span class=o>;</span> <span class=c1>//员工号
+</span><span class=c1></span>    <span class=kd>private</span> <span class=n>String</span> <span class=n>ename</span><span class=o>;</span> <span class=c1>//员工姓名
+</span><span class=c1></span>    <span class=kd>private</span> <span class=n>Integer</span> <span class=n>salary</span><span class=o>;</span> <span class=c1>//薪水
+</span><span class=c1></span>    <span class=kd>private</span> <span class=n>Integer</span> <span class=n>deptno</span><span class=o>;</span> <span class=c1>//所属部门号
+</span><span class=c1></span>
+    <span class=kd>public</span> <span class=nf>Employee</span><span class=o>(</span><span class=kt>long</span> <span class=n>l</span><span class=o>,</span> <span class=n>String</span> <span class=n>adams</span><span class=o>,</span> <span class=kt>int</span> <span class=n>i</span><span class=o>,</span> <span class=kt>int</span> <span class=n>i1</span><span class=o>)</span> <span class=o>{</span>
+        <span class=n>empno</span> <span class=o>=</span> <span class=n>l</span><span class=o>;</span>
+        <span class=n>ename</span> <span class=o>=</span> <span class=n>adams</span><span class=o>;</span>
+        <span class=n>salary</span> <span class=o>=</span> <span class=n>i</span><span class=o>;</span>
+        <span class=n>deptno</span> <span class=o>=</span> <span class=n>i1</span><span class=o>;</span>
+    <span class=o>}</span>
+    <span class=c1>//此处省略get/set方法、构造方法以及toString方法
+</span><span class=c1></span><span class=o>}</span>
+
+<span class=kd>public</span> <span class=kd>class</span> <span class=nc>StreamList</span> <span class=o>{</span>
+    <span class=n>List</span><span class=o>&lt;</span><span class=n>Sku</span><span class=o>&gt;</span> <span class=n>list</span><span class=o>;</span>
+    <span class=n>List</span><span class=o>&lt;</span><span class=n>Employee</span><span class=o>&gt;</span> <span class=n>employees</span><span class=o>;</span>
+
+    <span class=n>List</span><span class=o>&lt;</span><span class=n>String</span><span class=o>&gt;</span> <span class=n>labels</span><span class=o>;</span>
+
+    <span class=nd>@Before</span>
+    <span class=kd>public</span> <span class=kt>void</span> <span class=nf>init</span><span class=o>()</span> <span class=o>{</span>
+        <span class=n>list</span> <span class=o>=</span> <span class=n>CartService</span><span class=o>.</span><span class=na>getCartSkuList</span><span class=o>();</span>
+
+        <span class=n>Employee</span> <span class=n>e1</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Employee</span><span class=o>(</span><span class=n>7369L</span><span class=o>,</span> <span class=s>&#34;SMITH&#34;</span><span class=o>,</span> <span class=n>800</span><span class=o>,</span> <span class=n>20</span><span class=o>);</span>
+        <span class=n>Employee</span> <span class=n>e2</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Employee</span><span class=o>(</span><span class=n>7499L</span><span class=o>,</span> <span class=s>&#34;ALLEN&#34;</span><span class=o>,</span> <span class=n>1600</span><span class=o>,</span> <span class=n>30</span><span class=o>);</span>
+        <span class=n>Employee</span> <span class=n>e3</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Employee</span><span class=o>(</span><span class=n>7521L</span><span class=o>,</span> <span class=s>&#34;WARD&#34;</span><span class=o>,</span> <span class=n>1250</span><span class=o>,</span> <span class=n>30</span><span class=o>);</span>
+        <span class=n>Employee</span> <span class=n>e4</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Employee</span><span class=o>(</span><span class=n>7782L</span><span class=o>,</span> <span class=s>&#34;CLARK&#34;</span><span class=o>,</span> <span class=n>2450</span><span class=o>,</span> <span class=n>10</span><span class=o>);</span>
+        <span class=n>Employee</span> <span class=n>e5</span> <span class=o>=</span> <span class=k>new</span> <span class=n>Employee</span><span class=o>(</span><span class=n>7876L</span><span class=o>,</span> <span class=s>&#34;ADAMS&#34;</span><span class=o>,</span> <span class=n>1100</span><span class=o>,</span> <span class=n>20</span><span class=o>);</span>
+        <span class=n>employees</span> <span class=o>=</span> <span class=n>Arrays</span><span class=o>.</span><span class=na>asList</span><span class=o>(</span><span class=n>e1</span><span class=o>,</span> <span class=n>e2</span><span class=o>,</span> <span class=n>e3</span><span class=o>,</span> <span class=n>e4</span><span class=o>,</span> <span class=n>e5</span><span class=o>);</span>
+
+        <span class=n>String</span> <span class=n>l1</span> <span class=o>=</span> <span class=s>&#34;iresource.fault.io/acceleratorcard&#34;</span><span class=o>;</span>
+        <span class=n>String</span> <span class=n>l2</span> <span class=o>=</span> <span class=s>&#34;iresource.fault.io/sharestorage&#34;</span><span class=o>;</span>
+        <span class=n>String</span> <span class=n>l3</span> <span class=o>=</span> <span class=s>&#34;iresource.fault.io/calcnetwork&#34;</span><span class=o>;</span>
+
+
+        <span class=n>labels</span> <span class=o>=</span> <span class=n>Arrays</span><span class=o>.</span><span class=na>asList</span><span class=o>(</span><span class=n>l1</span><span class=o>,</span> <span class=n>l2</span><span class=o>,</span> <span class=n>l3</span><span class=o>);</span>
+
+
+    <span class=o>}</span>
+
+    <span class=nd>@Test</span>
+    <span class=kd>public</span> <span class=kt>void</span> <span class=nf>listTest</span><span class=o>()</span> <span class=o>{</span>
+        <span class=n>employees</span><span class=o>.</span><span class=na>forEach</span><span class=o>(</span><span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>::</span><span class=n>println</span><span class=o>);</span>
+
+<span class=c1>//        employees.forEach( ele -&gt; {
+</span><span class=c1>//            String tmp = ele+&#34;eeee&#34;;
+</span><span class=c1>//            System.out.println(tmp);
+</span><span class=c1>//        });
+</span><span class=c1></span>
+        <span class=c1>//获取所有员工的姓名
+</span><span class=c1></span>        <span class=n>List</span><span class=o>&lt;</span><span class=n>String</span><span class=o>&gt;</span> <span class=n>enames</span> <span class=o>=</span> <span class=n>employees</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>map</span><span class=o>(</span><span class=n>employee</span> <span class=o>-&gt;</span> <span class=n>employee</span><span class=o>.</span><span class=na>getEname</span><span class=o>()).</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>toList</span><span class=o>());</span>
+        <span class=n>enames</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>forEach</span><span class=o>(</span><span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>::</span><span class=n>println</span><span class=o>);</span>
+
+        <span class=c1>//获取所有员工的薪水总和
+</span><span class=c1></span>
+<span class=c1>//        int totalSalary = employees.stream().mapToInt(Employee::getSalary).sum();
+</span><span class=c1></span>        <span class=kt>int</span> <span class=n>totalSalary</span> <span class=o>=</span> <span class=n>employees</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>mapToInt</span><span class=o>(</span><span class=n>employee</span> <span class=o>-&gt;</span> <span class=n>employee</span><span class=o>.</span><span class=na>getSalary</span><span class=o>()).</span><span class=na>sum</span><span class=o>();</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;薪水总和：&#34;</span> <span class=o>+</span> <span class=n>totalSalary</span><span class=o>);</span>
+
+        <span class=c1>//获取薪水超过1500的员工
+</span><span class=c1></span>        <span class=n>List</span><span class=o>&lt;</span><span class=n>Employee</span><span class=o>&gt;</span> <span class=n>filterEmp</span> <span class=o>=</span> <span class=n>employees</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>filter</span><span class=o>(</span><span class=n>employee</span> <span class=o>-&gt;</span> <span class=n>employee</span><span class=o>.</span><span class=na>getSalary</span><span class=o>()</span> <span class=o>&gt;</span> <span class=n>1500</span><span class=o>).</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>toList</span><span class=o>());</span>
+        <span class=n>filterEmp</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>forEach</span><span class=o>(</span><span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>::</span><span class=n>println</span><span class=o>);</span>
+
+        <span class=c1>//按员工的薪水由低到高排序
+</span><span class=c1></span>        <span class=n>List</span><span class=o>&lt;</span><span class=n>Employee</span><span class=o>&gt;</span> <span class=n>sortedEmp</span> <span class=o>=</span> <span class=n>employees</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>sorted</span><span class=o>(</span><span class=n>Comparator</span><span class=o>.</span><span class=na>comparing</span><span class=o>(</span><span class=n>Employee</span><span class=o>::</span><span class=n>getSalary</span><span class=o>)).</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>toList</span><span class=o>());</span>
+        <span class=n>sortedEmp</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>forEach</span><span class=o>(</span><span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>::</span><span class=n>println</span><span class=o>);</span>
+
+        <span class=c1>//按员工所属部门号进行分类
+</span><span class=c1></span>        <span class=n>Map</span><span class=o>&lt;</span><span class=n>Integer</span><span class=o>,</span> <span class=n>List</span><span class=o>&lt;</span><span class=n>Employee</span><span class=o>&gt;&gt;</span> <span class=n>map</span> <span class=o>=</span> <span class=n>employees</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>groupingBy</span><span class=o>(</span><span class=n>employee</span> <span class=o>-&gt;</span> <span class=n>employee</span><span class=o>.</span><span class=na>getDeptno</span><span class=o>()));</span>
+        <span class=k>for</span> <span class=o>(</span><span class=n>Map</span><span class=o>.</span><span class=na>Entry</span><span class=o>&lt;</span><span class=n>Integer</span><span class=o>,</span> <span class=n>List</span><span class=o>&lt;</span><span class=n>Employee</span><span class=o>&gt;&gt;</span> <span class=n>entry</span> <span class=o>:</span> <span class=n>map</span><span class=o>.</span><span class=na>entrySet</span><span class=o>())</span> <span class=o>{</span>
+            <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;key: &#34;</span> <span class=o>+</span> <span class=n>entry</span><span class=o>.</span><span class=na>getKey</span><span class=o>()</span> <span class=o>+</span> <span class=s>&#34;  value：&#34;</span> <span class=o>+</span> <span class=n>entry</span><span class=o>.</span><span class=na>getValue</span><span class=o>());</span>
+        <span class=o>}</span>
+
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>();</span>
+
+        <span class=c1>//获取员工姓名，用&#34;,&#34;进行拼接
+</span><span class=c1></span>        <span class=n>String</span> <span class=n>enameString</span> <span class=o>=</span> <span class=n>employees</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>map</span><span class=o>(</span><span class=n>employee</span> <span class=o>-&gt;</span> <span class=n>employee</span><span class=o>.</span><span class=na>getEname</span><span class=o>()).</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>joining</span><span class=o>(</span><span class=s>&#34;,&#34;</span><span class=o>));</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=n>enameString</span><span class=o>);</span>
+
+
+        <span class=c1>// labels 测试
+</span><span class=c1></span>        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>();</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;=============== LABEL TEST ====================&#34;</span><span class=o>);</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>();</span>
+        <span class=n>String</span> <span class=n>labelsStr</span> <span class=o>=</span> <span class=n>labels</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>joining</span><span class=o>(</span><span class=s>&#34;;&#34;</span><span class=o>));</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=n>labelsStr</span><span class=o>);</span>
+
+        <span class=c1>// lables 比较
+</span><span class=c1></span>        <span class=n>String</span> <span class=n>l1</span> <span class=o>=</span> <span class=s>&#34;iresource.fault.io/acceleratorcard&#34;</span><span class=o>;</span>
+        <span class=n>String</span> <span class=n>l2</span> <span class=o>=</span> <span class=s>&#34;iresource.fault.io/sharestorage&#34;</span><span class=o>;</span>
+        <span class=n>String</span> <span class=n>l3</span> <span class=o>=</span> <span class=s>&#34;iresource.fault.io/calcnetwork&#34;</span><span class=o>;</span>
+        <span class=n>String</span> <span class=n>l4</span> <span class=o>=</span> <span class=s>&#34;iresource.fault.io/xxxxx&#34;</span><span class=o>;</span>
+        <span class=n>List</span><span class=o>&lt;</span><span class=n>String</span><span class=o>&gt;</span> <span class=n>list2</span> <span class=o>=</span> <span class=n>Arrays</span><span class=o>.</span><span class=na>asList</span><span class=o>(</span><span class=n>l2</span><span class=o>,</span> <span class=n>l3</span><span class=o>,</span> <span class=n>l1</span><span class=o>);</span>
+        <span class=n>List</span><span class=o>&lt;</span><span class=n>String</span><span class=o>&gt;</span> <span class=n>list3</span> <span class=o>=</span> <span class=n>Arrays</span><span class=o>.</span><span class=na>asList</span><span class=o>(</span><span class=n>l1</span><span class=o>,</span> <span class=n>l2</span><span class=o>,</span> <span class=n>l4</span><span class=o>);</span>
+        <span class=n>List</span><span class=o>&lt;</span><span class=n>String</span><span class=o>&gt;</span> <span class=n>list4</span> <span class=o>=</span> <span class=n>Arrays</span><span class=o>.</span><span class=na>asList</span><span class=o>(</span><span class=n>l1</span><span class=o>,</span> <span class=n>l2</span><span class=o>,</span> <span class=n>l3</span><span class=o>,</span> <span class=n>l4</span><span class=o>);</span>
+        <span class=n>List</span><span class=o>&lt;</span><span class=n>String</span><span class=o>&gt;</span> <span class=n>list5</span> <span class=o>=</span> <span class=n>Arrays</span><span class=o>.</span><span class=na>asList</span><span class=o>(</span><span class=n>l4</span><span class=o>,</span> <span class=n>l2</span><span class=o>,</span> <span class=n>l3</span><span class=o>,</span> <span class=n>l4</span><span class=o>);</span>
+
+        <span class=n>String</span> <span class=n>tLabelStr</span> <span class=o>=</span> <span class=n>labels</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>sorted</span><span class=o>().</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>joining</span><span class=o>());</span>
+        <span class=n>String</span> <span class=n>tlist2Str</span> <span class=o>=</span> <span class=n>list2</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>joining</span><span class=o>());</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;labels.sort&#34;</span><span class=o>);</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=n>tLabelStr</span><span class=o>);</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;list2&#34;</span><span class=o>);</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=n>tlist2Str</span><span class=o>);</span>
+
+        <span class=kt>boolean</span> <span class=n>ret1</span> <span class=o>=</span><span class=n>labels</span><span class=o>.</span><span class=na>equals</span><span class=o>(</span><span class=n>list2</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>sorted</span><span class=o>().</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>joining</span><span class=o>()));</span>
+        <span class=kt>boolean</span> <span class=n>ret2</span> <span class=o>=</span> <span class=n>isLabelListEquals</span><span class=o>(</span><span class=n>labels</span><span class=o>,</span> <span class=n>list2</span><span class=o>);</span>
+        <span class=kt>boolean</span> <span class=n>ret3</span> <span class=o>=</span> <span class=n>isLabelListEquals</span><span class=o>(</span><span class=n>labels</span><span class=o>,</span> <span class=n>list3</span><span class=o>);</span>
+        <span class=kt>boolean</span> <span class=n>ret4</span> <span class=o>=</span> <span class=n>isLabelListEquals</span><span class=o>(</span><span class=n>labels</span><span class=o>,</span> <span class=n>list4</span><span class=o>);</span>
+        <span class=kt>boolean</span> <span class=n>ret5</span> <span class=o>=</span> <span class=n>isLabelListEquals</span><span class=o>(</span><span class=n>labels</span><span class=o>,</span> <span class=n>list5</span><span class=o>);</span>
+        <span class=kt>boolean</span> <span class=n>ret6</span> <span class=o>=</span> <span class=n>isLabelListEquals</span><span class=o>(</span><span class=n>labels</span><span class=o>,</span> <span class=kc>null</span><span class=o>);</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;labels equals list2.sort: &#34;</span> <span class=o>+</span> <span class=n>ret1</span><span class=o>);</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;labels.sort equals list2.sort: &#34;</span> <span class=o>+</span> <span class=n>ret2</span><span class=o>);</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;labels.sort equals list3.sort: &#34;</span> <span class=o>+</span> <span class=n>ret3</span><span class=o>);</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;labels.sort equals list4.sort: &#34;</span> <span class=o>+</span> <span class=n>ret4</span><span class=o>);</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;labels.sort equals list5.sort: &#34;</span> <span class=o>+</span> <span class=n>ret5</span><span class=o>);</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;labels.sort equals null: &#34;</span> <span class=o>+</span> <span class=n>ret6</span><span class=o>);</span>
+
+        <span class=c1>// isLabelStrEquals
+</span><span class=c1></span>        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;=====================&#34;</span><span class=o>);</span>
+        <span class=kt>boolean</span> <span class=n>ret7</span> <span class=o>=</span> <span class=n>isLabelStrEquals</span><span class=o>(</span><span class=n>labels</span><span class=o>,</span> <span class=kc>null</span><span class=o>);</span>
+        <span class=kt>boolean</span> <span class=n>ret8</span> <span class=o>=</span> <span class=n>isLabelStrEquals</span><span class=o>(</span><span class=n>labels</span><span class=o>,</span>
+                <span class=n>list2</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>joining</span><span class=o>(</span><span class=s>&#34;;&#34;</span><span class=o>)));</span>
+        <span class=kt>boolean</span> <span class=n>ret9</span> <span class=o>=</span> <span class=n>isLabelStrEquals</span><span class=o>(</span><span class=n>labels</span><span class=o>,</span>
+                <span class=n>list2</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>sorted</span><span class=o>().</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>joining</span><span class=o>(</span><span class=s>&#34;;&#34;</span><span class=o>)));</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;labels.sort:&#34;</span><span class=o>);</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=n>labels</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>sorted</span><span class=o>().</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>joining</span><span class=o>(</span><span class=s>&#34;;&#34;</span><span class=o>)));</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;labels.sort equals null: &#34;</span> <span class=o>+</span> <span class=n>ret7</span><span class=o>);</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;labels.sort equals list8: &#34;</span> <span class=o>+</span> <span class=n>ret8</span><span class=o>);</span>
+        <span class=n>System</span><span class=o>.</span><span class=na>out</span><span class=o>.</span><span class=na>println</span><span class=o>(</span><span class=s>&#34;labels.sort equals list9.sort: &#34;</span> <span class=o>+</span> <span class=n>ret9</span><span class=o>);</span>
+
+
+    <span class=o>}</span>
+
+    <span class=c1>// 比较数组元素的顺序和值是否相同
+</span><span class=c1></span>    <span class=kd>private</span> <span class=kd>static</span> <span class=kt>boolean</span> <span class=nf>isLabelListEquals</span><span class=o>(</span><span class=n>List</span><span class=o>&lt;</span><span class=n>String</span><span class=o>&gt;</span> <span class=n>l</span><span class=o>,</span> <span class=n>List</span><span class=o>&lt;</span><span class=n>String</span><span class=o>&gt;</span> <span class=n>r</span><span class=o>)</span> <span class=o>{</span>
+        <span class=cm>/**
+</span><span class=cm>         * @titile: isLabelListEquals
+</span><span class=cm>         * @description:
+</span><span class=cm>         * @param l
+</span><span class=cm>         * @param r
+</span><span class=cm>         * @return: boolean
+</span><span class=cm>         * @author: wangb
+</span><span class=cm>         * @date: 2022/9/8 15:48
+</span><span class=cm>         */</span>
+        
+
+        <span class=c1>// defence check
+</span><span class=c1></span>        <span class=k>if</span> <span class=o>(</span><span class=kc>null</span> <span class=o>==</span> <span class=n>l</span><span class=o>){</span>
+            <span class=n>l</span> <span class=o>=</span> <span class=k>new</span> <span class=n>ArrayList</span><span class=o>&lt;&gt;();</span>
+        <span class=o>}</span>
+        <span class=k>if</span> <span class=o>(</span><span class=kc>null</span> <span class=o>==</span> <span class=n>r</span><span class=o>){</span>
+            <span class=n>r</span> <span class=o>=</span> <span class=k>new</span> <span class=n>ArrayList</span><span class=o>&lt;&gt;();</span>
+        <span class=o>}</span>
+        <span class=k>return</span> <span class=n>l</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>sorted</span><span class=o>().</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>joining</span><span class=o>())</span>
+                <span class=o>.</span><span class=na>equals</span><span class=o>(</span><span class=n>r</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>sorted</span><span class=o>().</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>joining</span><span class=o>()));</span>
+    <span class=o>}</span>
+
+    <span class=kd>private</span> <span class=kd>static</span> <span class=kt>boolean</span> <span class=nf>isLabelStrEquals</span><span class=o>(</span><span class=n>List</span><span class=o>&lt;</span><span class=n>String</span><span class=o>&gt;</span> <span class=n>l</span><span class=o>,</span> <span class=n>String</span> <span class=n>r</span><span class=o>)</span> <span class=o>{</span>
+
+
+        <span class=c1>// defence check
+</span><span class=c1></span>        <span class=k>if</span> <span class=o>(</span><span class=kc>null</span> <span class=o>==</span> <span class=n>l</span><span class=o>){</span>
+            <span class=n>l</span> <span class=o>=</span> <span class=k>new</span> <span class=n>ArrayList</span><span class=o>&lt;&gt;();</span>
+        <span class=o>}</span>
+
+        <span class=k>return</span> <span class=n>l</span><span class=o>.</span><span class=na>stream</span><span class=o>().</span><span class=na>sorted</span><span class=o>().</span><span class=na>collect</span><span class=o>(</span><span class=n>Collectors</span><span class=o>.</span><span class=na>joining</span><span class=o>(</span><span class=s>&#34;;&#34;</span><span class=o>))</span>
+                <span class=o>.</span><span class=na>equals</span><span class=o>(</span><span class=n>r</span><span class=o>);</span>
+    <span class=o>}</span>
+
+<span class=o>}</span>
+
+
+
+
+
+
+</code></pre></td></tr></table></div></div></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2022-09-12</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/java/>Java</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2022/09/linux%E8%BF%90%E7%BB%B4%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E6%9B%B4%E6%96%B0%E4%B8%AD~~~~/ class=prev rel=prev title=linux运维常用命令[更新中~~~~]><i class="fas fa-angle-left fa-fw"></i>linux运维常用命令[更新中~~~~]</a></div></div><div id=comments><div id=utterances></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://utteranc.es/>Utterances</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2022</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
+<script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i></a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css><script type=text/javascript src=https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script><script type=text/javascript>window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{"utterances":{"darkTheme":"github-dark","issueTerm":"pathname","label":"","lightTheme":"github-light","repo":"bingerambo/myblog-comments"}},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type=text/javascript src=/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-81425808-1',{'anonymize_ip':true});</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script><script src=https://libs.baidu.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js></script><script type=text/javascript src=/js/custom.js></script><script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script></body></html>
