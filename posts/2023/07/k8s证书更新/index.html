@@ -1,0 +1,470 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>k8s证书更新 - 斌哥的小站|Binge Blog</title><meta name=Description content="斌哥的小站 | 这里是 @BingeRambo斌哥兰博的个人博客"><meta property="og:title" content="k8s证书更新"><meta property="og:description" content="如果k8s证书过期，会导致服务连接不可用，需要进行k8s证书更新操作"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2023/07/k8s%E8%AF%81%E4%B9%A6%E6%9B%B4%E6%96%B0/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2023-07-22T08:43:17+08:00"><meta property="article:modified_time" content="2023-07-22T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="k8s证书更新"><meta name=twitter:description content="如果k8s证书过期，会导致服务连接不可用，需要进行k8s证书更新操作"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2023/07/k8s%E8%AF%81%E4%B9%A6%E6%9B%B4%E6%96%B0/><link rel=prev href=http://bingerambo.com/posts/2023/06/k8s%E6%9F%A5%E8%AF%A2%E9%98%9F%E5%88%97%E6%96%B9%E6%B3%95/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"k8s证书更新","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2023\/07\/k8s%E8%AF%81%E4%B9%A6%E6%9B%B4%E6%96%B0\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":2957,"url":"http:\/\/bingerambo.com\/posts\/2023\/07\/k8s%E8%AF%81%E4%B9%A6%E6%9B%B4%E6%96%B0\/","datePublished":"2023-07-22T08:43:17+08:00","dateModified":"2023-07-22T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":""}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">k8s证书更新</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2023-07-22>2023-07-22</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 2957 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 6 分钟&nbsp;
+<i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#k8s证书过期检查>k8s证书过期检查</a></li><li><a href=#手动更新证书>手动更新证书</a></li><li><a href=#源码编译kubeadm>源码编译kubeadm</a></li><li><a href=#操作命令备注>操作命令备注</a><ul><li><a href=#1检查证书是否过期以下两个命令均可>1）检查证书是否过期，以下两个命令均可</a></li><li><a href=#2证书配置文件等备份>2）证书、配置文件等备份</a></li><li><a href=#3重新生成证书>3）重新生成证书</a></li><li><a href=#4重新生成配置文件>4）重新生成配置文件</a></li><li><a href=#5重启-kubeletapiserverschedulercontroller-manageretcd>5）重启 kubelet、apiserver、scheduler、controller-manager、etcd</a></li><li><a href=#6更新-admin-配置>6）更新 admin 配置</a></li><li><a href=#7检查证书过期时间>7）检查证书过期时间</a></li></ul></li></ul></nav></div></div><div class=content id=content><p>如果k8s证书过期，会导致服务连接不可用，需要进行k8s证书更新操作</p><h2 id=k8s证书过期检查>k8s证书过期检查</h2><p>通过 kubeadm 安装的 k8s 集群，证书有效期为 1年，一年过期后，会导致 api service 不可用，使用过程中会出现报错：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>x509: certificate has expired or is not yet valid.
+</code></pre></td></tr></table></div></div><p><strong>通过实测，记录两种切实可用的方案：</strong></p><ol><li>手动更新证书（证书已过期也可用）；</li><li>源码编译kubeadm，使证书时间更长（集群证书已过期也可用）</li></ol><p><strong>系统版本</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>System: CentOS Linux release 7.9.2009 <span class=o>(</span>Core<span class=o>)</span>
+kernel: 3.10.0-1160.el7.x86_64
+</code></pre></td></tr></table></div></div><p><strong>docker版本</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>Server: 18.06.3-ce
+Client: 18.06.3-ce
+</code></pre></td></tr></table></div></div><p><strong>Kubernetes 版本</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>v1.19.7
+</code></pre></td></tr></table></div></div><p>在 master 上使用如下命令查看证书过期时间：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>kubeadm alpha certs check-expiration
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>root@k8s-master<span class=o>(</span>10.0.0.11<span class=o>)</span>~&gt;kubeadm alpha certs check-expiration 
+<span class=o>[</span>check-expiration<span class=o>]</span> Reading configuration from the cluster...
+<span class=o>[</span>check-expiration<span class=o>]</span> FYI: You can look at this config file with <span class=s1>&#39;kubectl -n kube-system get cm kubeadm-config -oyaml&#39;</span>
+<span class=o>[</span>check-expiration<span class=o>]</span> Error reading configuration from the Cluster. Falling back to default configuration
+
+W0818 15:09:56.236357    <span class=m>4122</span> configset.go:348<span class=o>]</span> WARNING: kubeadm cannot validate component configs <span class=k>for</span> API groups <span class=o>[</span>kubelet.config.k8s.io kubeproxy.config.k8s.io<span class=o>]</span>
+CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED
+admin.conf                 Aug 18, <span class=m>2022</span> 07:04 UTC   &lt;invalid&gt;                               no      
+apiserver                  Aug 18, <span class=m>2022</span> 07:04 UTC   &lt;invalid&gt;       ca                      no      
+apiserver-etcd-client      Aug 18, <span class=m>2022</span> 07:04 UTC   &lt;invalid&gt;       etcd-ca                 no      
+apiserver-kubelet-client   Aug 18, <span class=m>2022</span> 07:04 UTC   &lt;invalid&gt;       ca                      no      
+controller-manager.conf    Aug 18, <span class=m>2022</span> 07:04 UTC   &lt;invalid&gt;                               no      
+etcd-healthcheck-client    Aug 18, <span class=m>2022</span> 07:04 UTC   &lt;invalid&gt;       etcd-ca                 no      
+etcd-peer                  Aug 18, <span class=m>2022</span> 07:04 UTC   &lt;invalid&gt;       etcd-ca                 no      
+etcd-server                Aug 18, <span class=m>2022</span> 07:04 UTC   &lt;invalid&gt;       etcd-ca                 no      
+front-proxy-client         Aug 18, <span class=m>2022</span> 07:04 UTC   &lt;invalid&gt;       front-proxy-ca          no      
+scheduler.conf             Aug 18, <span class=m>2022</span> 07:04 UTC   &lt;invalid&gt;                               no      
+
+CERTIFICATE AUTHORITY   EXPIRES                  RESIDUAL TIME   EXTERNALLY MANAGED
+ca                      Aug 16, <span class=m>2031</span> 07:04 UTC   8y              no      
+etcd-ca                 Aug 16, <span class=m>2031</span> 07:04 UTC   8y              no      
+front-proxy-ca          Aug 16, <span class=m>2031</span> 07:04 UTC   8y              no 
+</code></pre></td></tr></table></div></div><p>该命令显示 /etc/kubernetes/pki 文件夹中的客户端证书以及 kubeadm 使用的 KUBECONFIG 文件中嵌入的客户端证书的到期时间/剩余时间。</p><p>也可通过如下命令查看证书详细时间：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -text <span class=p>|</span> egrep Not
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -text <span class=p>|</span> egrep Not
+            Not Before: Aug <span class=m>18</span> 07:24:06 <span class=m>2021</span> GMT
+            Not After : Aug <span class=m>18</span> 07:24:06 <span class=m>2022</span> GMT
+</code></pre></td></tr></table></div></div><p>执行和 api service的交互报错如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>root@k8s-master<span class=o>(</span>10.0.0.11<span class=o>)</span>~&gt;kubectl get po 
+Unable to connect to the server: x509: certificate has expired or is not yet valid: current <span class=nb>time</span> 2022-08-18T15:10:07+08:00 is after 2022-08-18T07:04:33Z
+</code></pre></td></tr></table></div></div><p><strong>以上错误表示证书到期，可用如下两种方式进行更新。</strong></p><h2 id=手动更新证书>手动更新证书</h2><p><strong>1. 备份</strong></p><blockquote><p>注意：做任何改动之前都需要进行源文件备份</p></blockquote><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>mkdir -pv /etc/kubernetes-bak
+cp -r /etc/kubernetes/pki /etc/kubernetes-bak/
+cp /etc/kubernetes/*.conf /etc/kubernetes-bak/
+</code></pre></td></tr></table></div></div><p>etcd 数据目录备份：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>cp -ar /var/lib/etcd /var/lib/etcd-bak
+</code></pre></td></tr></table></div></div><p><strong>2. 执行更新证书</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>kubeadm alpha certs renew all 
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>kubeadm alpha certs renew all 
+
+<span class=o>[</span>renew<span class=o>]</span> Reading configuration from the cluster...
+<span class=o>[</span>renew<span class=o>]</span> FYI: You can look at this config file with <span class=s1>&#39;kubectl -n kube-system get cm kubeadm-config -oyaml&#39;</span>
+<span class=o>[</span>renew<span class=o>]</span> Error reading configuration from the Cluster. Falling back to default configuration
+
+W0818 15:46:40.020407    <span class=m>3775</span> configset.go:348<span class=o>]</span> WARNING: kubeadm cannot validate component configs <span class=k>for</span> API groups <span class=o>[</span>kubelet.config.k8s.io kubeproxy.config.k8s.io<span class=o>]</span>
+certificate embedded in the kubeconfig file <span class=k>for</span> the admin to use and <span class=k>for</span> kubeadm itself renewed
+certificate <span class=k>for</span> serving the Kubernetes API renewed
+certificate the apiserver uses to access etcd renewed
+certificate <span class=k>for</span> the API server to connect to kubelet renewed
+certificate embedded in the kubeconfig file <span class=k>for</span> the controller manager to use renewed
+certificate <span class=k>for</span> liveness probes to healthcheck etcd renewed
+certificate <span class=k>for</span> etcd nodes to communicate with each other renewed
+certificate <span class=k>for</span> serving etcd renewed
+certificate <span class=k>for</span> the front proxy client renewed
+certificate embedded in the kubeconfig file <span class=k>for</span> the scheduler manager to use renewed
+</code></pre></td></tr></table></div></div><p>通过上面的命令证书就一键更新完成了，这个时候查看上面的证书可以看到过期时间已经是一年后的时间了：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>kubeadm alpha certs check-expiration 
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>root@k8s-master<span class=o>(</span>10.0.0.11<span class=o>)</span>~&gt;kubeadm alpha certs check-expiration 
+
+<span class=o>[</span>check-expiration<span class=o>]</span> Reading configuration from the cluster...
+<span class=o>[</span>check-expiration<span class=o>]</span> FYI: You can look at this config file with <span class=s1>&#39;kubectl -n kube-system get cm kubeadm-config -oyaml&#39;</span>
+<span class=o>[</span>check-expiration<span class=o>]</span> Error reading configuration from the Cluster. Falling back to default configuration
+
+W0818 15:47:22.712349    <span class=m>3834</span> configset.go:348<span class=o>]</span> WARNING: kubeadm cannot validate component configs <span class=k>for</span> API groups <span class=o>[</span>kubelet.config.k8s.io kubeproxy.config.k8s.io<span class=o>]</span>
+CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED
+admin.conf                 Aug 18, <span class=m>2023</span> 07:46 UTC   364d                                    no      
+apiserver                  Aug 18, <span class=m>2023</span> 07:46 UTC   364d            ca                      no      
+apiserver-etcd-client      Aug 18, <span class=m>2023</span> 07:46 UTC   364d            etcd-ca                 no      
+apiserver-kubelet-client   Aug 18, <span class=m>2023</span> 07:46 UTC   364d            ca                      no      
+controller-manager.conf    Aug 18, <span class=m>2023</span> 07:46 UTC   364d                                    no      
+etcd-healthcheck-client    Aug 18, <span class=m>2023</span> 07:46 UTC   364d            etcd-ca                 no      
+etcd-peer                  Aug 18, <span class=m>2023</span> 07:46 UTC   364d            etcd-ca                 no      
+etcd-server                Aug 18, <span class=m>2023</span> 07:46 UTC   364d            etcd-ca                 no      
+front-proxy-client         Aug 18, <span class=m>2023</span> 07:46 UTC   364d            front-proxy-ca          no      
+scheduler.conf             Aug 18, <span class=m>2023</span> 07:46 UTC   364d                                    no      
+
+CERTIFICATE AUTHORITY   EXPIRES                  RESIDUAL TIME   EXTERNALLY MANAGED
+ca                      Aug 16, <span class=m>2031</span> 07:39 UTC   8y              no      
+etcd-ca                 Aug 16, <span class=m>2031</span> 07:39 UTC   8y              no      
+front-proxy-ca          Aug 16, <span class=m>2031</span> 07:39 UTC   8y              no 
+</code></pre></td></tr></table></div></div><p><strong>3. 更新 kubeconfig 文件</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>kubeadm init phase kubeconfig all 
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>root@k8s-master<span class=o>(</span>10.0.0.11<span class=o>)</span>~&gt;kubeadm init phase kubeconfig all 
+
+I0818 15:48:50.617013    <span class=m>3929</span> version.go:252<span class=o>]</span> remote version is much newer: v1.24.4<span class=p>;</span> falling back to: stable-1.19
+W0818 15:48:52.891141    <span class=m>3929</span> configset.go:348<span class=o>]</span> WARNING: kubeadm cannot validate component configs <span class=k>for</span> API groups <span class=o>[</span>kubelet.config.k8s.io kubeproxy.config.k8s.io<span class=o>]</span>
+<span class=o>[</span>kubeconfig<span class=o>]</span> Using kubeconfig folder <span class=s2>&#34;/etc/kubernetes&#34;</span>
+<span class=o>[</span>kubeconfig<span class=o>]</span> Using existing kubeconfig file: <span class=s2>&#34;/etc/kubernetes/admin.conf&#34;</span>
+<span class=o>[</span>kubeconfig<span class=o>]</span> Using existing kubeconfig file: <span class=s2>&#34;/etc/kubernetes/kubelet.conf&#34;</span>
+<span class=o>[</span>kubeconfig<span class=o>]</span> Using existing kubeconfig file: <span class=s2>&#34;/etc/kubernetes/controller-manager.conf&#34;</span>
+<span class=o>[</span>kubeconfig<span class=o>]</span> Using existing kubeconfig file: <span class=s2>&#34;/etc/kubernetes/scheduler.conf&#34;</span>
+</code></pre></td></tr></table></div></div><p><strong>4. 覆盖原admin文件</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>mv <span class=nv>$HOME</span>/.kube/config <span class=nv>$HOME</span>/.kube/config.old
+cp -i /etc/kubernetes/admin.conf <span class=nv>$HOME</span>/.kube/config
+chown <span class=k>$(</span>id -u<span class=k>)</span>:<span class=k>$(</span>id -g<span class=k>)</span> <span class=nv>$HOME</span>/.kube/config
+</code></pre></td></tr></table></div></div><p><strong>5. 重启容器</strong></p><p>重启 kube-apiserver、kube-controller、kube-scheduler、etcd 这4个容器即可</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>docker restart <span class=sb>`</span>docker ps <span class=p>|</span> grep etcd <span class=p>|</span> awk <span class=s1>&#39;{print $1}&#39;</span><span class=sb>`</span>
+docker restart <span class=sb>`</span>docker ps <span class=p>|</span> grep kube-apiserver <span class=p>|</span> awk <span class=s1>&#39;{print $1}&#39;</span><span class=sb>`</span>
+docker restart <span class=sb>`</span>docker ps <span class=p>|</span> grep kube-controller <span class=p>|</span> awk <span class=s1>&#39;{print $1}&#39;</span><span class=sb>`</span>
+docker restart <span class=sb>`</span>docker ps <span class=p>|</span> grep kube-scheduler <span class=p>|</span> awk <span class=s1>&#39;{print $1}&#39;</span><span class=sb>`</span>
+ 
+</code></pre></td></tr></table></div></div><p><strong>6. 验证是否认证成功</strong></p><p>查看pod集群状态，检查刚刚重启的status是否为Running(一般会等待2分钟左右)</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>kubectl get po -A -o wide
+</code></pre></td></tr></table></div></div><p>查看当前集群的证书时间，RESIDUAL TIME，为364d，续期一年。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>root@k8s-master<span class=o>(</span>10.0.0.11<span class=o>)</span>~&gt;kubeadm alpha certs check-expiration 
+<span class=o>[</span>check-expiration<span class=o>]</span> Reading configuration from the cluster...
+<span class=o>[</span>check-expiration<span class=o>]</span> FYI: You can look at this config file with <span class=s1>&#39;kubectl -n kube-system get cm kubeadm-config -oyaml&#39;</span>
+
+CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED
+admin.conf                 Aug 18, <span class=m>2023</span> 07:46 UTC   364d                                    no      
+apiserver                  Aug 18, <span class=m>2023</span> 07:46 UTC   364d            ca                      no      
+apiserver-etcd-client      Aug 18, <span class=m>2023</span> 07:46 UTC   364d            etcd-ca                 no      
+apiserver-kubelet-client   Aug 18, <span class=m>2023</span> 07:46 UTC   364d            ca                      no      
+controller-manager.conf    Aug 18, <span class=m>2023</span> 07:46 UTC   364d                                    no      
+etcd-healthcheck-client    Aug 18, <span class=m>2023</span> 07:46 UTC   364d            etcd-ca                 no      
+etcd-peer                  Aug 18, <span class=m>2023</span> 07:46 UTC   364d            etcd-ca                 no      
+etcd-server                Aug 18, <span class=m>2023</span> 07:46 UTC   364d            etcd-ca                 no      
+front-proxy-client         Aug 18, <span class=m>2023</span> 07:46 UTC   364d            front-proxy-ca          no      
+scheduler.conf             Aug 18, <span class=m>2023</span> 07:46 UTC   364d                                    no      
+
+CERTIFICATE AUTHORITY   EXPIRES                  RESIDUAL TIME   EXTERNALLY MANAGED
+ca                      Aug 16, <span class=m>2031</span> 07:39 UTC   8y              no      
+etcd-ca                 Aug 16, <span class=m>2031</span> 07:39 UTC   8y              no      
+front-proxy-ca          Aug 16, <span class=m>2031</span> 07:39 UTC   8y              no  
+</code></pre></td></tr></table></div></div><p><strong>到此，通过手动的方式更新证书完成。</strong></p><h2 id=源码编译kubeadm>源码编译kubeadm</h2><blockquote><p>可以在初始化集群之前重新编译 kubeadm，证书有限期可自行指定。</p></blockquote><p><strong>新建集群如下操作：</strong></p><p><strong>1. 获取源码</strong></p><p>如果集群已经初始化完成，请下载对应版本的源代码进行操作。</p><p>我这里的版本为 <code>v1.19.7</code> 去 github 下载对应版本的源代码进行修改编译。</p><p><strong>注意：版本一定要一致！</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>wget https://github.com/kubernetes/kubernetes/archive/v1.19.7.tar.gz
+tar -zxvf v1.19.7.tar.gz
+mv kubernetes-1.19.7 kubernetes
+<span class=nb>cd</span> kubernetes
+</code></pre></td></tr></table></div></div><p><strong>2. 修改CA为100年</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>&gt;vim ./staging/src/k8s.io/client-go/util/cert/cert.go
+...
+func NewSelfSignedCACert<span class=o>(</span>cfg Config, key crypto.Signer<span class=o>)</span> <span class=o>(</span>*x509.Certificate, error<span class=o>)</span> <span class=o>{</span>
+    now :<span class=o>=</span> time.Now<span class=o>()</span>
+    tmpl :<span class=o>=</span> x509.Certificate<span class=o>{</span>
+        SerialNumber: new<span class=o>(</span>big.Int<span class=o>)</span>.SetInt64<span class=o>(</span>0<span class=o>)</span>,
+        Subject: pkix.Name<span class=o>{</span>
+            CommonName:   cfg.CommonName,
+            Organization: cfg.Organization,
+        <span class=o>}</span>,
+        NotBefore:             now.UTC<span class=o>()</span>,
+        NotAfter:              now.Add<span class=o>(</span>duration365d * 100<span class=o>)</span>.UTC<span class=o>()</span>,  <span class=c1># 这里10修改为100</span>
+...
+&gt;vim ./cmd/kubeadm/app/constants/constants.go
+...
+const <span class=o>(</span>
+    // KubernetesDir is the directory Kubernetes owns <span class=k>for</span> storing various configuration files
+    <span class=nv>KubernetesDir</span> <span class=o>=</span> <span class=s2>&#34;/etc/kubernetes&#34;</span>
+    // ManifestsSubDirName defines directory name to store manifests
+    <span class=nv>ManifestsSubDirName</span> <span class=o>=</span> <span class=s2>&#34;manifests&#34;</span>
+    // TempDirForKubeadm defines temporary directory <span class=k>for</span> kubeadm
+    // should be joined with KubernetesDir.
+    <span class=nv>TempDirForKubeadm</span> <span class=o>=</span> <span class=s2>&#34;tmp&#34;</span>
+
+    // CertificateValidity defines the validity <span class=k>for</span> all the signed certificates generated by kubeadm
+    <span class=nv>CertificateValidity</span> <span class=o>=</span> time.Hour * <span class=m>24</span> * <span class=m>365</span> * 100	<span class=c1># 这里乘以 100 年</span>
+...
+</code></pre></td></tr></table></div></div><p><strong>3. 本地编译</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>yum install -y gcc make jq rsync
+</code></pre></td></tr></table></div></div><p><strong>4. 安装go环境</strong></p><p>查看 kube-cross 的 TAG 版本号</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>cat ./build/build-image/cross/VERSION
+v1.15.5-1
+</code></pre></td></tr></table></div></div><p>下载go，上传到 master节点</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>https://gomirrors.org/dl/go/go1.15.1.linux-amd64.tar.gz
+&gt;tar xf go1.15.Linux-amd64.tar.gz -C /usr/local/
+
+<span class=c1># 编辑/etc/profile文件添加如下：</span>
+&gt;vim /etc/profile
+...
+<span class=nb>export</span> <span class=nv>GOROOT</span><span class=o>=</span>/usr/local/go
+<span class=nb>export</span> <span class=nv>GOPATH</span><span class=o>=</span>/usr/local/gopath
+<span class=nb>export</span> <span class=nv>PATH</span><span class=o>=</span><span class=nv>$PATH</span>:<span class=nv>$GOROOT</span>/bin
+
+&gt;source /etc/profile
+</code></pre></td></tr></table></div></div><p>验证：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>&gt;go version
+go version go1.15 linux/amd64
+</code></pre></td></tr></table></div></div><p><strong>5. 编译kubeadm</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash><span class=c1># 编译kubeadm, 这里主要编译kubeadm 即可</span>
+make all <span class=nv>WHAT</span><span class=o>=</span>cmd/kubeadm <span class=nv>GOFLAGS</span><span class=o>=</span>-v
+
+<span class=c1># 编译kubelet</span>
+<span class=c1># make all WHAT=cmd/kubelet GOFLAGS=-v</span>
+
+<span class=c1># 编译kubectl</span>
+<span class=c1># make all WHAT=cmd/kubectl GOFLAGS=-v</span>
+
+<span class=c1>#编译完产物在 _output/bin/kubeadm 目录下，</span>
+<span class=c1>#其中bin是使用了软连接</span>
+<span class=c1>#真实路径是_output/local/bin/Linux/amd64/kubeadm</span>
+mv /usr/bin/kubeadm /usr/bin/kubeadm_backup
+cp _output/local/bin/Linux/amd64/kubeadm /usr/bin/kubeadm
+chmod +x /usr/bin/kubeadm
+</code></pre></td></tr></table></div></div><p><strong>6. 更新证书</strong></p><p>查看证书到期时间：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>kubeadm alpha certs check-expiration
+</code></pre></td></tr></table></div></div><p>续订全部证书：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>kubeadm alpha certs renew all
+</code></pre></td></tr></table></div></div><p>再次查看证书到期时间：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>root@k8s-master<span class=o>(</span>10.0.0.11<span class=o>)</span>~&gt;kubeadm alpha certs check-expiration 
+<span class=o>[</span>check-expiration<span class=o>]</span> Reading configuration from the cluster...
+<span class=o>[</span>check-expiration<span class=o>]</span> FYI: You can look at this config file with <span class=s1>&#39;kubectl -n kube-system get cm kubeadm-config -oyaml&#39;</span>
+
+CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED
+admin.conf                 Jul 25, <span class=m>2121</span> 10:00 UTC   99y                                     no      
+apiserver                  Jul 25, <span class=m>2121</span> 10:00 UTC   99y             ca                      no      
+apiserver-etcd-client      Jul 25, <span class=m>2121</span> 10:00 UTC   99y             etcd-ca                 no      
+apiserver-kubelet-client   Jul 25, <span class=m>2121</span> 10:00 UTC   99y             ca                      no      
+controller-manager.conf    Jul 25, <span class=m>2121</span> 10:00 UTC   99y                                     no      
+etcd-healthcheck-client    Jul 25, <span class=m>2121</span> 10:00 UTC   99y             etcd-ca                 no      
+etcd-peer                  Jul 25, <span class=m>2121</span> 10:00 UTC   99y             etcd-ca                 no      
+etcd-server                Jul 25, <span class=m>2121</span> 10:00 UTC   99y             etcd-ca                 no      
+front-proxy-client         Jul 25, <span class=m>2121</span> 10:00 UTC   99y             front-proxy-ca          no      
+scheduler.conf             Jul 25, <span class=m>2121</span> 10:00 UTC   99y                                     no      
+
+CERTIFICATE AUTHORITY   EXPIRES                  RESIDUAL TIME   EXTERNALLY MANAGED
+ca                      Jul 25, <span class=m>2121</span> 10:00 UTC   99y             no      
+etcd-ca                 Jul 25, <span class=m>2121</span> 10:00 UTC   99y             no      
+front-proxy-ca          Jul 25, <span class=m>2121</span> 10:00 UTC   99y             no    
+</code></pre></td></tr></table></div></div><p><strong>如果集群证书已经过期，在上面的基础继续如下步骤：</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>docker restart <span class=sb>`</span>docker ps <span class=p>|</span> grep etcd <span class=p>|</span> awk <span class=s1>&#39;{print $1}&#39;</span><span class=sb>`</span>
+docker restart <span class=sb>`</span>docker ps <span class=p>|</span> grep kube-apiserver <span class=p>|</span> awk <span class=s1>&#39;{print $1}&#39;</span><span class=sb>`</span>
+docker restart <span class=sb>`</span>docker ps <span class=p>|</span> grep kube-controller <span class=p>|</span> awk <span class=s1>&#39;{print $1}&#39;</span><span class=sb>`</span>
+docker restart <span class=sb>`</span>docker ps <span class=p>|</span> grep kube-scheduler <span class=p>|</span> awk <span class=s1>&#39;{print $1}&#39;</span><span class=sb>`</span>
+ 
+</code></pre></td></tr></table></div></div><p><strong>更新 kubeconfig 文件</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>kubeadm init phase kubeconfig all
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>root@k8s-master<span class=o>(</span>10.0.0.11<span class=o>)</span>~&gt;kubeadm init phase kubeconfig all 
+
+I0818 15:48:50.617013    <span class=m>3929</span> version.go:252<span class=o>]</span> remote version is much newer: v1.24.4<span class=p>;</span> falling back to: stable-1.19
+W0818 15:48:52.891141    <span class=m>3929</span> configset.go:348<span class=o>]</span> WARNING: kubeadm cannot validate component configs <span class=k>for</span> API groups <span class=o>[</span>kubelet.config.k8s.io kubeproxy.config.k8s.io<span class=o>]</span>
+<span class=o>[</span>kubeconfig<span class=o>]</span> Using kubeconfig folder <span class=s2>&#34;/etc/kubernetes&#34;</span>
+<span class=o>[</span>kubeconfig<span class=o>]</span> Using existing kubeconfig file: <span class=s2>&#34;/etc/kubernetes/admin.conf&#34;</span>
+<span class=o>[</span>kubeconfig<span class=o>]</span> Using existing kubeconfig file: <span class=s2>&#34;/etc/kubernetes/kubelet.conf&#34;</span>
+<span class=o>[</span>kubeconfig<span class=o>]</span> Using existing kubeconfig file: <span class=s2>&#34;/etc/kubernetes/controller-manager.conf&#34;</span>
+<span class=o>[</span>kubeconfig<span class=o>]</span> Using existing kubeconfig file: <span class=s2>&#34;/etc/kubernetes/scheduler.conf&#34;</span>
+</code></pre></td></tr></table></div></div><p><strong>覆盖原admin文件</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>mv <span class=nv>$HOME</span>/.kube/config <span class=nv>$HOME</span>/.kube/config.old
+cp -i /etc/kubernetes/admin.conf <span class=nv>$HOME</span>/.kube/config
+chown <span class=k>$(</span>id -u<span class=k>)</span>:<span class=k>$(</span>id -g<span class=k>)</span> <span class=nv>$HOME</span>/.kube/config
+</code></pre></td></tr></table></div></div><p><strong>到此，编译更新证书完成。</strong></p><h2 id=操作命令备注>操作命令备注</h2><p>背景：K8S 各个组件需要与 api-server 进行通信，通信使用的证书都存放在 /etc/kubernetes/pki 路径下，kubeadm 生成的证书默认有效为 1 年，因此需要定时更新证书，否则证书到期会导致整个集群不可用。 自动更新证书，Kubenetes 在升级控制面板相关组件时会主动更新证书，因此如果保证 Kubernetes 能够定期（一年以内）升级的话，证书会自动更新。</p><p>环境说明：k8s 1.18.10</p><p>以下步骤，在所有 master 节点执行</p><p>具体操作步骤</p><h3 id=1检查证书是否过期以下两个命令均可>1）检查证书是否过期，以下两个命令均可</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>kubeadm alpha certs check-expiration
+openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -text <span class=p>|</span>grep <span class=s1>&#39; Not &#39;</span>
+</code></pre></td></tr></table></div></div><h3 id=2证书配置文件等备份>2）证书、配置文件等备份</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>cp -rp /etc/kubernetes /etc/kubernetes.bak
+</code></pre></td></tr></table></div></div><h3 id=3重新生成证书>3）重新生成证书</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>kubeadm alpha certs renew all
+</code></pre></td></tr></table></div></div><h3 id=4重新生成配置文件>4）重新生成配置文件</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>rm -f /etc/kubernetes/*.conf
+kubeadm init phase kubeconfig all
+</code></pre></td></tr></table></div></div><h3 id=5重启-kubeletapiserverschedulercontroller-manageretcd>5）重启 kubelet、apiserver、scheduler、controller-manager、etcd</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>systemctl restart kubelet
+docker ps <span class=p>|</span> egrep <span class=s2>&#34;k8s_kube-apiserver|k8s_kube-scheduler|k8s_kube-controller-manager|k8s_etcd&#34;</span> <span class=p>|</span> awk <span class=s1>&#39;{print $1}&#39;</span> <span class=p>|</span> xargs docker restart
+</code></pre></td></tr></table></div></div><h3 id=6更新-admin-配置>6）更新 admin 配置</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>cp /etc/kubernetes/admin.conf ~/.kube/config
+</code></pre></td></tr></table></div></div><h3 id=7检查证书过期时间>7）检查证书过期时间</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>kubeadm alpha certs check-expiration
+</code></pre></td></tr></table></div></div><blockquote><p>如果重新生成过程中有错误，就把旧文件删除</p></blockquote></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2023-07-22</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/k8s/>K8S</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2023/06/k8s%E6%9F%A5%E8%AF%A2%E9%98%9F%E5%88%97%E6%96%B9%E6%B3%95/ class=prev rel=prev title=k8s查询队列方法><i class="fas fa-angle-left fa-fw"></i>k8s查询队列方法</a></div></div><div id=comments><div id=utterances></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://utteranc.es/>Utterances</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
+<script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i></a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css><script type=text/javascript src=https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script><script type=text/javascript>window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{"utterances":{"darkTheme":"github-dark","issueTerm":"pathname","label":"","lightTheme":"github-light","repo":"bingerambo/myblog-comments"}},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type=text/javascript src=/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-81425808-1',{'anonymize_ip':true});</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script><script src=https://libs.baidu.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js></script><script type=text/javascript src=/js/custom.js></script><script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script></body></html>
