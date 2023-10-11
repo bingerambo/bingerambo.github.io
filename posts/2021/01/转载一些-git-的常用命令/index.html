@@ -1,8 +1,8 @@
-<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>[转载]一些 git 的常用命令 - 斌哥的小站|Binge Blog</title><meta name=Description content="记录一些 git 常用和一些记不住的命令"><meta property="og:title" content="[转载]一些 git 的常用命令"><meta property="og:description" content="记录一些 git 常用和一些记不住的命令"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/"><meta property="og:image" content="http://bingerambo.com/posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/featured-image.jpg"><meta property="article:published_time" content="2021-01-12T08:43:17+08:00"><meta property="article:modified_time" content="2021-01-12T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/featured-image.jpg"><meta name=twitter:title content="[转载]一些 git 的常用命令"><meta name=twitter:description content="记录一些 git 常用和一些记不住的命令"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/><link rel=prev href=http://bingerambo.com/posts/2021/01/python%E7%94%9F%E6%88%90requirements.txt%E7%8E%AF%E5%A2%83%E6%89%93%E5%8C%85/><link rel=next href=http://bingerambo.com/posts/2021/01/k8s-calico%E7%BD%91%E7%BB%9C%E6%8F%92%E4%BB%B6%E9%97%AE%E9%A2%98%E9%9B%86/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"[转载]一些 git 的常用命令","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2021\/01\/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4\/"},"image":[{"@type":"ImageObject","url":"http:\/\/bingerambo.com\/posts\/2021\/01\/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4\/featured-image.jpg","width":651,"height":293}],"genre":"posts","keywords":"Git","wordcount":11606,"url":"http:\/\/bingerambo.com\/posts\/2021\/01\/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4\/","datePublished":"2021-01-12T08:43:17+08:00","dateModified":"2021-01-12T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":"记录一些 git 常用和一些记不住的命令"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
-<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">[转载]一些 git 的常用命令</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/%E5%BC%80%E5%8F%91/><i class="far fa-folder fa-fw"></i>开发</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2021-01-12>2021-01-12</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 11606 字&nbsp;
-<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 24 分钟&nbsp;
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>[转载]一些 git 的常用命令 - 斌哥的小站|Binge Blog</title><meta name=Description content="记录一些 git 常用和一些记不住的命令"><meta property="og:title" content="[转载]一些 git 的常用命令"><meta property="og:description" content="记录一些 git 常用和一些记不住的命令"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/"><meta property="og:image" content="http://bingerambo.com/posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/featured-image.jpg"><meta property="article:published_time" content="2021-01-12T08:43:17+08:00"><meta property="article:modified_time" content="2021-01-12T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/featured-image.jpg"><meta name=twitter:title content="[转载]一些 git 的常用命令"><meta name=twitter:description content="记录一些 git 常用和一些记不住的命令"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/><link rel=prev href=http://bingerambo.com/posts/2021/01/python%E7%94%9F%E6%88%90requirements.txt%E7%8E%AF%E5%A2%83%E6%89%93%E5%8C%85/><link rel=next href=http://bingerambo.com/posts/2021/01/k8s-calico%E7%BD%91%E7%BB%9C%E6%8F%92%E4%BB%B6%E9%97%AE%E9%A2%98%E9%9B%86/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"[转载]一些 git 的常用命令","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2021\/01\/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4\/"},"image":[{"@type":"ImageObject","url":"http:\/\/bingerambo.com\/posts\/2021\/01\/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4\/featured-image.jpg","width":651,"height":293}],"genre":"posts","keywords":"Git","wordcount":13370,"url":"http:\/\/bingerambo.com\/posts\/2021\/01\/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4\/","datePublished":"2021-01-12T08:43:17+08:00","dateModified":"2021-01-12T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":"记录一些 git 常用和一些记不住的命令"}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">[转载]一些 git 的常用命令</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/%E5%BC%80%E5%8F%91/><i class="far fa-folder fa-fw"></i>开发</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2021-01-12>2021-01-12</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 13370 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 27 分钟&nbsp;
 <i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class=featured-image><img class=lazyload src=/svg/loading.min.svg data-src=/posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/featured-image.jpg data-srcset="/posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/featured-image.jpg, /posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/featured-image.jpg 1.5x, /posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/featured-image.jpg 2x" data-sizes=auto alt=/posts/2021/01/%E8%BD%AC%E8%BD%BD%E4%B8%80%E4%BA%9B-git-%E7%9A%84%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/featured-image.jpg title="记录一些 git 常用和一些记不住的命令"></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
-<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#安装卸载>安装卸载</a></li><li><a href=#配置管理>配置管理</a></li><li><a href=#不常见的使用场景>不常见的使用场景</a><ul><li><a href=#忽略文件的权限变化>忽略文件的权限变化</a></li><li><a href=#设置大小写敏感>设置大小写敏感</a></li><li><a href=#配置自动换行>配置自动换行</a></li><li><a href=#创建ssh密钥>创建SSH密钥</a></li><li><a href=#多账号ssh配置>多账号ssh配置</a></li><li><a href=#免密码登录远程服务器>免密码登录远程服务器</a></li><li><a href=#https协议下提交代码免密码>https协议下提交代码免密码</a></li><li><a href=#文件推向3个git库>文件推向3个git库</a></li><li><a href=#修改远程仓库地址>修改远程仓库地址</a></li><li><a href=#撤销远程记录>撤销远程记录</a></li><li><a href=#放弃本地的文件修改>放弃本地的文件修改</a></li><li><a href=#最简单放弃本地修改内容>最简单放弃本地修改内容</a></li><li><a href=#回退到某一个版本>回退到某一个版本</a></li><li><a href=#搜索-commit-历史记录>搜索 commit 历史记录</a></li><li><a href=#回滚到某个commit提交>回滚到某个commit提交</a></li><li><a href=#去掉某个commit>去掉某个commit</a></li><li><a href=#把-a-分支的某一个-commit放到-b-分支上>把 A 分支的某一个 commit，放到 B 分支上</a></li><li><a href=#获取最近一次提交的-commit-id>获取最近一次提交的 commit id</a></li><li><a href=#两个-git-仓库合并>两个 git 仓库合并</a></li><li><a href=#合并多个commit>合并多个commit</a></li><li><a href=#修改远程commit记录>修改远程Commit记录</a></li><li><a href=#利用commit关闭一个issue>利用commit关闭一个issue</a></li><li><a href=#新建一个空分支>新建一个空分支</a></li><li><a href=#添加忽略文件>添加忽略文件</a></li><li><a href=#忽略某个文件的改动>忽略某个文件的改动</a></li><li><a href=#同步fork的上游仓库>同步fork的上游仓库</a></li><li><a href=#手动合并冲突的-pull-request>手动合并冲突的 Pull Request</a></li><li><a href=#修改作者名>修改作者名</a></li><li><a href=#批量修改历史commit中的名字和邮箱>批量修改历史commit中的名字和邮箱</a></li><li><a href=#查看两个星期内的改动>查看两个星期内的改动</a></li><li><a href=#查看某个文件历史>查看某个文件历史</a></li><li><a href=#查看git仓库中最近修改的分支>查看git仓库中最近修改的分支</a></li><li><a href=#更新所有本地分支>更新所有本地分支</a></li><li><a href=#打造自己的git命令>打造自己的git命令</a></li><li><a href=#删除已经合并到-master-的分支>删除已经合并到 master 的分支</a></li><li><a href=#中文乱码的解决方案>中文乱码的解决方案</a></li><li><a href=#提交一个空文件夹>提交一个空文件夹</a></li></ul></li><li><a href=#新建仓库>新建仓库</a><ul><li><a href=#init>init</a></li><li><a href=#status>status</a></li><li><a href=#add>add</a></li><li><a href=#commit>commit</a></li><li><a href=#remote>remote</a></li><li><a href=#push>push</a></li></ul></li><li><a href=#clone>clone</a></li><li><a href=#本地>本地</a><ul><li><a href=#help>help</a></li><li><a href=#add-1>add</a></li><li><a href=#rm>rm</a></li><li><a href=#commit-1>commit</a></li><li><a href=#reset>reset</a></li><li><a href=#revert>revert</a></li><li><a href=#checkout>checkout</a></li><li><a href=#diff>diff</a></li><li><a href=#stash>stash</a></li><li><a href=#merge>merge</a></li><li><a href=#cherry-pick>cherry-pick</a></li><li><a href=#rebase>rebase</a></li></ul></li><li><a href=#分支branch>分支branch</a><ul><li><a href=#删除>删除</a></li><li><a href=#提交>提交</a></li><li><a href=#拉取>拉取</a></li><li><a href=#分支合并>分支合并</a></li><li><a href=#重命名>重命名</a></li><li><a href=#查看>查看</a></li><li><a href=#新建>新建</a></li><li><a href=#连接>连接</a></li><li><a href=#分支切换>分支切换</a></li></ul></li><li><a href=#远端>远端</a></li><li><a href=#submodule>submodule</a><ul><li><a href=#更新-submodule>更新 submodule</a></li><li><a href=#删除-submodule>删除 submodule</a></li><li><a href=#转换分支>转换分支</a></li></ul></li><li><a href=#删除文件>删除文件</a></li><li><a href=#remote-1>remote</a></li><li><a href=#标签tag>标签tag</a><ul><li><a href=#重命名tag>重命名Tag</a></li></ul></li><li><a href=#日志log>日志log</a></li><li><a href=#重写历史>重写历史</a></li><li><a href=#其它>其它</a></li><li><a href=#报错问题解决>报错问题解决</a></li><li><a href=#github上传本地项目>github上传本地项目</a></li><li><a href=#参考资料>参考资料</a></li></ul></nav></div></div><div class=content id=content><p>[转载]这里是我的笔记，记录一些 git 常用和一些记不住的命令，这个笔记原本是基于 <a href=http://yanhaijing.com/git/2014/11/01/my-git-note target=_blank rel="noopener noreffer">颜海镜的文章</a>增加的，后面慢慢增加了许多内容，独立一个仓库维护，方便查询和使用。</p><img src=git-cmd.png style=width:100%><h1 id=目录>目录</h1><ul><li><a href=#%e5%ae%89%e8%a3%85%e5%8d%b8%e8%bd%bd rel>安装卸载</a></li><li><a href=#%e9%85%8d%e7%bd%ae%e7%ae%a1%e7%90%86 rel>配置管理</a></li><li><a href=#%e4%b8%8d%e5%b8%b8%e8%a7%81%e7%9a%84%e4%bd%bf%e7%94%a8%e5%9c%ba%e6%99%af rel>不常见的使用场景</a><ul><li><a href=#%e5%bf%bd%e7%95%a5%e6%96%87%e4%bb%b6%e7%9a%84%e6%9d%83%e9%99%90%e5%8f%98%e5%8c%96 rel>忽略文件的权限变化</a></li><li><a href=#%e8%ae%be%e7%bd%ae%e5%a4%a7%e5%b0%8f%e5%86%99%e6%95%8f%e6%84%9f rel>设置大小写敏感</a></li><li><a href=#%e9%85%8d%e7%bd%ae%e8%87%aa%e5%8a%a8%e6%8d%a2%e8%a1%8c rel>配置自动换行</a></li><li><a href=#%e5%88%9b%e5%bb%bassh%e5%af%86%e9%92%a5 rel>创建SSH密钥</a></li><li><a href=#%e5%a4%9a%e8%b4%a6%e5%8f%b7ssh%e9%85%8d%e7%bd%ae rel>多账号ssh配置</a></li><li><a href=#%e5%85%8d%e5%af%86%e7%a0%81%e7%99%bb%e5%bd%95%e8%bf%9c%e7%a8%8b%e6%9c%8d%e5%8a%a1%e5%99%a8 rel>免密码登录远程服务器</a></li><li><a href=#https%e5%8d%8f%e8%ae%ae%e4%b8%8b%e6%8f%90%e4%ba%a4%e4%bb%a3%e7%a0%81%e5%85%8d%e5%af%86%e7%a0%81 rel>https协议下提交代码免密码</a></li><li><a href=#%e6%96%87%e4%bb%b6%e6%8e%a8%e5%90%913%e4%b8%aagit%e5%ba%93 rel>文件推向3个git库</a></li><li><a href=#%e4%bf%ae%e6%94%b9%e8%bf%9c%e7%a8%8b%e4%bb%93%e5%ba%93%e5%9c%b0%e5%9d%80 rel>修改远程仓库地址</a></li><li><a href=#%e6%92%a4%e9%94%80%e8%bf%9c%e7%a8%8b%e8%ae%b0%e5%bd%95 rel>撤销远程记录</a></li><li><a href=#%e6%94%be%e5%bc%83%e6%9c%ac%e5%9c%b0%e7%9a%84%e6%96%87%e4%bb%b6%e4%bf%ae%e6%94%b9 rel>放弃本地的文件修改</a></li><li><a href=#%e6%9c%80%e7%ae%80%e5%8d%95%e6%94%be%e5%bc%83%e6%9c%ac%e5%9c%b0%e4%bf%ae%e6%94%b9%e5%86%85%e5%ae%b9 rel>最简单放弃本地修改内容</a></li><li><a href=#%e5%9b%9e%e9%80%80%e5%88%b0%e6%9f%90%e4%b8%80%e4%b8%aa%e7%89%88%e6%9c%ac rel>回退到某一个版本</a></li><li><a href=#%e6%90%9c%e7%b4%a2-commit-%e5%8e%86%e5%8f%b2%e8%ae%b0%e5%bd%95 rel>搜索 commit 历史记录</a></li><li><a href=#%e5%9b%9e%e6%bb%9a%e5%88%b0%e6%9f%90%e4%b8%aacommit%e6%8f%90%e4%ba%a4 rel>回滚到某个commit提交</a></li><li><a href=#%e5%8e%bb%e6%8e%89%e6%9f%90%e4%b8%aacommit rel>去掉某个commit</a></li><li><a href=#%e6%8a%8a-a-%e5%88%86%e6%94%af%e7%9a%84%e6%9f%90%e4%b8%80%e4%b8%aa-commit%e6%94%be%e5%88%b0-b-%e5%88%86%e6%94%af%e4%b8%8a rel>把 A 分支的某一个 commit，放到 B 分支上</a></li><li><a href=#%e8%8e%b7%e5%8f%96%e6%9c%80%e8%bf%91%e4%b8%80%e6%ac%a1%e6%8f%90%e4%ba%a4%e7%9a%84-commit-id rel>获取最近一次提交的 commit id</a></li><li><a href=#%e4%b8%a4%e4%b8%aa-git-%e4%bb%93%e5%ba%93%e5%90%88%e5%b9%b6 rel>两个 git 仓库合并</a></li><li><a href=#%e5%90%88%e5%b9%b6%e5%a4%9a%e4%b8%aacommit rel>合并多个commit</a></li><li><a href=#%e4%bf%ae%e6%94%b9%e8%bf%9c%e7%a8%8bcommit%e8%ae%b0%e5%bd%95 rel>修改远程Commit记录</a></li><li><a href=#%e5%88%a9%e7%94%a8commit%e5%85%b3%e9%97%ad%e4%b8%80%e4%b8%aaissue rel>利用commit关闭一个issue</a></li><li><a href=#%e6%96%b0%e5%bb%ba%e4%b8%80%e4%b8%aa%e7%a9%ba%e5%88%86%e6%94%af rel>新建一个空分支</a></li><li><a href=#%e6%b7%bb%e5%8a%a0%e5%bf%bd%e7%95%a5%e6%96%87%e4%bb%b6 rel>添加忽略文件</a></li><li><a href=#%e5%bf%bd%e7%95%a5%e6%9f%90%e4%b8%aa%e6%96%87%e4%bb%b6%e7%9a%84%e6%94%b9%e5%8a%a8 rel>忽略某个文件的改动</a></li><li><a href=#%e5%90%8c%e6%ad%a5fork%e7%9a%84%e4%b8%8a%e6%b8%b8%e4%bb%93%e5%ba%93 rel>同步fork的上游仓库</a></li><li><a href=#%e6%89%8b%e5%8a%a8%e5%90%88%e5%b9%b6%e5%86%b2%e7%aa%81%e7%9a%84-pull-request rel>手动合并冲突的 Pull Request</a></li><li><a href=#%e4%bf%ae%e6%94%b9%e4%bd%9c%e8%80%85%e5%90%8d rel>修改作者名</a></li><li><a href=#%e6%89%b9%e9%87%8f%e4%bf%ae%e6%94%b9%e5%8e%86%e5%8f%b2commit%e4%b8%ad%e7%9a%84%e5%90%8d%e5%ad%97%e5%92%8c%e9%82%ae%e7%ae%b1 rel>批量修改历史commit中的名字和邮箱</a></li><li><a href=#%e6%9f%a5%e7%9c%8b%e4%b8%a4%e4%b8%aa%e6%98%9f%e6%9c%9f%e5%86%85%e7%9a%84%e6%94%b9%e5%8a%a8 rel>查看两个星期内的改动</a></li><li><a href=#%e6%9f%a5%e7%9c%8b%e6%9f%90%e4%b8%aa%e6%96%87%e4%bb%b6%e5%8e%86%e5%8f%b2 rel>查看某个文件历史</a></li><li><a href=#%e6%9f%a5%e7%9c%8bgit%e4%bb%93%e5%ba%93%e4%b8%ad%e6%9c%80%e8%bf%91%e4%bf%ae%e6%94%b9%e7%9a%84%e5%88%86%e6%94%af rel>查看git仓库中最近修改的分支</a></li><li><a href=#%e6%9b%b4%e6%96%b0%e6%89%80%e6%9c%89%e6%9c%ac%e5%9c%b0%e5%88%86%e6%94%af rel>更新所有本地分支</a></li><li><a href=#%e6%89%93%e9%80%a0%e8%87%aa%e5%b7%b1%e7%9a%84git%e5%91%bd%e4%bb%a4 rel>打造自己的git命令</a></li><li><a href=#%e5%88%a0%e9%99%a4%e5%b7%b2%e7%bb%8f%e5%90%88%e5%b9%b6%e5%88%b0-master-%e7%9a%84%e5%88%86%e6%94%af rel>删除已经合并到 master 的分支</a></li><li><a href=#%e4%b8%ad%e6%96%87%e4%b9%b1%e7%a0%81%e7%9a%84%e8%a7%a3%e5%86%b3%e6%96%b9%e6%a1%88 rel>中文乱码的解决方案</a></li><li><a href=#%e6%8f%90%e4%ba%a4%e4%b8%80%e4%b8%aa%e7%a9%ba%e6%96%87%e4%bb%b6%e5%a4%b9 rel>提交一个空文件夹</a></li></ul></li><li><a href=#%e6%96%b0%e5%bb%ba%e4%bb%93%e5%ba%93 rel>新建仓库</a><ul><li><a href=#init rel>init</a></li><li><a href=#status rel>status</a></li><li><a href=#add rel>add</a></li><li><a href=#commit rel>commit</a></li><li><a href=#remote rel>remote</a></li><li><a href=#push rel>push</a></li></ul></li><li><a href=#clone rel>clone</a></li><li><a href=#%e6%9c%ac%e5%9c%b0 rel>本地</a><ul><li><a href=#help rel>help</a></li><li><a href=#add-1 rel>add</a></li><li><a href=#rm rel>rm</a></li><li><a href=#commit-1 rel>commit</a></li><li><a href=#reset rel>reset</a></li><li><a href=#revert rel>revert</a></li><li><a href=#checkout rel>checkout</a></li><li><a href=#diff rel>diff</a></li><li><a href=#stash rel>stash</a></li><li><a href=#merge rel>merge</a></li><li><a href=#cherry-pick rel>cherry-pick</a></li><li><a href=#rebase rel>rebase</a></li></ul></li><li><a href=#%e5%88%86%e6%94%afbranch rel>分支branch</a><ul><li><a href=#%e5%88%a0%e9%99%a4 rel>删除</a></li><li><a href=#%e6%8f%90%e4%ba%a4 rel>提交</a></li><li><a href=#%e6%8b%89%e5%8f%96 rel>拉取</a></li><li><a href=#%e5%88%86%e6%94%af%e5%90%88%e5%b9%b6 rel>分支合并</a></li><li><a href=#%e9%87%8d%e5%91%bd%e5%90%8d rel>重命名</a></li><li><a href=#%e6%9f%a5%e7%9c%8b rel>查看</a></li><li><a href=#%e6%96%b0%e5%bb%ba rel>新建</a></li><li><a href=#%e8%bf%9e%e6%8e%a5 rel>连接</a></li><li><a href=#%e5%88%86%e6%94%af%e5%88%87%e6%8d%a2 rel>分支切换</a></li></ul></li><li><a href=#%e8%bf%9c%e7%ab%af rel>远端</a></li><li><a href=#submodule rel>submodule</a><ul><li><a href=#%e6%9b%b4%e6%96%b0-submodule rel>更新 submodule</a></li><li><a href=#%e5%88%a0%e9%99%a4-submodule rel>删除 submodule</a></li><li><a href=#%e8%bd%ac%e6%8d%a2%e5%88%86%e6%94%af rel>转换分支</a></li></ul></li><li><a href=#%e5%88%a0%e9%99%a4%e6%96%87%e4%bb%b6 rel>删除文件</a></li><li><a href=#remote-1 rel>remote</a></li><li><a href=#%e6%a0%87%e7%ad%betag rel>标签tag</a><ul><li><a href=#%e9%87%8d%e5%91%bd%e5%90%8dtag rel>重命名Tag</a></li></ul></li><li><a href=#%e6%97%a5%e5%bf%97log rel>日志log</a></li><li><a href=#%e9%87%8d%e5%86%99%e5%8e%86%e5%8f%b2 rel>重写历史</a></li><li><a href=#%e5%85%b6%e5%ae%83 rel>其它</a></li><li><a href=#%e6%8a%a5%e9%94%99%e9%97%ae%e9%a2%98%e8%a7%a3%e5%86%b3 rel>报错问题解决</a></li><li><a href=#%e5%8f%82%e8%80%83%e8%b5%84%e6%96%99 rel>参考资料</a></li></ul><h2 id=安装卸载>安装卸载</h2><p><a href=https://git-scm.com/download/linux target=_blank rel="noopener noreffer">官方教程</a>，在 Linux/Unix 系统中，通过工具在中安装 <code>git</code>,这种方式比较简单，便于升级卸载工具。</p><p>下面介绍在 CentOS 系统中，通过 yum 来安装 git</p><blockquote><p><strong>Red Hat Enterprise Linux, Oracle Linux, CentOS, Scientific Linux, et al.</strong>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#安装卸载>安装卸载</a></li><li><a href=#配置管理>配置管理</a></li><li><a href=#不常见的使用场景>不常见的使用场景</a><ul><li><a href=#忽略文件的权限变化>忽略文件的权限变化</a></li><li><a href=#设置大小写敏感>设置大小写敏感</a></li><li><a href=#配置自动换行>配置自动换行</a></li><li><a href=#创建ssh密钥>创建SSH密钥</a></li><li><a href=#多账号ssh配置>多账号ssh配置</a></li><li><a href=#免密码登录远程服务器>免密码登录远程服务器</a></li><li><a href=#https协议下提交代码免密码>https协议下提交代码免密码</a></li><li><a href=#文件推向3个git库>文件推向3个git库</a></li><li><a href=#修改远程仓库地址>修改远程仓库地址</a></li><li><a href=#撤销远程记录>撤销远程记录</a></li><li><a href=#放弃本地的文件修改>放弃本地的文件修改</a></li><li><a href=#最简单放弃本地修改内容>最简单放弃本地修改内容</a></li><li><a href=#回退到某一个版本>回退到某一个版本</a></li><li><a href=#搜索-commit-历史记录>搜索 commit 历史记录</a></li><li><a href=#回滚到某个commit提交>回滚到某个commit提交</a></li><li><a href=#去掉某个commit>去掉某个commit</a></li><li><a href=#把-a-分支的某一个-commit放到-b-分支上>把 A 分支的某一个 commit，放到 B 分支上</a></li><li><a href=#获取最近一次提交的-commit-id>获取最近一次提交的 commit id</a></li><li><a href=#两个-git-仓库合并>两个 git 仓库合并</a></li><li><a href=#合并多个commit>合并多个commit</a></li><li><a href=#修改远程commit记录>修改远程Commit记录</a></li><li><a href=#利用commit关闭一个issue>利用commit关闭一个issue</a></li><li><a href=#新建一个空分支>新建一个空分支</a></li><li><a href=#添加忽略文件>添加忽略文件</a></li><li><a href=#忽略某个文件的改动>忽略某个文件的改动</a></li><li><a href=#同步fork的上游仓库>同步fork的上游仓库</a></li><li><a href=#手动合并冲突的-pull-request>手动合并冲突的 Pull Request</a></li><li><a href=#修改作者名>修改作者名</a></li><li><a href=#批量修改历史commit中的名字和邮箱>批量修改历史commit中的名字和邮箱</a></li><li><a href=#查看两个星期内的改动>查看两个星期内的改动</a></li><li><a href=#查看某个文件历史>查看某个文件历史</a></li><li><a href=#查看git仓库中最近修改的分支>查看git仓库中最近修改的分支</a></li><li><a href=#更新所有本地分支>更新所有本地分支</a></li><li><a href=#打造自己的git命令>打造自己的git命令</a></li><li><a href=#删除已经合并到-master-的分支>删除已经合并到 master 的分支</a></li><li><a href=#中文乱码的解决方案>中文乱码的解决方案</a></li><li><a href=#提交一个空文件夹>提交一个空文件夹</a></li></ul></li><li><a href=#新建仓库>新建仓库</a><ul><li><a href=#init>init</a></li><li><a href=#status>status</a></li><li><a href=#add>add</a></li><li><a href=#commit>commit</a></li><li><a href=#remote>remote</a></li><li><a href=#push>push</a></li></ul></li><li><a href=#clone>clone</a></li><li><a href=#本地>本地</a><ul><li><a href=#help>help</a></li><li><a href=#add-1>add</a></li><li><a href=#rm>rm</a></li><li><a href=#commit-1>commit</a></li><li><a href=#reset>reset</a></li><li><a href=#revert>revert</a></li><li><a href=#checkout>checkout</a></li><li><a href=#diff>diff</a></li><li><a href=#stash>stash</a></li><li><a href=#merge>merge</a></li><li><a href=#cherry-pick>cherry-pick</a></li><li><a href=#rebase>rebase</a></li></ul></li><li><a href=#分支branch>分支branch</a><ul><li><a href=#删除>删除</a></li><li><a href=#提交>提交</a></li><li><a href=#拉取>拉取</a></li><li><a href=#分支合并>分支合并</a></li><li><a href=#重命名>重命名</a></li><li><a href=#查看>查看</a></li><li><a href=#新建>新建</a></li><li><a href=#连接>连接</a></li><li><a href=#分支切换>分支切换</a></li></ul></li><li><a href=#远端>远端</a></li><li><a href=#submodule>submodule</a><ul><li><a href=#更新-submodule>更新 submodule</a></li><li><a href=#删除-submodule>删除 submodule</a></li><li><a href=#转换分支>转换分支</a></li></ul></li><li><a href=#删除文件>删除文件</a></li><li><a href=#remote-1>remote</a></li><li><a href=#标签tag>标签tag</a><ul><li><a href=#重命名tag>重命名Tag</a></li></ul></li><li><a href=#日志log>日志log</a></li><li><a href=#重写历史>重写历史</a></li><li><a href=#其它>其它</a></li><li><a href=#报错问题解决>报错问题解决</a></li><li><a href=#github上传本地项目>github上传本地项目</a></li><li><a href=#git命令汇总>git命令汇总</a></li><li><a href=#git操作命令示例>git操作命令示例</a></li><li><a href=#参考资料>参考资料</a></li></ul></nav></div></div><div class=content id=content><p>[转载]这里是我的笔记，记录一些 git 常用和一些记不住的命令，这个笔记原本是基于 <a href=http://yanhaijing.com/git/2014/11/01/my-git-note target=_blank rel="noopener noreffer">颜海镜的文章</a>增加的，后面慢慢增加了许多内容，独立一个仓库维护，方便查询和使用。</p><img src=git-cmd.png style=width:100%><h1 id=目录>目录</h1><ul><li><a href=#%e5%ae%89%e8%a3%85%e5%8d%b8%e8%bd%bd rel>安装卸载</a></li><li><a href=#%e9%85%8d%e7%bd%ae%e7%ae%a1%e7%90%86 rel>配置管理</a></li><li><a href=#%e4%b8%8d%e5%b8%b8%e8%a7%81%e7%9a%84%e4%bd%bf%e7%94%a8%e5%9c%ba%e6%99%af rel>不常见的使用场景</a><ul><li><a href=#%e5%bf%bd%e7%95%a5%e6%96%87%e4%bb%b6%e7%9a%84%e6%9d%83%e9%99%90%e5%8f%98%e5%8c%96 rel>忽略文件的权限变化</a></li><li><a href=#%e8%ae%be%e7%bd%ae%e5%a4%a7%e5%b0%8f%e5%86%99%e6%95%8f%e6%84%9f rel>设置大小写敏感</a></li><li><a href=#%e9%85%8d%e7%bd%ae%e8%87%aa%e5%8a%a8%e6%8d%a2%e8%a1%8c rel>配置自动换行</a></li><li><a href=#%e5%88%9b%e5%bb%bassh%e5%af%86%e9%92%a5 rel>创建SSH密钥</a></li><li><a href=#%e5%a4%9a%e8%b4%a6%e5%8f%b7ssh%e9%85%8d%e7%bd%ae rel>多账号ssh配置</a></li><li><a href=#%e5%85%8d%e5%af%86%e7%a0%81%e7%99%bb%e5%bd%95%e8%bf%9c%e7%a8%8b%e6%9c%8d%e5%8a%a1%e5%99%a8 rel>免密码登录远程服务器</a></li><li><a href=#https%e5%8d%8f%e8%ae%ae%e4%b8%8b%e6%8f%90%e4%ba%a4%e4%bb%a3%e7%a0%81%e5%85%8d%e5%af%86%e7%a0%81 rel>https协议下提交代码免密码</a></li><li><a href=#%e6%96%87%e4%bb%b6%e6%8e%a8%e5%90%913%e4%b8%aagit%e5%ba%93 rel>文件推向3个git库</a></li><li><a href=#%e4%bf%ae%e6%94%b9%e8%bf%9c%e7%a8%8b%e4%bb%93%e5%ba%93%e5%9c%b0%e5%9d%80 rel>修改远程仓库地址</a></li><li><a href=#%e6%92%a4%e9%94%80%e8%bf%9c%e7%a8%8b%e8%ae%b0%e5%bd%95 rel>撤销远程记录</a></li><li><a href=#%e6%94%be%e5%bc%83%e6%9c%ac%e5%9c%b0%e7%9a%84%e6%96%87%e4%bb%b6%e4%bf%ae%e6%94%b9 rel>放弃本地的文件修改</a></li><li><a href=#%e6%9c%80%e7%ae%80%e5%8d%95%e6%94%be%e5%bc%83%e6%9c%ac%e5%9c%b0%e4%bf%ae%e6%94%b9%e5%86%85%e5%ae%b9 rel>最简单放弃本地修改内容</a></li><li><a href=#%e5%9b%9e%e9%80%80%e5%88%b0%e6%9f%90%e4%b8%80%e4%b8%aa%e7%89%88%e6%9c%ac rel>回退到某一个版本</a></li><li><a href=#%e6%90%9c%e7%b4%a2-commit-%e5%8e%86%e5%8f%b2%e8%ae%b0%e5%bd%95 rel>搜索 commit 历史记录</a></li><li><a href=#%e5%9b%9e%e6%bb%9a%e5%88%b0%e6%9f%90%e4%b8%aacommit%e6%8f%90%e4%ba%a4 rel>回滚到某个commit提交</a></li><li><a href=#%e5%8e%bb%e6%8e%89%e6%9f%90%e4%b8%aacommit rel>去掉某个commit</a></li><li><a href=#%e6%8a%8a-a-%e5%88%86%e6%94%af%e7%9a%84%e6%9f%90%e4%b8%80%e4%b8%aa-commit%e6%94%be%e5%88%b0-b-%e5%88%86%e6%94%af%e4%b8%8a rel>把 A 分支的某一个 commit，放到 B 分支上</a></li><li><a href=#%e8%8e%b7%e5%8f%96%e6%9c%80%e8%bf%91%e4%b8%80%e6%ac%a1%e6%8f%90%e4%ba%a4%e7%9a%84-commit-id rel>获取最近一次提交的 commit id</a></li><li><a href=#%e4%b8%a4%e4%b8%aa-git-%e4%bb%93%e5%ba%93%e5%90%88%e5%b9%b6 rel>两个 git 仓库合并</a></li><li><a href=#%e5%90%88%e5%b9%b6%e5%a4%9a%e4%b8%aacommit rel>合并多个commit</a></li><li><a href=#%e4%bf%ae%e6%94%b9%e8%bf%9c%e7%a8%8bcommit%e8%ae%b0%e5%bd%95 rel>修改远程Commit记录</a></li><li><a href=#%e5%88%a9%e7%94%a8commit%e5%85%b3%e9%97%ad%e4%b8%80%e4%b8%aaissue rel>利用commit关闭一个issue</a></li><li><a href=#%e6%96%b0%e5%bb%ba%e4%b8%80%e4%b8%aa%e7%a9%ba%e5%88%86%e6%94%af rel>新建一个空分支</a></li><li><a href=#%e6%b7%bb%e5%8a%a0%e5%bf%bd%e7%95%a5%e6%96%87%e4%bb%b6 rel>添加忽略文件</a></li><li><a href=#%e5%bf%bd%e7%95%a5%e6%9f%90%e4%b8%aa%e6%96%87%e4%bb%b6%e7%9a%84%e6%94%b9%e5%8a%a8 rel>忽略某个文件的改动</a></li><li><a href=#%e5%90%8c%e6%ad%a5fork%e7%9a%84%e4%b8%8a%e6%b8%b8%e4%bb%93%e5%ba%93 rel>同步fork的上游仓库</a></li><li><a href=#%e6%89%8b%e5%8a%a8%e5%90%88%e5%b9%b6%e5%86%b2%e7%aa%81%e7%9a%84-pull-request rel>手动合并冲突的 Pull Request</a></li><li><a href=#%e4%bf%ae%e6%94%b9%e4%bd%9c%e8%80%85%e5%90%8d rel>修改作者名</a></li><li><a href=#%e6%89%b9%e9%87%8f%e4%bf%ae%e6%94%b9%e5%8e%86%e5%8f%b2commit%e4%b8%ad%e7%9a%84%e5%90%8d%e5%ad%97%e5%92%8c%e9%82%ae%e7%ae%b1 rel>批量修改历史commit中的名字和邮箱</a></li><li><a href=#%e6%9f%a5%e7%9c%8b%e4%b8%a4%e4%b8%aa%e6%98%9f%e6%9c%9f%e5%86%85%e7%9a%84%e6%94%b9%e5%8a%a8 rel>查看两个星期内的改动</a></li><li><a href=#%e6%9f%a5%e7%9c%8b%e6%9f%90%e4%b8%aa%e6%96%87%e4%bb%b6%e5%8e%86%e5%8f%b2 rel>查看某个文件历史</a></li><li><a href=#%e6%9f%a5%e7%9c%8bgit%e4%bb%93%e5%ba%93%e4%b8%ad%e6%9c%80%e8%bf%91%e4%bf%ae%e6%94%b9%e7%9a%84%e5%88%86%e6%94%af rel>查看git仓库中最近修改的分支</a></li><li><a href=#%e6%9b%b4%e6%96%b0%e6%89%80%e6%9c%89%e6%9c%ac%e5%9c%b0%e5%88%86%e6%94%af rel>更新所有本地分支</a></li><li><a href=#%e6%89%93%e9%80%a0%e8%87%aa%e5%b7%b1%e7%9a%84git%e5%91%bd%e4%bb%a4 rel>打造自己的git命令</a></li><li><a href=#%e5%88%a0%e9%99%a4%e5%b7%b2%e7%bb%8f%e5%90%88%e5%b9%b6%e5%88%b0-master-%e7%9a%84%e5%88%86%e6%94%af rel>删除已经合并到 master 的分支</a></li><li><a href=#%e4%b8%ad%e6%96%87%e4%b9%b1%e7%a0%81%e7%9a%84%e8%a7%a3%e5%86%b3%e6%96%b9%e6%a1%88 rel>中文乱码的解决方案</a></li><li><a href=#%e6%8f%90%e4%ba%a4%e4%b8%80%e4%b8%aa%e7%a9%ba%e6%96%87%e4%bb%b6%e5%a4%b9 rel>提交一个空文件夹</a></li></ul></li><li><a href=#%e6%96%b0%e5%bb%ba%e4%bb%93%e5%ba%93 rel>新建仓库</a><ul><li><a href=#init rel>init</a></li><li><a href=#status rel>status</a></li><li><a href=#add rel>add</a></li><li><a href=#commit rel>commit</a></li><li><a href=#remote rel>remote</a></li><li><a href=#push rel>push</a></li></ul></li><li><a href=#clone rel>clone</a></li><li><a href=#%e6%9c%ac%e5%9c%b0 rel>本地</a><ul><li><a href=#help rel>help</a></li><li><a href=#add-1 rel>add</a></li><li><a href=#rm rel>rm</a></li><li><a href=#commit-1 rel>commit</a></li><li><a href=#reset rel>reset</a></li><li><a href=#revert rel>revert</a></li><li><a href=#checkout rel>checkout</a></li><li><a href=#diff rel>diff</a></li><li><a href=#stash rel>stash</a></li><li><a href=#merge rel>merge</a></li><li><a href=#cherry-pick rel>cherry-pick</a></li><li><a href=#rebase rel>rebase</a></li></ul></li><li><a href=#%e5%88%86%e6%94%afbranch rel>分支branch</a><ul><li><a href=#%e5%88%a0%e9%99%a4 rel>删除</a></li><li><a href=#%e6%8f%90%e4%ba%a4 rel>提交</a></li><li><a href=#%e6%8b%89%e5%8f%96 rel>拉取</a></li><li><a href=#%e5%88%86%e6%94%af%e5%90%88%e5%b9%b6 rel>分支合并</a></li><li><a href=#%e9%87%8d%e5%91%bd%e5%90%8d rel>重命名</a></li><li><a href=#%e6%9f%a5%e7%9c%8b rel>查看</a></li><li><a href=#%e6%96%b0%e5%bb%ba rel>新建</a></li><li><a href=#%e8%bf%9e%e6%8e%a5 rel>连接</a></li><li><a href=#%e5%88%86%e6%94%af%e5%88%87%e6%8d%a2 rel>分支切换</a></li></ul></li><li><a href=#%e8%bf%9c%e7%ab%af rel>远端</a></li><li><a href=#submodule rel>submodule</a><ul><li><a href=#%e6%9b%b4%e6%96%b0-submodule rel>更新 submodule</a></li><li><a href=#%e5%88%a0%e9%99%a4-submodule rel>删除 submodule</a></li><li><a href=#%e8%bd%ac%e6%8d%a2%e5%88%86%e6%94%af rel>转换分支</a></li></ul></li><li><a href=#%e5%88%a0%e9%99%a4%e6%96%87%e4%bb%b6 rel>删除文件</a></li><li><a href=#remote-1 rel>remote</a></li><li><a href=#%e6%a0%87%e7%ad%betag rel>标签tag</a><ul><li><a href=#%e9%87%8d%e5%91%bd%e5%90%8dtag rel>重命名Tag</a></li></ul></li><li><a href=#%e6%97%a5%e5%bf%97log rel>日志log</a></li><li><a href=#%e9%87%8d%e5%86%99%e5%8e%86%e5%8f%b2 rel>重写历史</a></li><li><a href=#%e5%85%b6%e5%ae%83 rel>其它</a></li><li><a href=#%e6%8a%a5%e9%94%99%e9%97%ae%e9%a2%98%e8%a7%a3%e5%86%b3 rel>报错问题解决</a></li><li><a href=#%e5%8f%82%e8%80%83%e8%b5%84%e6%96%99 rel>参考资料</a></li></ul><h2 id=安装卸载>安装卸载</h2><p><a href=https://git-scm.com/download/linux target=_blank rel="noopener noreffer">官方教程</a>，在 Linux/Unix 系统中，通过工具在中安装 <code>git</code>,这种方式比较简单，便于升级卸载工具。</p><p>下面介绍在 CentOS 系统中，通过 yum 来安装 git</p><blockquote><p><strong>Red Hat Enterprise Linux, Oracle Linux, CentOS, Scientific Linux, et al.</strong>
 RHEL and derivatives typically ship older versions of git. You can <a href=https://www.kernel.org/pub/software/scm/git/ target=_blank rel="noopener noreffer">download a tarball</a> and build from source, or use a 3rd-party repository such as <a href=https://ius.io/ target=_blank rel="noopener noreffer">the IUS Community Project</a> to obtain a more recent version of git.</p></blockquote><p>官方文档说 git 在 <code>RHEL</code> 和衍生产品通常都会发布旧版本的 <code>git</code>，我们需要源码编译安装，或者使用第三方存储库（如<a href=https://ius.io/ target=_blank rel="noopener noreffer">IUS社区项目</a>）。</p><p>现在我们通过，<a href=https://ius.io/GettingStarted/ target=_blank rel="noopener noreffer">IUS社区</a>下载 <a href=https://centos7.iuscommunity.org/ius-release.rpm target=_blank rel="noopener noreffer">ius-release.rpm</a> 文件进行安装</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
 </span><span class=lnt>3
@@ -1052,6 +1052,738 @@ git commit -am <span class=s2>&#34;first create commit&#34;</span>
 git branch -M main
 git remote add origin git@github.com:bingerambo/go-file-json-server.git
 git push -u origin main
+</code></pre></td></tr></table></div></div><h2 id=git命令汇总>git命令汇总</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span><span class=lnt>140
+</span><span class=lnt>141
+</span><span class=lnt>142
+</span><span class=lnt>143
+</span><span class=lnt>144
+</span><span class=lnt>145
+</span><span class=lnt>146
+</span><span class=lnt>147
+</span><span class=lnt>148
+</span><span class=lnt>149
+</span><span class=lnt>150
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># 检查修改状态</span>
+git status -s
+
+<span class=c1># 根据状态， add 修改和添加文件</span>
+git add aaa/install_config/instant.yaml
+
+<span class=c1># 再做检查</span>
+git status -s
+
+<span class=c1># commit代码</span>
+git commit -m<span class=s1>&#39;unbuntu install driver&#39;</span>
+
+<span class=c1># push到分支</span>
+git push origin bugfix/ds-yaml-hostNetwork-remove
+
+<span class=c1># 再做检查</span>
+git status -s
+
+
+<span class=c1># 切换分支</span>
+git checkout develop
+
+<span class=c1># 切换分支， 如出现 head detached at xxx，使用下面命令</span>
+git checkout --track origin/v1.12
+
+<span class=c1># 从分支pull</span>
+git pull origin feature/infiniband-driver
+
+<span class=c1># 查看log</span>
+git log
+
+<span class=c1># 展开内容差异</span>
+git log -p
+
+<span class=c1># 查看差别</span>
+git diff
+
+
+
+<span class=c1># 取消本地修改</span>
+<span class=c1>##文件修改不丢失</span>
+git reset -- filename
+
+<span class=c1>## 文件修改丢失</span>
+git checkout -- filename
+
+
+
+<span class=c1># 删除本地分支</span>
+git branch -d branckname
+
+<span class=c1># 强制删除本地分支</span>
+git branch -D branckname
+
+<span class=c1># 删除本地文件目录文件</span>
+git rm -r xxx
+
+
+
+
+<span class=c1>## 下载指定版本代码</span>
+
+git clone https://github.com/kubernetes/kubernetes.git
+
+<span class=nb>cd</span> kubernetes
+
+git log
+git branch
+
+git checkout xxx
+
+<span class=c1>## 回退版本</span>
+<span class=c1>### 1.1 暂存区版本回退至仓库HEAD位置</span>
+git reset HEAD filename
+
+<span class=c1>### 1.2让工作区版本回退</span>
+git checkout -- filename
+
+
+<span class=c1>### 2.1 仓库和暂存区版本回退</span>
+git reset --hard commit_id
+
+<span class=c1># 删除文件 把仓库和暂存区已有文件删除</span>
+<span class=c1>## 删除工作区文件</span>
+git rm filename
+<span class=c1>## 同步暂存区和仓库</span>
+git commit -m<span class=s2>&#34;delete filename ...&#34;</span>
+
+
+
+<span class=c1>## 新建项目后的 git更新项目操作</span>
+
+<span class=c1># git add -A  添加所有变化</span>
+<span class=c1># git add -u  添加被修改(modified)和被删除(deleted)文件，不包括新文件(new)</span>
+<span class=c1># git add .   添加新文件(new)和被修改(modified)文件，不包括被删除(deleted)文件</span>
+<span class=c1># git add *</span>
+
+git add -A
+
+
+
+git commit -m <span class=s2>&#34;k8s1.14.8modify init&#34;</span>
+git push -u origin master
+
+
+git commit -m <span class=s2>&#34;kubelet topologymanager with numa align&#34;</span>
+git push -u origin master
+
+<span class=c1>## gerrit 方式</span>
+git push -u orgin develop:refs/for/develop
+
+<span class=c1>### 有时push会报错，按提示输入以下命令执行</span>
+
+<span class=c1>#### step1:把上面红色的那条gitidir复制下来执行下：</span>
+<span class=c1>####gitdir=$(git rev-parse --git-dir); scp -p -P 29418 zhangmiao@review.rnd.meizu.com:hooks/commit-msg ${gitdir}/hooks/</span>
+<span class=nv>gitdir</span><span class=o>=</span><span class=k>$(</span>git rev-parse --git-dir<span class=k>)</span><span class=p>;</span> scp -p -P <span class=m>29418</span> wangb.in@100.7.36.68:hooks/commit-msg <span class=si>${</span><span class=nv>gitdir</span><span class=si>}</span>/hooks/
+
+<span class=c1>#### step2:执行下面的命令会添加change_id</span>
+git commit --amend
+
+<span class=c1>#### step3:然后推送代码到服务器上</span>
+<span class=c1>####git push origin HEAD:refs/for/$branch_name</span>
+git push -u orgin develop:refs/for/develop
+
+
+
+<span class=c1>### 常用git操作</span>
+
+<span class=c1>#### 拉取远程分支</span>
+git checkout --track oprgin/branchname
+
+<span class=c1>#### 删除远程分支</span>
+git push origin --delete feat/xxxbranchname
+
+<span class=c1>#### 撤销commit，保持本地修改</span>
+git reset HEAD~
+
+<span class=c1>#### 撤销mr</span>
+<span class=c1>#在提交的分支上执行</span>
+git revert
+
+
+<span class=c1>### </span>
+git branch -r
+git fetch origin
+git branch -r
+
+git checkout --track origin/geekbang/01
+
+
+</code></pre></td></tr></table></div></div><h2 id=git操作命令示例>git操作命令示例</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span><span class=lnt>115
+</span><span class=lnt>116
+</span><span class=lnt>117
+</span><span class=lnt>118
+</span><span class=lnt>119
+</span><span class=lnt>120
+</span><span class=lnt>121
+</span><span class=lnt>122
+</span><span class=lnt>123
+</span><span class=lnt>124
+</span><span class=lnt>125
+</span><span class=lnt>126
+</span><span class=lnt>127
+</span><span class=lnt>128
+</span><span class=lnt>129
+</span><span class=lnt>130
+</span><span class=lnt>131
+</span><span class=lnt>132
+</span><span class=lnt>133
+</span><span class=lnt>134
+</span><span class=lnt>135
+</span><span class=lnt>136
+</span><span class=lnt>137
+</span><span class=lnt>138
+</span><span class=lnt>139
+</span><span class=lnt>140
+</span><span class=lnt>141
+</span><span class=lnt>142
+</span><span class=lnt>143
+</span><span class=lnt>144
+</span><span class=lnt>145
+</span><span class=lnt>146
+</span><span class=lnt>147
+</span><span class=lnt>148
+</span><span class=lnt>149
+</span><span class=lnt>150
+</span><span class=lnt>151
+</span><span class=lnt>152
+</span><span class=lnt>153
+</span><span class=lnt>154
+</span><span class=lnt>155
+</span><span class=lnt>156
+</span><span class=lnt>157
+</span><span class=lnt>158
+</span><span class=lnt>159
+</span><span class=lnt>160
+</span><span class=lnt>161
+</span><span class=lnt>162
+</span><span class=lnt>163
+</span><span class=lnt>164
+</span><span class=lnt>165
+</span><span class=lnt>166
+</span><span class=lnt>167
+</span><span class=lnt>168
+</span><span class=lnt>169
+</span><span class=lnt>170
+</span><span class=lnt>171
+</span><span class=lnt>172
+</span><span class=lnt>173
+</span><span class=lnt>174
+</span><span class=lnt>175
+</span><span class=lnt>176
+</span><span class=lnt>177
+</span><span class=lnt>178
+</span><span class=lnt>179
+</span><span class=lnt>180
+</span><span class=lnt>181
+</span><span class=lnt>182
+</span><span class=lnt>183
+</span><span class=lnt>184
+</span><span class=lnt>185
+</span><span class=lnt>186
+</span><span class=lnt>187
+</span><span class=lnt>188
+</span><span class=lnt>189
+</span><span class=lnt>190
+</span><span class=lnt>191
+</span><span class=lnt>192
+</span><span class=lnt>193
+</span><span class=lnt>194
+</span><span class=lnt>195
+</span><span class=lnt>196
+</span><span class=lnt>197
+</span><span class=lnt>198
+</span><span class=lnt>199
+</span><span class=lnt>200
+</span><span class=lnt>201
+</span><span class=lnt>202
+</span><span class=lnt>203
+</span><span class=lnt>204
+</span><span class=lnt>205
+</span><span class=lnt>206
+</span><span class=lnt>207
+</span><span class=lnt>208
+</span><span class=lnt>209
+</span><span class=lnt>210
+</span><span class=lnt>211
+</span><span class=lnt>212
+</span><span class=lnt>213
+</span><span class=lnt>214
+</span><span class=lnt>215
+</span><span class=lnt>216
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>
+
+<span class=c1>##################################################################</span>
+<span class=c1>##################################################################</span>
+<span class=c1>##################################################################</span>
+
+
+
+
+<span class=c1># 查看当前分支</span>
+
+git branch
+
+<span class=c1># 查看所有分支</span>
+git branch -a
+ 
+ 
+<span class=c1># 创建分支，并切换检出 </span>
+
+
+git checkout -b feat/device-install
+
+git checkout -b bugfix/client-timeout
+
+git checkout -b feature/add-compile-inspect-tool
+
+
+<span class=c1># 检查修改状态</span>
+git status -s
+
+<span class=c1># 根据状态，add 修改和添加的文件</span>
+git add aistation2.0/install_config/inspur.yml
+
+<span class=c1># 再做检查</span>
+git status -s
+
+<span class=c1># commit代码</span>
+git commit -m <span class=s1>&#39;ubuntu isntall infiniband driver&#39;</span>
+
+<span class=c1># push到分支 </span>
+git push origin feature/infiniband-driver
+
+git push origin bugfix/ds-yaml-hostNetwork-remove
+
+<span class=c1># 再做检查</span>
+git status -s
+
+
+
+<span class=c1># 切换分支</span>
+git checkout develop
+
+<span class=c1># 切换分支 如出现head detached at xxx，使用下面命令</span>
+git checkout --track origin/v1.12
+
+
+<span class=c1># 从分支pull</span>
+git pull origin feature/infiniband-driver
+
+
+<span class=c1># 查看log</span>
+
+git log
+
+<span class=c1>## 展开内容差异</span>
+git log -p
+
+
+<span class=c1># 查看差别</span>
+git diff
+
+<span class=c1># 取消本地修改</span>
+
+<span class=c1>## 文件修改不丢失</span>
+git reset -- filename
+
+<span class=c1>## 文件修改丢失</span>
+git checkout -- filename
+
+<span class=c1># 删除本地分支</span>
+git branch -d branchname
+
+
+<span class=c1># 强制删除本地分支</span>
+git branch -D branchname
+
+<span class=c1># 删除本的文件目录文件</span>
+git rm -r xxx
+
+
+
+http://100.2.50.206/AIStation/rdma-sriov-dev-plugin.git
+
+
+<span class=c1># 撤销commit 保持本地已修改</span>
+
+git reset --soft 18c85d87066139c30faabe1bf3e72ee89224d383
+
+
+<span class=c1># gerrit 命令</span>
+
+
+git commit -am <span class=s2>&#34;bugfix：解决显存复用场景下sprad策略不生效问题。&#34;</span>
+
+<span class=c1># git push -u origin HEAD:refs/for/develop</span>
+
+
+git push -u origin develop:refs/for/develop
+
+<span class=c1>### 有时push会报错 按提示输入以下命令执行</span>
+
+<span class=nv>gitdir</span><span class=o>=</span><span class=k>$(</span>git rev-parse --git-dir<span class=k>)</span><span class=p>;</span> scp -p -P <span class=m>29418</span> wangb.in@100.7.36.68:hooks/commit-msg <span class=si>${</span><span class=nv>gitdir</span><span class=si>}</span>/hooks/
+
+git commit --amend
+
+git push -u origin develop:refs/for/develop
+
+
+
+
+git log --graph --pretty<span class=o>=</span>oneline --abbrev-commit
+
+
+
+
+git remote add gitlab git@100.2.50.206:AIStation/kube-batch.git
+
+git remote -v
+
+
+
+
+git branch -a
+
+<span class=c1>#git checkout remotes/origin/develop</span>
+
+
+git checkout --track origin/develop
+
+
+git checkout --track remotes/origin/custom-3.1-westlake-university
+
+
+
+<span class=c1># 新建本地分支</span>
+<span class=c1># git checkout –b feature</span>
+
+git checkout -b feature/gpu-utility
+
+
+git checkout -b feat/log4j2-scan
+
+git checkout -b fix/coverity-dls
+
+git checkout -b fix/coverity-dls-3
+
+
+git checkout -b feat/log-uuid
+
+git checkout -b fix/blackduck
+
+
+<span class=c1># 删除本地分支</span>
+
+git branch -d fix/remove-log4j2
+
+
+<span class=c1># 提交本地分支</span>
+
+git commit -am <span class=s2>&#34;feature: GPU负载, 代码优化&#34;</span>
+
+git commit -am <span class=s2>&#34;feat: 增加vlan调度&#34;</span>
+
+git commit -am <span class=s2>&#34;fix(pom模块): 删除log4j2&#34;</span>
+
+git commit -am <span class=s2>&#34;feat(test模块): log4j2扫描&#34;</span>
+
+git commit -am <span class=s2>&#34;fix(安全扫描): coverity-DLS 3&#34;</span>
+
+
+<span class=c1>#### 撤销commit，保持本地修改</span>
+git reset HEAD~
+
+
+<span class=c1># git push  gitlab  feature</span>
+
+
+git push  origin  feature/gpu-utility
+
+
+git push  origin feat/log4j2-scan
+
+
+git push  origin fix/coverity-dls
+
+git push  origin fix/coverity-dls-3
+
+
+
+
+git push  origin feat/log-uuid
+
+
+<span class=c1># 把分支的代码 合入到develop分支</span>
+
+在gitlab上创建mr
+
+<span class=c1>## 删除远程分支</span>
+
+git push  origin --delete fix/remove-log4j2-icbc
+
+<span class=c1>## 删除本地分支</span>
+git branch -D fix/remove-log4j2-icbc
+
+
+
 </code></pre></td></tr></table></div></div><h2 id=参考资料>参考资料</h2><ul><li><a href=http://git-scm.com/ target=_blank rel="noopener noreffer">Git官网</a></li><li><a href=https://try.github.io target=_blank rel="noopener noreffer"><strong>Github 15分钟学习Git</strong></a></li><li><a href=http://gitref.org/zh/index.html target=_blank rel="noopener noreffer">Git参考手册</a></li><li><a href=http://www.mceiba.com/tool/git-cheat-sheet.html target=_blank rel="noopener noreffer">Git简明手册</a></li><li><a href=http://www-cs-students.stanford.edu/~blynn/gitmagic/intl/zh_cn/ target=_blank rel="noopener noreffer">Git Magic</a></li><li><a href=http://gitbook.liuhui998.com/index.html target=_blank rel="noopener noreffer">Git Community Book 中文版</a></li><li><a href=http://git-scm.com/book/en/v2 target=_blank rel="noopener noreffer">Pro Git</a></li><li><a href=http://marklodato.github.io/visual-git-guide/index-zh-cn.html target=_blank rel="noopener noreffer">图解Git</a></li><li><a href=http://rogerdudler.github.io/git-guide/index.zh.html target=_blank rel="noopener noreffer">git-简明指南</a></li><li><a href=http://pcottle.github.io/learnGitBranching/ target=_blank rel="noopener noreffer">learnGitBranching 在线学习工具</a></li><li><a href=http://rogerdudler.github.io/git-guide/index.zh.html target=_blank rel="noopener noreffer">初级教程</a></li><li><a href=http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000 target=_blank rel="noopener noreffer">廖雪峰的Git教程</a></li><li><a href=http://www.worldhello.net/gotgithub/ target=_blank rel="noopener noreffer">蒋鑫老师将带你入github的大门</a></li><li><a href=http://www.open-open.com/lib/view/open1328069609436.html target=_blank rel="noopener noreffer">git详解</a></li><li><a href=http://git.oschina.net/progit/ target=_blank rel="noopener noreffer">oschina教程</a></li><li><a href=https://github.com/blog/2019-how-to-undo-almost-anything-with-git target=_blank rel="noopener noreffer">How to undo (almost) anything with Git撤销一切，汇总各种回滚撤销的场景，加强学习。</a></li><li><a href=http://www.runoob.com/git/git-tutorial.html target=_blank rel="noopener noreffer">Git 教程 | 菜鸟教程runoob.com</a></li><li><a href=https://gold.xitu.io/post/5842f9b861ff4b005889ade6 target=_blank rel="noopener noreffer">Git 本地仓库和裸仓库</a></li><li><a href=http://www.kancloud.cn/kancloud/igit/46710 target=_blank rel="noopener noreffer">沉浸式学 Git</a></li><li><a href="http://way.oschina.io/2016/12/15/notes/GitAdvance/?utm_source=gank.io&utm_medium=email" target=_blank rel="noopener noreffer">Git进阶用法，主要是rebase高级用法</a></li><li><a href=https://www.atlassian.com/git/tutorials target=_blank rel="noopener noreffer">成为一个git大师</a></li><li><a href=https://github.com/geeeeeeeeek/git-recipes target=_blank rel="noopener noreffer">高质量的Git中文教程</a></li></ul></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2021-01-12</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/git/>Git</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2021/01/python%E7%94%9F%E6%88%90requirements.txt%E7%8E%AF%E5%A2%83%E6%89%93%E5%8C%85/ class=prev rel=prev title=python生成requirements.txt环境打包><i class="fas fa-angle-left fa-fw"></i>python生成requirements.txt环境打包</a>
 <a href=/posts/2021/01/k8s-calico%E7%BD%91%E7%BB%9C%E6%8F%92%E4%BB%B6%E9%97%AE%E9%A2%98%E9%9B%86/ class=next rel=next title="K8S calico网络插件问题集">K8S calico网络插件问题集<i class="fas fa-angle-right fa-fw"></i></a></div></div><div id=comments><div id=utterances></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://utteranc.es/>Utterances</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
 <script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i></a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css><script type=text/javascript src=https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script><script type=text/javascript>window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{"utterances":{"darkTheme":"github-dark","issueTerm":"pathname","label":"","lightTheme":"github-light","repo":"bingerambo/myblog-comments"}},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type=text/javascript src=/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-81425808-1',{'anonymize_ip':true});</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script><script src=https://libs.baidu.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js></script><script type=text/javascript src=/js/custom.js></script><script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script></body></html>
