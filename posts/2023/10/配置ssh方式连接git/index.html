@@ -1,0 +1,441 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>配置ssh方式连接git - 斌哥的小站|Binge Blog</title><meta name=Description content="斌哥的小站 | 这里是 @BingeRambo斌哥兰博的个人博客"><meta property="og:title" content="配置ssh方式连接git"><meta property="og:description" content="配置ssh方式连接git，每次配置都会忘记操作步骤，这里记录下。"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2023/10/%E9%85%8D%E7%BD%AEssh%E6%96%B9%E5%BC%8F%E8%BF%9E%E6%8E%A5git/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2023-10-12T08:43:17+08:00"><meta property="article:modified_time" content="2023-10-12T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="配置ssh方式连接git"><meta name=twitter:description content="配置ssh方式连接git，每次配置都会忘记操作步骤，这里记录下。"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2023/10/%E9%85%8D%E7%BD%AEssh%E6%96%B9%E5%BC%8F%E8%BF%9E%E6%8E%A5git/><link rel=prev href=http://bingerambo.com/posts/2023/07/k8s%E8%AF%81%E4%B9%A6%E6%9B%B4%E6%96%B0/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"配置ssh方式连接git","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2023\/10\/%E9%85%8D%E7%BD%AEssh%E6%96%B9%E5%BC%8F%E8%BF%9E%E6%8E%A5git\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"Git","wordcount":3591,"url":"http:\/\/bingerambo.com\/posts\/2023\/10\/%E9%85%8D%E7%BD%AEssh%E6%96%B9%E5%BC%8F%E8%BF%9E%E6%8E%A5git\/","datePublished":"2023-10-12T08:43:17+08:00","dateModified":"2023-10-12T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":""}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">配置ssh方式连接git</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/git/><i class="far fa-folder fa-fw"></i>Git</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2023-10-12>2023-10-12</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 3591 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 8 分钟&nbsp;
+<i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#1-关于-ssh>1 关于 ssh</a></li><li><a href=#2-检查现有的-ssh-密钥>2 检查现有的 ssh 密钥</a></li><li><a href=#3-创建新的-ssh-密钥三部曲>3 创建新的 ssh 密钥三部曲</a><ul><li><a href=#31-生成新的-ssh-密钥>3、1 生成新的 ssh 密钥</a></li><li><a href=#32-将ssh密钥添加到ssh-agent>3、2 将SSH密钥添加到ssh-agent</a><ul><li><a href=#321-确保-ssh-正在运行>3、2.1 确保 ssh 正在运行</a></li><li><a href=#333-添加-ssh-到账户>3.3.3 添加 ssh 到账户</a></li></ul></li></ul></li><li><a href=#4-将密钥添加到-github-账户>4 将密钥添加到 github 账户</a><ul><li><a href=#41-复制你的公钥>4、1 复制你的公钥</a></li><li><a href=#42-将公钥添加到-github-账户>4、2 将公钥添加到 github 账户</a></li></ul></li><li><a href=#5-测试-ssh-连接>5 测试 ssh 连接</a></li><li><a href=#6-配置-git-使用-ssh-密钥登录>6 配置 git 使用 ssh 密钥登录</a><ul><li><a href=#61-检查当前的-remote-url>6.1 检查当前的 remote url</a><ul><li><a href=#前置提示>前置提示</a></li><li><a href=#把默认分支改为main>把默认分支改为main</a></li><li><a href=#修改已创建项目的主分支为main>修改已创建项目的主分支为main</a></li></ul></li><li><a href=#62-修改-remote-url-为-git-协议>6.2 修改 remote url 为 git 协议</a></li></ul></li><li><a href=#7-附录>7 附录</a></li><li><a href=#8-问题报错>8 问题报错</a><ul><li><a href=#git-clone-项目失败>git clone 项目失败</a></li><li><a href=#在windows的gitbash中git-add时出现如下告警信息>在windows的gitbash中，git add时出现如下告警信息</a></li></ul></li><li><a href=#9-参考>9 参考</a></li></ul></nav></div></div><div class=content id=content><p>配置ssh方式连接git，每次配置都会忘记操作步骤，这里记录下。</p><h2 id=1-关于-ssh>1 关于 ssh</h2><p>SSH 是较可靠，专为远程登录会话和其他网络服务提供安全性的协议。[<a href=https://zhuanlan.zhihu.com/p/613664248/edit#fn2 target=_blank rel="noopener noreffer">2]</a>使用 SSH 协议可以连接远程服务器和服务并向它们验证。连接远程仓库时无需输入密码而且能实现对 github 的流畅访问。除此之外我还用 ssh 协议成功在 Windows Terminal 中连接上了自己的远程服务器。</p><h2 id=2-检查现有的-ssh-密钥>2 检查现有的 ssh 密钥</h2><p>Windows下检查： 桌面左下角windows徽标鼠标右键后展开应用和功能&ndash;>点击进入后找到【可选功能】&mdash;>查找【openssh】出现openssh客户端即表示自带的openssh可以使用；</p><p>Windows 打开 GitBash，Linux 下打开终端，输入：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>$ ls -al ~/.ssh
+</code></pre></td></tr></table></div></div><p>如果你看到以下输出，那么说明你已经有 ssh 密钥（以 .pub 结尾的文件）：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>$ ls -al ~/.ssh |
+total 26 |
+drwxr-xr-x 1 197121    0 Mar 31 22:29 ./ |
+drwxr-xr-x 1 197121    0 Apr 16 23:36 ../ |
+-rw-r--r-- 1 197121 2610 Mar 31 22:27 id_rsa |
+-rw-r--r-- 1 197121  573 Mar 31 22:27 id_rsa.pub |
+-rw-r--r-- 1 197121  831 Apr  1 12:08 known_hosts |
+-rw-r--r-- 1 197121   92 Mar 31 22:26 known_hosts.old |
+</code></pre></td></tr></table></div></div><p>如果你不想用原来的密钥或者没有密钥的话也不用着急，看下一步如何生成新的 ssh 密钥。</p><h2 id=3-创建新的-ssh-密钥三部曲>3 创建新的 ssh 密钥三部曲</h2><h3 id=31-生成新的-ssh-密钥>3、1 生成新的 ssh 密钥</h3><p>在 Windows 的 GitBash 或 Linux 终端输入：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>$ ssh-keygen -t rsa -b 4096 -C &#34;51482508@qq.com&#34;
+# 你可以把引号里的替换为你自己的邮箱，不换的话问题不大
+</code></pre></td></tr></table></div></div><p>然后终端会让你输入一些东西，可以不用输入直接一路回车，看到：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>SE@DESKTOP-8024PR5 MINGW64 ~/.ssh
+
+Generating public/private rsa key pair.
+Enter file in which to save the key (/c/Users/SE/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /c/Users/SE/.ssh/id_rsa
+Your public key has been saved in /c/Users/SE/.ssh/id_rsa.pub
+The key fingerprint is:
+SHA256:GLo38kvQhXjfnH1pTdjCQEwnzqr27nWPNOdG5SPfur4 51482508@qq.com
+The key&#39;s randomart image is:
++---[RSA 4096]----+
+|           += .  |
+|     . .   o.= o |
+|    . + .   o + o|
+|     + = o +   =.|
+|    o o S = . +.o|
+|     o   .   + .o|
+|    o + o   . *.+|
+|     = o . . o Bo|
+|      o. o+  .E=o|
++----[SHA256]-----+
+</code></pre></td></tr></table></div></div><p>代表密钥生成成功。</p><h3 id=32-将ssh密钥添加到ssh-agent>3、2 将SSH密钥添加到ssh-agent</h3><h4 id=321-确保-ssh-正在运行>3、2.1 确保 ssh 正在运行</h4><p>终端输入：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>$ ssh-agent -s
+</code></pre></td></tr></table></div></div><p>看到如下输出：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>SSH_AUTH_SOCK=/tmp/ssh-WyTlOzJrybcW/agent.720; export SSH_AUTH_SOCK;
+SSH_AGENT_PID=721; export SSH_AGENT_PID;
+echo Agent pid 721;
+</code></pre></td></tr></table></div></div><p>代表 ssh 正常运行。</p><h4 id=333-添加-ssh-到账户>3.3.3 添加 ssh 到账户</h4><p>执行以下两条命令：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>$ ssh-agent bash
+$ ssh-add ~/.ssh/id_rsa 
+# 这里如果文件名被改过要写你自己定义的文件名
+</code></pre></td></tr></table></div></div><p>看到输出：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>dentity added: id_rsa (your_email@example.com)
+</code></pre></td></tr></table></div></div><p>添加成功！</p><h2 id=4-将密钥添加到-github-账户>4 将密钥添加到 github 账户</h2><h3 id=41-复制你的公钥>4、1 复制你的公钥</h3><p>在终端使用：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>$ cat ~/.ssh/id_rsa.pub
+</code></pre></td></tr></table></div></div><p>看到：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>ssh-rsa AAAAB3NzaC1yc0EAAAADAQABAAACAQCtnLpzoVOiv2ABq+n/cexRh1aAyqpjFvSDx20GEG96DW8Q4PEbBcn6Mb/E3F3wTjI+2Hv5Gw3aoQ6JN8McqqPaeqzj82QKIjQFwah4RQNISUn39au7MpWfWpolQOv1YiJvq+GKaVfK2LBaq5hHx6Y6UpV1aJWics91SIWp3wg0MBMC0apSMwtCbbeNqb+4KpV1C5Sq9+qIeEEMnDS/SBKHh8tuRoGvUa5i39LTNLY3UM4Hqml78UnlzpOaobuFE4BgtWkYNQoDCkt9/6xKyh3JB+yKIDystfhWFBNUHF3Of6Zkfi95zG9ra/CzyPyTgRgyYtuje+uhlviIUMyg66c5crAgG8SVSqYuYhBrSVB72S02SIi2g6q2k8BAspnV3ZqO+KzC+KpYj5mYboQP6X2SyTbZB9w6f7TKYHoNb9jIF0xXNJOStf5gjs7YGf+PGrDcPuzuakmOKLCh2PEA+Y60VVpqHgK/H0EPUu0a/H4h1gsDIry5Xps4Pl/sGvgZ1JkdBTlcV45v3T4o9BvLa7cpf/IF0+NsVhENBg5JLJ2tFLFnhq60bP9aTqEiAeK4iFY4ee1aADR/szb5/FZg7YQvRezhAkuH0nTardb89FwDV4AnS3QObTBLDZqemRnRlW9SVhlpz68pvV7ht71jInnLwvD0/5zbnpdTIRmFKTp/Ew== 51482508@qq.com
+</code></pre></td></tr></table></div></div><p>全给复制下来！</p><h3 id=42-将公钥添加到-github-账户>4、2 将公钥添加到 github 账户</h3><p>然后去 gihub：</p><ul><li>右上角下拉面板选择 <strong>Settings</strong>；</li><li>左侧选择 <strong>SSH and GPG keys</strong>；</li><li>点击 <strong>New SSH key</strong>；</li><li>随便起一个 title；</li><li>把公钥粘贴到下面。</li></ul><p>可能会输入密码，添加完成！</p><h2 id=5-测试-ssh-连接>5 测试 ssh 连接</h2><p>在终端中输入：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>$ ssh -T git@github.com
+</code></pre></td></tr></table></div></div><p>可能看到如下警告：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>$ ssh -T git@github.com
+The authenticity of host &#39;github.com (20.205.243.166)&#39; can&#39;t be established.
+ED25519 key fingerprint is SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added &#39;github.com&#39; (ED25519) to the list of known hosts.
+Hi Chaggai7! You&#39;ve successfully authenticated, but GitHub does not provide shell access.
+</code></pre></td></tr></table></div></div><p>输入 yes：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>$ ssh -T git@github.com
+The authenticity of host &#39;github.com (20.205.243.166)&#39; can&#39;t be established.
+ED25519 key fingerprint is SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added &#39;github.com&#39; (ED25519) to the list of known hosts.
+Hi Chaggai7! You&#39;ve successfully authenticated, but GitHub does not provide shell access.
+</code></pre></td></tr></table></div></div><p>如果 xxxxxx 是你的 github 用户名，说明成功。</p><h2 id=6-配置-git-使用-ssh-密钥登录>6 配置 git 使用 ssh 密钥登录</h2><p>首先将你的仓库 clone 下来到一个位置。然后进入你的仓库。</p><h3 id=61-检查当前的-remote-url>6.1 检查当前的 remote url</h3><p>在仓库下输入：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>$ git remote -v
+</code></pre></td></tr></table></div></div><p>看到输出：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>origin  https://xxxxx.git (fetch)
+origin  https://xxxxx.git (push)
+</code></pre></td></tr></table></div></div><p>说明当前使用的还是 https 协议，如果以 git 开头表示 git 协议。</p><p>github把master默认分支改为了main, 为了适应它这种政治正确的变化, 我们也要做相应调整, 把本地git的master改成main.</p><p>其实所谓的把master改成main, 只不过是修改git的配置文件而已, 毕竟不管任何应用程序, 能灵活改动的地方必然就是配置文件.</p><h4 id=前置提示>前置提示</h4><ol><li>请使用2.28版本以后的git</li><li>默认分支和主分支我这里是一个意思, 毕竟在没创建项目前叫默认分支, 但创建项目后一般都会用默认分支作为主分支</li></ol><h4 id=把默认分支改为main>把默认分支改为main</h4><p>windows中git的配置文件在<code>C:\Users\&lt;用户名></code>下</p><p>经过上面的修改, 当我们使用<code>git init</code>初始化某个项目的时候, 默认就会使用main做为主分支</p><p>除了手动修改配置文件外, 也可以使用git命令, 效果和手动修改没区别</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>git config --global init.defaultBranch main
+</code></pre></td></tr></table></div></div><p>以上方法只是让以后创建的项目默认分支为main, 但对于已经创建的项目则无能为力, 所以我们还需要对已存在的项目逐个进行修改.</p><h4 id=修改已创建项目的主分支为main>修改已创建项目的主分支为main</h4><ol><li>切换到主分支master</li><li>使用<code>git branch -M main</code>命令, 把当前master分支改名为main, 其中<code>-M</code>的意思是移动或者重命名当前分支 此时你可能困在master和main的区别上，仔细看你的gitbash是不是main，有可能是master，如下： ~~~ SE@DESKTOP-88 MINGW64 /f/share/git (master) ~~~~ github在2020/10/1宣布上的所有新库都将用中性词「main」命名，取代原来的「master」，如果我们通过git push -u grigin master 方法上传仓库，在github仓库中就会出现一个master的分支。</li></ol><p>现在都2023年了。这时候当然需要调整回main：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>git config --global init.defaultBranch main
+</code></pre></td></tr></table></div></div><h3 id=62-修改-remote-url-为-git-协议>6.2 修改 remote url 为 git 协议</h3><p>上 github 仓库，点 <strong>Code</strong>，选择 <strong>SSH</strong>，复制链接：如下</p><p><a href=mailto:git@github.com>git@github.com</a>:MaartenBaert/ssr.git 注意不是 <a href="https://link.zhihu.com/?target=https%3A//github.com/MaartenBaert/ssr.git" target=_blank rel="noopener noreffer">https://github.com/MaartenBaert/ssr.git</a> 在终端输入：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>$ git remote set-url origin git@github.com:xxxxx.git
+</code></pre></td></tr></table></div></div><p>再检查 git 协议：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>$ git remote -v
+</code></pre></td></tr></table></div></div><p>出现：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text>origin  git@xxxxx.git (fetch)
+origin  git@xxxxx.git (push)
+</code></pre></td></tr></table></div></div><p>successed！</p><p>接下来可以愉快的 push&pull 了。 如果你真的坑在master和main的问题上按照上面如法炮制即可。最后说一下这个邮箱是任意手写的别介意啊！你可以使用你自己的。</p><h2 id=7-附录>7 附录</h2><p><strong>开始配置</strong>
+1、下载并且安装git
+2、第一次配置SSH
+（1）打开Git Bash，若是<strong>首次安装使用git</strong>，先配置用户名称和邮箱</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1>#git config --global user.name &#34;姓名&#34;</span>
+<span class=c1>#git config --global user.email &#34;邮箱地址&#34;</span>
+
+git config --global user.name <span class=s2>&#34;wangb072&#34;</span>
+git config --global user.email <span class=s2>&#34;wangb072@chinatelecom.cn&#34;</span>
+
+
+</code></pre></td></tr></table></div></div><p>如果<strong>不是首次使用git</strong>,那么可以先查看自己的用户名以及邮箱：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>git config user.name
+git config user.email
+
+</code></pre></td></tr></table></div></div><p>（2）生成密钥</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1>#ssh-keygen -t rsa -C &#34;你的邮箱地址&#34;</span>
+
+<span class=c1>#ssh-keygen -t rsa -C &#34;wangb072@chinatelecom.cn&#34;</span>
+
+
+ssh-keygen -m PEM -t rsa -C wangb072@chinatelecom.cn -b <span class=m>4096</span>
+    
+</code></pre></td></tr></table></div></div><p>生成密钥前</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>dragon@LAPTOP-UB9FPVOU MINGW64 /
+$  ls -al ~/.ssh
+total <span class=m>13</span>
+drwxr-xr-x <span class=m>1</span> dragon <span class=m>197121</span>   <span class=m>0</span> Oct <span class=m>23</span> 15:38 ./
+drwxr-xr-x <span class=m>1</span> dragon <span class=m>197121</span>   <span class=m>0</span> Nov <span class=m>15</span> 19:12 ../
+-rw-r--r-- <span class=m>1</span> dragon <span class=m>197121</span> <span class=m>356</span> Nov  <span class=m>6</span> 10:06 known_hosts
+
+dragon@LAPTOP-UB9FPVOU MINGW64 /
+
+
+</code></pre></td></tr></table></div></div><p>生成密钥后</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>dragon@LAPTOP-UB9FPVOU MINGW64 /
+$ ssh-keygen -t rsa -C <span class=s2>&#34;wangb072@chinatelecom.cn&#34;</span>
+Generating public/private rsa key pair.
+Enter file in which to save the key <span class=o>(</span>/c/Users/dragon/.ssh/id_rsa<span class=o>)</span>:
+Enter passphrase <span class=o>(</span>empty <span class=k>for</span> no passphrase<span class=o>)</span>:
+Enter same passphrase again:
+Your identification has been saved in /c/Users/dragon/.ssh/id_rsa
+Your public key has been saved in /c/Users/dragon/.ssh/id_rsa.pub
+The key fingerprint is:
+SHA256:1rZkqeSa5bVCJVQM4kz7xBkXRy+8xUkJe68P31t61vw wangb072@chinatelecom.cn
+The key<span class=err>&#39;</span>s randomart image is:
++---<span class=o>[</span>RSA 3072<span class=o>]</span>----+
+<span class=p>|</span>      o o++o+... <span class=p>|</span>
+<span class=p>|</span>     + +.+.o <span class=o>=</span>.. <span class=p>|</span>
+<span class=p>|</span>      +.+   + *  <span class=p>|</span>
+<span class=p>|</span>       o.... <span class=o>=</span> . <span class=p>|</span>
+<span class=p>|</span>        So* .   .<span class=p>|</span>
+<span class=p>|</span>       +.<span class=o>=</span> .   . <span class=p>|</span>
+<span class=p>|</span>       .+ o   o.o<span class=p>|</span>
+<span class=p>|</span>       <span class=o>=</span>.. .   <span class=o>=</span>B<span class=p>|</span>
+<span class=p>|</span>      o ...   .+E<span class=p>|</span>
++----<span class=o>[</span>SHA256<span class=o>]</span>-----+
+
+dragon@LAPTOP-UB9FPVOU MINGW64 /
+$
+
+dragon@LAPTOP-UB9FPVOU MINGW64 /
+$ ls -al ~/.ssh
+total <span class=m>18</span>
+drwxr-xr-x <span class=m>1</span> dragon <span class=m>197121</span>    <span class=m>0</span> Nov <span class=m>20</span> 09:04 ./
+drwxr-xr-x <span class=m>1</span> dragon <span class=m>197121</span>    <span class=m>0</span> Nov <span class=m>20</span> 09:03 ../
+-rw-r--r-- <span class=m>1</span> dragon <span class=m>197121</span> <span class=m>2610</span> Nov <span class=m>20</span> 09:04 id_rsa
+-rw-r--r-- <span class=m>1</span> dragon <span class=m>197121</span>  <span class=m>578</span> Nov <span class=m>20</span> 09:04 id_rsa.pub
+-rw-r--r-- <span class=m>1</span> dragon <span class=m>197121</span>  <span class=m>356</span> Nov  <span class=m>6</span> 10:06 known_hosts
+
+
+
+
+</code></pre></td></tr></table></div></div><p>打开id_rsa.pub，并且复制里面的密钥</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>cat ~/.ssh/id_rsa.pub
+
+
+dragon@LAPTOP-UB9FPVOU MINGW64 /
+$ cat ~/.ssh/id_rsa.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDiBgZlQ/Q5MGHyf1nv1s82SS+yWLHa6YzIc/jkH441iHywOqIpTkynT2VcHL+9ut27W2soArOKzy2fNOu3cmQbPR4Rf+40lAczZZ7dDmeZA4Dyg1Rhzbyovnb2yUY6jtASBn3RDMvC1QAOcfoYb+8HiHFX88I+hab7RuuSVgcgFhOAV4KIGIhyIBi/KL5ar9Y+0L7LgIoQ2IP8FaqcJd58up2tQdidST6UtIu9pLxgd2e1H+SaTR7M1a30nHQeOCpi5dBp59V0oPvJs7b6sKLPufWFANzJlokBP4iSqiX27OFQx9ZcBSBpLbVNXsn6pEfEni66R31pi/kRBePP6oIsaX2FpQcvEHqQe3RxyNmGe1lvCJ25CeSOhIOljSyKMUFulKJ2CmKNrQyufD/dizHYrkclBJGccIk+WJlRbHc8YZPXp6HfXWhIDF5iLw6Zzy2gnYJvJpWHFWsULDMg6lVYhPncRHQK92W5Vjg0Bk0Fjy8RfFyZi5WEWZJUUwufSRU<span class=o>=</span> wangb072@chinatelecom.cn
+
+dragon@LAPTOP-UB9FPVOU MINGW64 /
+$
+
+
+</code></pre></td></tr></table></div></div><h2 id=8-问题报错>8 问题报错</h2><h3 id=git-clone-项目失败>git clone 项目失败</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>dragon@LAPTOP-UB9FPVOU MINGW64 /d/GoProject
+$ git clone ssh://wangb072@code.srdcloud.cn:29418/CTDICaaS/ctdi-caas-kubesphere <span class=o>&amp;&amp;</span> scp -p -P <span class=m>29418</span> wangb072@code.srdcloud.cn:hooks/commit-msg ctdi-caas-kubesphere/.git/hooks/
+Cloning into <span class=s1>&#39;ctdi-caas-kubesphere&#39;</span>...
+Unable to negotiate with 10.158.231.11 port 29418: no matching host key <span class=nb>type</span> found. Their offer: ssh-rsa,ssh-dss
+fatal: Could not <span class=nb>read</span> from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+
+dragon@LAPTOP-UB9FPVOU MINGW64 /d/GoProject
+
+</code></pre></td></tr></table></div></div><p>添加修改~/.ssh/Config，如果原来已有~/.ssh/Config，请备份</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1>#touch ~/.ssh/Config</span>
+
+vi ~/.ssh/Config
+</code></pre></td></tr></table></div></div><p>填写如下内容</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>Host *
+
+HostkeyAlgorithms +ssh-dss,ssh-rsa
+PubkeyAcceptedKeyTypes +ssh-dss,ssh-rsa
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>$ cat ~/.ssh/Config
+
+Host *
+
+HostkeyAlgorithms +ssh-dss,ssh-rsa
+PubkeyAcceptedKeyTypes +ssh-dss,ssh-rsa
+
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>Host *
+
+KexAlgorithms +diffie-hellman-group1-sha1
+HostkeyAlgorithms +ssh-dss,ssh-rsa
+PubkeyAcceptedKeyTypes +ssh-dss,ssh-rsa
+</code></pre></td></tr></table></div></div><h3 id=在windows的gitbash中git-add时出现如下告警信息>在windows的gitbash中，git add时出现如下告警信息</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>LF will be replaced by CRLF the next <span class=nb>time</span> Git touches it
+</code></pre></td></tr></table></div></div><p>Windows组合使用了CRLF（<code>0x0D 0x0A</code>, <code>\r\n</code>），无疑是符合标准语义的做法。</p><p>尽管这不是一个Bug或错误，但还是可以通过如下方式对Git进行配置，以避免在每次提交代码时显示：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-text data-lang=text># Linux/macOS系统下在提交代码时自动将CRLF转换为LF
+git config --global core.autocrlf input
+
+# Windows系统下在提交代码时自动将LF转换为CRLF
+git config --global core.autocrlf true
+
+
+# Windows系统下在提交检出均不转换
+git config --global core.autocrlf false
+</code></pre></td></tr></table></div></div><p>实际执行如下： 提交时转换为LF，检出时不转换</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># Linux/macOS系统下在提交代码时自动将CRLF转换为LF</span>
+git config --global core.autocrlf input
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>dragon@LAPTOP-UB9FPVOU MINGW64 /d/GoProject/ctdi-caas-kubesphere <span class=o>(</span>master<span class=o>)</span>
+$ git add -A
+warning: in the working copy of <span class=s1>&#39;.github/release-drafter.yml&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;.github/workflows/release-drafter.yml&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;pkg/simple/client/monitoring/metricsserver/testdata/metrics-matrix-1.json&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;pkg/simple/client/monitoring/metricsserver/testdata/metrics-matrix-2.json&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;pkg/simple/client/monitoring/metricsserver/testdata/metrics-matrix-3.json&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;pkg/simple/client/monitoring/metricsserver/testdata/metrics-matrix-4.json&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;pkg/simple/client/monitoring/metricsserver/testdata/metrics-matrix-5.json&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;pkg/simple/client/monitoring/metricsserver/testdata/metrics-matrix-6.json&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;pkg/simple/client/monitoring/metricsserver/testdata/metrics-matrix-7.json&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;pkg/simple/client/monitoring/metricsserver/testdata/metrics-matrix-8.json&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;pkg/simple/client/monitoring/metricsserver/testdata/metrics-vector-1.json&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;pkg/simple/client/monitoring/metricsserver/testdata/metrics-vector-2.json&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;pkg/simple/client/monitoring/metricsserver/testdata/metrics-vector-3.json&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;pkg/simple/client/monitoring/metricsserver/testdata/metrics-vector-4.json&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;pkg/simple/client/monitoring/metricsserver/testdata/metrics-vector-5.json&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;pkg/simple/client/monitoring/metricsserver/testdata/metrics-vector-6.json&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;pkg/simple/client/monitoring/metricsserver/testdata/metrics-vector-7.json&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;pkg/simple/client/monitoring/metricsserver/testdata/metrics-vector-8.json&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;vendor/github.com/MakeNowJust/heredoc/README.md&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;vendor/github.com/go-logfmt/logfmt/README.md&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;vendor/github.com/gosimple/slug/.gitignore&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;vendor/github.com/gosimple/slug/README.md&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;vendor/github.com/hashicorp/hcl/.gitignore&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;vendor/github.com/hashicorp/hcl/Makefile&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;vendor/github.com/oliveagle/jsonpath/.travis.yml&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;vendor/github.com/oliveagle/jsonpath/readme.md&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+warning: in the working copy of <span class=s1>&#39;vendor/github.com/pelletier/go-toml/example-crlf.toml&#39;</span>, CRLF will be replaced by LF the next <span class=nb>time</span> Git touches it
+
+
+</code></pre></td></tr></table></div></div><h2 id=9-参考>9 参考</h2><p><a href=https://www.cnblogs.com/lyndonlu/articles/16919707.html>https://www.cnblogs.com/lyndonlu/articles/16919707.html</a></p><p><a href=https://blog.csdn.net/xinlingncut/article/details/130811590>https://blog.csdn.net/xinlingncut/article/details/130811590</a></p></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2023-10-12</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/git/>Git</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2023/07/k8s%E8%AF%81%E4%B9%A6%E6%9B%B4%E6%96%B0/ class=prev rel=prev title=k8s证书更新><i class="fas fa-angle-left fa-fw"></i>k8s证书更新</a></div></div><div id=comments><div id=utterances></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://utteranc.es/>Utterances</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2023</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
+<script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i></a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css><script type=text/javascript src=https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script><script type=text/javascript>window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{"utterances":{"darkTheme":"github-dark","issueTerm":"pathname","label":"","lightTheme":"github-light","repo":"bingerambo/myblog-comments"}},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type=text/javascript src=/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-81425808-1',{'anonymize_ip':true});</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script><script src=https://libs.baidu.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js></script><script type=text/javascript src=/js/custom.js></script><script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script></body></html>
