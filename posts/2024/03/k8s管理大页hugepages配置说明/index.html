@@ -1,0 +1,678 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>k8s管理大页HugePages配置说明 - 斌哥的小站|Binge Blog</title><meta name=Description content="斌哥的小站 | 这里是 @BingeRambo斌哥兰博的个人博客"><meta property="og:title" content="k8s管理大页HugePages配置说明"><meta property="og:description" content="本文介绍了如何配置大页和k8s使用大页"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2024/03/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2024-03-22T08:43:17+08:00"><meta property="article:modified_time" content="2024-03-22T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="k8s管理大页HugePages配置说明"><meta name=twitter:description content="本文介绍了如何配置大页和k8s使用大页"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2024/03/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/><link rel=prev href=http://bingerambo.com/posts/2023/10/%E9%85%8D%E7%BD%AEssh%E6%96%B9%E5%BC%8F%E8%BF%9E%E6%8E%A5git/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"k8s管理大页HugePages配置说明","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2024\/03\/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S","wordcount":3434,"url":"http:\/\/bingerambo.com\/posts\/2024\/03\/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E\/","datePublished":"2024-03-22T08:43:17+08:00","dateModified":"2024-03-22T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":""}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">k8s管理大页HugePages配置说明</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2024-03-22>2024-03-22</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 3434 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 7 分钟&nbsp;
+<i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents><ul><li><a href=#1-关于大页huge-pages>1 关于大页Huge Pages</a></li><li><a href=#2-huge-pages>2 Huge Pages</a></li><li><a href=#3-查看huge-pages>3 查看Huge Pages</a></li><li><a href=#4-系统配置huge-pages>4 系统配置Huge Pages</a><ul><li><a href=#41-备份文件>4.1 备份文件</a><ul><li><a href=#411-备份配置文件>4.1.1 备份配置文件</a></li><li><a href=#412-备份grub配置文件>4.1.2 备份grub配置文件</a></li></ul></li><li><a href=#42-编辑etcdefaultgrub-文件>4.2 编辑/etc/default/grub 文件</a></li><li><a href=#43-重新生成grub配置文件>4.3 重新生成grub配置文件</a></li><li><a href=#44-重启节点>4.4 重启节点</a></li><li><a href=#45-检查大页配置信息>4.5 检查大页配置信息</a></li><li><a href=#46-重启kubelet让k8s生效大页内存资源>4.6 重启kubelet，让k8s生效大页内存资源</a></li></ul></li><li><a href=#5-k8s-api>5 K8S API</a></li><li><a href=#6-业务测试>6 业务测试</a><ul><li><a href=#61-2m类型大页资源>6.1 2M类型大页资源</a></li><li><a href=#62-1g大页资源>6.2 1G大页资源</a></li><li><a href=#63-混合类型大页>6.3 混合类型大页</a></li><li><a href=#64-大页资源超用>6.4 大页资源超用</a></li><li><a href=#65-大页资源使用cpu>6.5 大页资源使用+cpu</a></li><li><a href=#66-大页资源使用错误>6.6 大页资源使用错误</a></li></ul></li><li><a href=#7-附录参考>7 附录参考</a></li></ul></nav></div></div><div class=content id=content><p>本文介绍了如何配置大页和k8s使用大页</p><h2 id=1-关于大页huge-pages>1 关于大页Huge Pages</h2><p>在 Linux 中大页分为两种： <strong>Huge pages</strong> ( 标准大页 ) 和 <strong>Transparent Huge pages</strong>( 透明大页 ) 。</p><p>内存是以块即页的方式进行管理的，当前大部分系统默认的页大小为 4096 bytes 即 4K。1MB 内存等于 256 页； 1GB 内存等于 256000 页。</p><p>CPU 拥有内置的内存管理单元，包含这些页面的列表，每个页面通过页表条目引用。当内存越来越大的时候， CPU 需要管理这些内存页的成本也就越高，这样会对操作系统的性能产生影响。</p><h2 id=2-huge-pages>2 Huge Pages</h2><p>Huge pages 是从 Linux Kernel 2.6 后被引入的，目的是通过使用大页内存来取代传统的 4kb 内存页面， 以适应越来越大的系统内存，让操作系统可以支持现代硬件架构的大页面容量功能。</p><p>Huge pages 有两种格式大小：2MB 和1GB ，<strong>2MB 页块大小适合用于 GB</strong> 大小的内存， <strong>1GB 页块大小适合用于 TB 级别的内存</strong>； 2MB 是默认的页大小。</p><p><strong>Transparent Huge Pages</strong> 从RHEL 6 .SUSE Server 11,Oracle Linux(UEK2) 开始引入的一个功能。</p><p>而这两种大页, 根本的区别：Huge Page 是预分配的，Transparent Huge Pages 是动态分配的。</p><p>在两者一起使用的情况下，可能会导致性能问题和系统重启。Oracle 服务器建议禁用Transparent Huge Pages. 而在Oracle Linux 6.5 中，已经删除Transparent HugePages.</p><p>Oracle 官方虽然推荐我们使用 Huge pages ，但是却建议我们关闭 Transparent Huge pages ，因为透明大页存在一些问题：</p><ol><li>在 RAC 环境下 透明大页（ TransparentHugePages ）会导致异常节点重启，和性能问题；</li><li>在单机环境中，透明大页（ TransparentHugePages ） 也会导致一些异常的性能问题；</li></ol><p>注：Transparent Huge Pages在32位的RHEL 6中是不支持的。</p><h2 id=3-查看huge-pages>3 查看Huge Pages</h2><ul><li><p>查询标准大页的大小</p><p>之前说过，huge page 的大小是提前设置好的。那么设置的大页大小是多少呢。可以通过/proc/meminfo来看。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>grep Huge /proc/meminfo
+  
+AnonHugePages:     <span class=m>18432</span> kB
+HugePages_Total:       <span class=m>0</span>
+HugePages_Free:        <span class=m>0</span>
+HugePages_Rsvd:        <span class=m>0</span>
+HugePages_Surp:        <span class=m>0</span>
+Hugepagesize:       <span class=m>2048</span> kB
+</code></pre></td></tr></table></div></div><p>AnonHugePages: 匿名 HugePages 数量。Oracle Linux 6.5 中已删除此计数器。与透明 HugePages 有关。</p><p>HugePages_Total: 分配的页面数目，和Hugepagesize相乘后得到所分配的内存大小</p><p>HugePages_Free: 从来没有被使用过的Hugepages数目。<strong>即使oracle sga已经分配了这部分内存，但是如果没有实际写入，那么看到的还是Free的。这是很容易误解的地方（池中尚未分配的 HugePages 数量。）</strong></p><p>HugePages_Rsvd: 已经被分配预留但是还没有使用的page数目。在Oracle刚刚启动时，大部分内存应该都是Reserved并且Free的，随着ORACLE SGA的使用，Reserved和Free都会不断的降低</p><p>HugePages_Surp: “surplus”的缩写形式，表示池中大于/proc/sys/vm/nr_hugepages 中值的 HugePages 数量。剩余 HugePages 的最大数量由 /proc/sys/vm/nr_overcommit_hugepages 控制。此值为0的情况很常见</p><p>Hugepagesize: 页面大小</p><p>HugePages_Free – HugePages_Rsvd 这部分是没有被使用到的内存，如果没有其他的oracle instance，这部分内存也许永远都不会被使用到，也就是被浪费了。</p><p>HugePages_Total-HugePages_Free+HugePages_Rsvd 就是目前实例需要的页面数量.</p></li><li><p>查看是否启用huge_page</p><p>可以通过两个文件中的参数来确定，系统是否启用了大页。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>$ cat /proc/sys/vm/nr_hugepages
+<span class=m>0</span>
+$ grep -i HugePages_Total /proc/meminfo
+HugePages_Total:       <span class=m>0</span>
+</code></pre></td></tr></table></div></div><p>如果两个的结果都是0 ,说明系统中已禁用大页，而且不存在内存大页</p></li></ul><h2 id=4-系统配置huge-pages>4 系统配置Huge Pages</h2><p>开启该功能需要进行额外设置</p><h3 id=41-备份文件>4.1 备份文件</h3><h4 id=411-备份配置文件>4.1.1 备份配置文件</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>cp /etc/default/grub /etc/default/grub.<span class=sb>`</span>date +%F<span class=sb>`</span>.bak
+</code></pre></td></tr></table></div></div><h4 id=412-备份grub配置文件>4.1.2 备份grub配置文件</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>cp /boot/grub2/grub.cfg /boot/grub2/grub.cfg.<span class=sb>`</span>date +%F<span class=sb>`</span>.bak
+
+<span class=c1># cp /boot/efi/EFI/centos/grub.cfg /boot/efi/EFI/centos/grub.cfg.`date +%F`.bak</span>
+</code></pre></td></tr></table></div></div><h3 id=42-编辑etcdefaultgrub-文件>4.2 编辑/etc/default/grub 文件</h3><p>在 GRUB_CMDLINE_LINUX 那一行后面追加下面内容，例如：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># vi /etc/default/grub</span>
+<span class=nv>GRUB_CMDLINE_LINUX</span><span class=o>=</span><span class=s2>&#34;transparent_hugepage=never default_hugepagesz=2M hugepagesz=1G hugepages=1 hugepagesz=2M hugepages=512&#34;</span>
+</code></pre></td></tr></table></div></div><p>说明：如果禁用透明大页，则需设置transparent_hugepage=never</p><p>各类型大页数量，可根据实际环境配置。</p><p>配置后节点文件实例，其中hugepages相关的内容是新增的，其它配置不改动</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@host-136 home<span class=o>]</span><span class=c1># cat /etc/default/grub</span>
+<span class=nv>GRUB_TIMEOUT</span><span class=o>=</span><span class=m>5</span>
+<span class=nv>GRUB_DISTRIBUTOR</span><span class=o>=</span><span class=s2>&#34;</span><span class=k>$(</span>sed <span class=s1>&#39;s, release .*$,,g&#39;</span> /etc/system-release<span class=k>)</span><span class=s2>&#34;</span>
+<span class=nv>GRUB_DEFAULT</span><span class=o>=</span>saved
+<span class=nv>GRUB_DISABLE_SUBMENU</span><span class=o>=</span><span class=nb>true</span>
+<span class=nv>GRUB_TERMINAL_OUTPUT</span><span class=o>=</span><span class=s2>&#34;console&#34;</span>
+<span class=nv>GRUB_CMDLINE_LINUX</span><span class=o>=</span><span class=s2>&#34;crashkernel=0M-4G:128M,4G-8G:256M,8G-:512M transparent_hugepage=never default_hugepagesz=2M hugepagesz=1G hugepages=1 hugepagesz=2M hugepages=512  nomodeset&#34;</span>
+<span class=nv>GRUB_DISABLE_RECOVERY</span><span class=o>=</span><span class=s2>&#34;true&#34;</span>
+<span class=nv>GRUB_ENABLE_BLSCFG</span><span class=o>=</span><span class=nb>true</span>
+<span class=nv>GRUB_DISABLE_OS_PROBER</span><span class=o>=</span><span class=nb>true</span>
+<span class=o>[</span>root@host-136 home<span class=o>]</span><span class=c1>#</span>
+
+</code></pre></td></tr></table></div></div><h3 id=43-重新生成grub配置文件>4.3 重新生成grub配置文件</h3><p>不同系统配置一下的grub配置文件</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>On BIOS-based machines, issue the following  <span class=nb>command</span>   as root:
+<span class=c1># grub2-mkconfig -o /boot/grub2/grub.cfg</span>
+On UEFI-based machines, issue the following  <span class=nb>command</span>   as root:
+<span class=c1># grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg</span>
+<span class=c1>## centos</span>
+<span class=c1># grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg</span>
+
+ctyunos 系统
+<span class=c1># grub2-mkconfig -o /boot/grub2/grub.cfg</span>
+
+</code></pre></td></tr></table></div></div><p>再使用 grub2-mkconfig 生成grub.cfg配置文件。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># 注意不同系统下的配置文件路径</span>
+
+<span class=c1># grub2-mkconfig -o /boot/grub2/grub.cfg</span>
+
+<span class=c1># grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg</span>
+
+</code></pre></td></tr></table></div></div><p>配置实例：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@claster4-master1 ~<span class=o>]</span><span class=c1># grub2-mkconfig -o /boot/grub2/grub.cfg</span>
+Generating grub configuration file ...
+Found linux image: /boot/vmlinuz-5.10.0-136.12.0.86.ctl3.x86_64
+Found initrd image: /boot/initramfs-5.10.0-136.12.0.86.ctl3.x86_64.img
+Found linux image: /boot/vmlinuz-0-rescue-60f6c5d40de24acabdcc67f51be8f5f8
+Found initrd image: /boot/initramfs-0-rescue-60f6c5d40de24acabdcc67f51be8f5f8.img
+Adding boot menu entry <span class=k>for</span> UEFI Firmware Settings ...
+<span class=k>done</span>
+<span class=o>[</span>root@claster4-master1 ~<span class=o>]</span><span class=c1>#</span>
+
+</code></pre></td></tr></table></div></div><h3 id=44-重启节点>4.4 重启节点</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># reboot now</span>
+init <span class=m>6</span>
+</code></pre></td></tr></table></div></div><h3 id=45-检查大页配置信息>4.5 检查大页配置信息</h3><p>查看Hugepagesize、 HugePages_Total等参数</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@host-136 ~<span class=o>]</span><span class=c1># grep Huge /proc/meminfo</span>
+AnonHugePages:         <span class=m>0</span> kB
+ShmemHugePages:        <span class=m>0</span> kB
+FileHugePages:         <span class=m>0</span> kB
+HugePages_Total:     <span class=m>512</span>
+HugePages_Free:      <span class=m>512</span>
+HugePages_Rsvd:        <span class=m>0</span>
+HugePages_Surp:        <span class=m>0</span>
+Hugepagesize:       <span class=m>2048</span> kB
+Hugetlb:         <span class=m>2097152</span> kB
+<span class=o>[</span>root@host-136 ~<span class=o>]</span><span class=c1>#</span>
+
+</code></pre></td></tr></table></div></div><p>检查大页数量配置，512个2M大页和1个1G大页</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@host-136 ~<span class=o>]</span><span class=c1># cat /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages</span>
+<span class=m>512</span>
+<span class=o>[</span>root@host-136 ~<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@host-136 ~<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@host-136 ~<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@host-136 ~<span class=o>]</span><span class=c1># cat /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages</span>
+<span class=m>1</span>
+<span class=o>[</span>root@host-136 ~<span class=o>]</span><span class=c1>#</span>
+
+</code></pre></td></tr></table></div></div><h3 id=46-重启kubelet让k8s生效大页内存资源>4.6 重启kubelet，让k8s生效大页内存资源</h3><p>此时k8s尚未管理系统已生效的大页资源</p><p><img class=lazyload src=/svg/loading.min.svg data-src=136-hp-gaiqian.png data-srcset="/posts/2024/03/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/136-hp-gaiqian.png, 136-hp-gaiqian.png 1.5x, /posts/2024/03/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/136-hp-gaiqian.png 2x" data-sizes=auto alt=/posts/2024/03/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/136-hp-gaiqian.png title=136-hp-gaihou2></p><p>需重启kubelet以生效</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>systemctl restart kubelet
+</code></pre></td></tr></table></div></div><p>查看配置大页内存的节点信息，能够看到2M和1G大页内存已在k8s集群节点中生效，如下</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>Capacity:
+  chinatelecom/vcuda-core:    <span class=m>0</span>
+  chinatelecom/vcuda-memory:  <span class=m>0</span>
+  cpu:                        <span class=m>112</span>
+  ephemeral-storage:          51166812Ki
+  hugepages-1Gi:              1Gi
+  hugepages-2Mi:              1Gi
+  memory:                     395095064Ki
+  pods:                       <span class=m>110</span>
+  tencent.com/vcuda-core:     <span class=m>0</span>
+  tencent.com/vcuda-memory:   <span class=m>0</span>
+Allocatable:
+  chinatelecom/vcuda-core:    <span class=m>0</span>
+  chinatelecom/vcuda-memory:  <span class=m>0</span>
+  cpu:                        111600m
+  ephemeral-storage:          51166812Ki
+  hugepages-1Gi:              1Gi
+  hugepages-2Mi:              1Gi
+  memory:                     <span class=m>381676706310</span>
+  pods:                       <span class=m>110</span>
+  tencent.com/vcuda-core:     <span class=m>0</span>
+  tencent.com/vcuda-memory:   <span class=m>0</span>
+</code></pre></td></tr></table></div></div><p>注意以下信息变化：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># k8s生效前</span>
+  hugepages-1Gi:              <span class=m>0</span>
+  hugepages-2Mi:              <span class=m>0</span>
+<span class=c1># k8s生效后</span>
+  hugepages-1Gi:              1Gi
+  hugepages-2Mi:              1Gi
+</code></pre></td></tr></table></div></div><h2 id=5-k8s-api>5 K8S API</h2><p>用户可以通过在容器级别的资源需求中使用资源名称 <code>hugepages-&lt;size></code> 来使用巨页，其中的 size 是特定节点上支持的以整数值表示的最小二进制单位。 例如，如果一个节点支持 2048KiB 和 1048576KiB 页面大小，它将公开可调度的资源 <code>hugepages-2Mi</code> 和 <code>hugepages-1Gi</code>。与 CPU 或内存不同，巨页不支持过量使用（overcommit）。 注意，在请求巨页资源时，还必须请求内存或 CPU 资源。</p><p>同一 Pod 的 spec 中可能会消耗不同尺寸的巨页。在这种情况下，它必须对所有挂载卷使用 <code>medium: HugePages-&lt;hugepagesize></code> 标识。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>huge-pages-example</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>example</span><span class=w>
+</span><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>fedora:latest</span><span class=w>
+</span><span class=w>    </span><span class=nt>command</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=l>sleep</span><span class=w>
+</span><span class=w>    </span>- <span class=l>inf</span><span class=w>
+</span><span class=w>    </span><span class=nt>volumeMounts</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/hugepages-2Mi</span><span class=w>
+</span><span class=w>      </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hugepage-2mi</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/hugepages-1Gi</span><span class=w>
+</span><span class=w>      </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hugepage-1gi</span><span class=w>
+</span><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>limits</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>hugepages-2Mi</span><span class=p>:</span><span class=w> </span><span class=l>100Mi</span><span class=w>
+</span><span class=w>        </span><span class=nt>hugepages-1Gi</span><span class=p>:</span><span class=w> </span><span class=l>2Gi</span><span class=w>
+</span><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>100Mi</span><span class=w>
+</span><span class=w>      </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>100Mi</span><span class=w>
+</span><span class=w>  </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hugepage-2mi</span><span class=w>
+</span><span class=w>    </span><span class=nt>emptyDir</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=c>#  必须为HugePages-xxx格式</span><span class=w>
+</span><span class=w>      </span><span class=nt>medium</span><span class=p>:</span><span class=w> </span><span class=l>HugePages-2Mi</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hugepage-1gi</span><span class=w>
+</span><span class=w>    </span><span class=nt>emptyDir</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=c>#  必须为HugePages-xxx格式</span><span class=w>
+</span><span class=w>      </span><span class=nt>medium</span><span class=p>:</span><span class=w> </span><span class=l>HugePages-1Gi</span><span class=w>
+</span></code></pre></td></tr></table></div></div><p>Pod 只有在请求同一大小的巨页时才使用 <code>medium：HugePages</code>。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>huge-pages-example</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>example</span><span class=w>
+</span><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>fedora:latest</span><span class=w>
+</span><span class=w>    </span><span class=nt>command</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=l>sleep</span><span class=w>
+</span><span class=w>    </span>- <span class=l>inf</span><span class=w>
+</span><span class=w>    </span><span class=nt>volumeMounts</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/hugepages</span><span class=w>
+</span><span class=w>      </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hugepage</span><span class=w>
+</span><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>limits</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>hugepages-2Mi</span><span class=p>:</span><span class=w> </span><span class=l>100Mi</span><span class=w>
+</span><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>100Mi</span><span class=w>
+</span><span class=w>      </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>100Mi</span><span class=w>
+</span><span class=w>  </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hugepage</span><span class=w>
+</span><span class=w>    </span><span class=nt>emptyDir</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=c>#  可以为HugePages格式</span><span class=w>
+</span><span class=w>      </span><span class=nt>medium</span><span class=p>:</span><span class=w> </span><span class=l>HugePages</span><span class=w>
+</span></code></pre></td></tr></table></div></div><p>说明：</p><ul><li><p>与CPU或内存不同，巨大页面不支持过度承诺。请注意，在请求hugepage资源时，必须同时请求内存或CPU资源。</p></li><li><p>巨页的资源请求值必须等于其限制值。该条件在指定了资源限制，而没有指定请求的情况下默认成立。</p></li></ul><p>例如，在默认页面大小为 4KiB 的系统上，你可以指定限制 <code>hugepages-2Mi: 80Mi</code>。 如果容器尝试分配 40 个 2MiB 大小的巨页（总共 80 MiB ），则分配请求会失败。</p><p><strong>说明：</strong></p><p>不能过量使用 <code>hugepages- *</code> 资源。 这与 <code>memory</code> 和 <code>cpu</code> 资源不同。</p><h2 id=6-业务测试>6 业务测试</h2><p>使用大页内存的pod测试，k8s集群节点已有大页资源</p><p><img class=lazyload src=/svg/loading.min.svg data-src=136-hp-gaihou.png data-srcset="/posts/2024/03/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/136-hp-gaihou.png, 136-hp-gaihou.png 1.5x, /posts/2024/03/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/136-hp-gaihou.png 2x" data-sizes=auto alt=/posts/2024/03/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/136-hp-gaihou.png title=136-hp-gaihou2></p><h3 id=61-2m类型大页资源>6.1 2M类型大页资源</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>huge-pages-2mi-example</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>example</span><span class=w>
+</span><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>dockerhub.kubekey.local/kubesphereio/busybox:1.31.1</span><span class=w>
+</span><span class=w>    </span><span class=nt>command</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=l>sleep</span><span class=w>
+</span><span class=w>    </span>- <span class=l>inf</span><span class=w>
+</span><span class=w>    </span><span class=nt>volumeMounts</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/hugepages</span><span class=w>
+</span><span class=w>      </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hugepage</span><span class=w>
+</span><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>limits</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>hugepages-2Mi</span><span class=p>:</span><span class=w> </span><span class=l>10Mi</span><span class=w>
+</span><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>100Mi</span><span class=w>
+</span><span class=w>      </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>100Mi</span><span class=w>
+</span><span class=w>  </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hugepage</span><span class=w>
+</span><span class=w>    </span><span class=nt>emptyDir</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=c>#  可以为HugePages格式</span><span class=w>
+</span><span class=w>      </span><span class=nt>medium</span><span class=p>:</span><span class=w> </span><span class=l>HugePages</span><span class=w>
+</span></code></pre></td></tr></table></div></div><h3 id=62-1g大页资源>6.2 1G大页资源</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>huge-pages-1gi-example</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>example</span><span class=w>
+</span><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>dockerhub.kubekey.local/kubesphereio/busybox:1.31.1</span><span class=w>
+</span><span class=w>    </span><span class=nt>command</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=l>sleep</span><span class=w>
+</span><span class=w>    </span>- <span class=l>inf</span><span class=w>
+</span><span class=w>    </span><span class=nt>volumeMounts</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/hugepages</span><span class=w>
+</span><span class=w>      </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hugepage</span><span class=w>
+</span><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>limits</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>hugepages-1Gi</span><span class=p>:</span><span class=w> </span><span class=l>1Gi</span><span class=w>
+</span><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>100Mi</span><span class=w>
+</span><span class=w>      </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>100Mi</span><span class=w>
+</span><span class=w>  </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hugepage</span><span class=w>
+</span><span class=w>    </span><span class=nt>emptyDir</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=c>#  可以为HugePages格式</span><span class=w>
+</span><span class=w>      </span><span class=nt>medium</span><span class=p>:</span><span class=w> </span><span class=l>HugePages</span><span class=w>
+</span></code></pre></td></tr></table></div></div><p><img class=lazyload src=/svg/loading.min.svg data-src=136-hp-gaihou2.png data-srcset="/posts/2024/03/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/136-hp-gaihou2.png, 136-hp-gaihou2.png 1.5x, /posts/2024/03/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/136-hp-gaihou2.png 2x" data-sizes=auto alt=/posts/2024/03/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/136-hp-gaihou2.png title=136-hp-gaihou2></p><h3 id=63-混合类型大页>6.3 混合类型大页</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>huge-pages-example</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>example</span><span class=w>
+</span><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>fedora:latest</span><span class=w>
+</span><span class=w>    </span><span class=nt>command</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=l>sleep</span><span class=w>
+</span><span class=w>    </span>- <span class=l>inf</span><span class=w>
+</span><span class=w>    </span><span class=nt>volumeMounts</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/hugepages-2Mi</span><span class=w>
+</span><span class=w>      </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hugepage-2mi</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/hugepages-1Gi</span><span class=w>
+</span><span class=w>      </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hugepage-1gi</span><span class=w>
+</span><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>limits</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>hugepages-2Mi</span><span class=p>:</span><span class=w> </span><span class=l>100Mi</span><span class=w>
+</span><span class=w>        </span><span class=nt>hugepages-1Gi</span><span class=p>:</span><span class=w> </span><span class=l>2Gi</span><span class=w>
+</span><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>100Mi</span><span class=w>
+</span><span class=w>      </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>100Mi</span><span class=w>
+</span><span class=w>  </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hugepage-2mi</span><span class=w>
+</span><span class=w>    </span><span class=nt>emptyDir</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>medium</span><span class=p>:</span><span class=w> </span><span class=l>HugePages-2Mi</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hugepage-1gi</span><span class=w>
+</span><span class=w>    </span><span class=nt>emptyDir</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>medium</span><span class=p>:</span><span class=w> </span><span class=l>HugePages-1Gi</span><span class=w>
+</span></code></pre></td></tr></table></div></div><p>查看配置大页节点的大页内存使用情况，如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>Allocated resources:
+  <span class=o>(</span>Total limits may be over <span class=m>100</span> percent, i.e., overcommitted.<span class=o>)</span>
+  Resource                   Requests     Limits
+  --------                   --------     ------
+  cpu                        1472m <span class=o>(</span>1%<span class=o>)</span>   4500m <span class=o>(</span>4%<span class=o>)</span>
+  memory                     1519Mi <span class=o>(</span>0%<span class=o>)</span>  3218Mi <span class=o>(</span>0%<span class=o>)</span>
+  ephemeral-storage          <span class=m>0</span> <span class=o>(</span>0%<span class=o>)</span>       <span class=m>0</span> <span class=o>(</span>0%<span class=o>)</span>
+  hugepages-1Gi              1Gi <span class=o>(</span>100%<span class=o>)</span>   1Gi <span class=o>(</span>100%<span class=o>)</span>
+  hugepages-2Mi              210Mi <span class=o>(</span>20%<span class=o>)</span>  210Mi <span class=o>(</span>20%<span class=o>)</span>
+  chinatelecom/vcuda-core    <span class=m>0</span>            <span class=m>0</span>
+  chinatelecom/vcuda-memory  <span class=m>0</span>            <span class=m>0</span>
+  tencent.com/vcuda-core     <span class=m>0</span>            <span class=m>0</span>
+  tencent.com/vcuda-memory   <span class=m>0</span>            <span class=m>0</span>
+
+</code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@cluster2-master1 ~<span class=o>]</span><span class=c1># kubectl get pod</span>
+huge-pages-2mi-example           1/1     Running   <span class=m>0</span>              102m
+huge-pages-mix-1gi-2mi-example   1/1     Running   <span class=m>0</span>              34m
+
+</code></pre></td></tr></table></div></div><p><img class=lazyload src=/svg/loading.min.svg data-src=136-hp-gaihou3.png data-srcset="/posts/2024/03/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/136-hp-gaihou3.png, 136-hp-gaihou3.png 1.5x, /posts/2024/03/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/136-hp-gaihou3.png 2x" data-sizes=auto alt=/posts/2024/03/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/136-hp-gaihou3.png title=136-hp-gaihou3></p><h3 id=64-大页资源超用>6.4 大页资源超用</h3><p>pod作业已使用完1G大页内存，pod作业继续请求1G大页资源，测试如下：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@cluster2-master1 hugepage<span class=o>]</span><span class=c1># kubectl get po |grep huge</span>
+huge-pages-1gi-example           0/1     Pending   <span class=m>0</span>              3m31s
+huge-pages-2mi-example           1/1     Running   <span class=m>0</span>              106m
+huge-pages-mix-1gi-2mi-example   1/1     Running   <span class=m>0</span>              38m
+<span class=o>[</span>root@cluster2-master1 hugepage<span class=o>]</span><span class=c1>#</span>
+
+</code></pre></td></tr></table></div></div><p>查看排队等待pod信息，发现调度失败，原因为：节点的hugepages-1Gi资源都不满足作业pod请求</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>Events:
+  Type     Reason            Age                 From               Message
+  ----     ------            ----                ----               -------
+  Warning  FailedScheduling  40s <span class=o>(</span>x4 over 4m3s<span class=o>)</span>  default-scheduler  0/7 nodes are available: <span class=m>1</span> node<span class=o>(</span>s<span class=o>)</span> had taint <span class=o>{</span>node-role.kubernetes.io/master: <span class=o>}</span>, that the pod didn<span class=err>&#39;</span>t tolerate, <span class=m>6</span> Insufficient hugepages-1Gi.
+
+</code></pre></td></tr></table></div></div><h3 id=65-大页资源使用cpu>6.5 大页资源使用+cpu</h3><p>仅设置cpu，无memory，可以运行成功</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>apiVersion: v1
+kind: Pod
+metadata:
+  name: huge-pages-2mi-example
+spec:
+  containers:
+  - name: example
+    image: dockerhub.kubekey.local/kubesphereio/busybox:1.31.1
+    command:
+    - sleep
+    - inf
+    volumeMounts:
+    - mountPath: /hugepages
+      name: hugepage
+    resources:
+      limits:
+        hugepages-2Mi: 10Mi
+        <span class=c1>#memory: 100Mi</span>
+        cpu: <span class=m>1</span>
+      requests:
+        <span class=c1>#memory: 100Mi</span>
+        cpu: <span class=m>1</span>
+  volumes:
+  - name: hugepage
+    emptyDir:
+      <span class=c1>#  可以为HugePages格式</span>
+      medium: HugePages
+
+</code></pre></td></tr></table></div></div><h3 id=66-大页资源使用错误>6.6 大页资源使用错误</h3><p>没有设置cpu和memory，接口报错，运行失败</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>huge-pages-2mi-example</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>example</span><span class=w>
+</span><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>dockerhub.kubekey.local/kubesphereio/busybox:1.31.1</span><span class=w>
+</span><span class=w>    </span><span class=nt>command</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=l>sleep</span><span class=w>
+</span><span class=w>    </span>- <span class=l>inf</span><span class=w>
+</span><span class=w>    </span><span class=nt>volumeMounts</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span>- <span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/hugepages</span><span class=w>
+</span><span class=w>      </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hugepage</span><span class=w>
+</span><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=nt>limits</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>hugepages-2Mi</span><span class=p>:</span><span class=w> </span><span class=l>10Mi</span><span class=w>
+</span><span class=w>        </span><span class=c># 错误：没有设置cpu和memory</span><span class=w>
+</span><span class=w>        </span><span class=c>#memory: 100Mi</span><span class=w>
+</span><span class=w>      </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=c># 错误：没有设置cpu和memory</span><span class=w>
+</span><span class=w>        </span><span class=c>#memory: 100Mi</span><span class=w>
+</span><span class=w>  </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hugepage</span><span class=w>
+</span><span class=w>    </span><span class=nt>emptyDir</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span><span class=c>#  可以为HugePages格式</span><span class=w>
+</span><span class=w>      </span><span class=nt>medium</span><span class=p>:</span><span class=w> </span><span class=l>HugePages</span><span class=w>
+</span><span class=w>
+</span></code></pre></td></tr></table></div></div><p>错误显示</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@cluster2-master1 hugepage<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@cluster2-master1 hugepage<span class=o>]</span><span class=c1># kubectl create -f error-2m.yaml</span>
+The Pod <span class=s2>&#34;huge-pages-2mi-example&#34;</span> is invalid: spec.containers<span class=o>[</span>0<span class=o>]</span>.resources: Forbidden: HugePages require cpu or memory
+<span class=o>[</span>root@cluster2-master1 hugepage<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@cluster2-master1 hugepage<span class=o>]</span><span class=c1>#</span>
+
+</code></pre></td></tr></table></div></div><h2 id=7-附录参考>7 附录参考</h2><p>Linux HugePage</p><p><a href=https://www.cnblogs.com/halberd-lee/p/12802918.html>https://www.cnblogs.com/halberd-lee/p/12802918.html</a></p><p>k8s管理巨页（HugePage）</p><p><a href=https://kubernetes.io/zh-cn/docs/tasks/manage-hugepages/scheduling-hugepages/>https://kubernetes.io/zh-cn/docs/tasks/manage-hugepages/scheduling-hugepages/</a></p><p>Linux 大页内存 Huge Pages 虚拟内存</p><p><a href=https://www.cnblogs.com/studywithallofyou/p/17435497.html>https://www.cnblogs.com/studywithallofyou/p/17435497.html</a></p><p>HugeTLB Pages</p><p><a href=https://www.kernel.org/doc/html/latest/admin-guide/mm/hugetlbpage.html>https://www.kernel.org/doc/html/latest/admin-guide/mm/hugetlbpage.html</a></p><p>欧拉系统的内存大页配置</p><p><a href=https://docs.openeuler.org/zh/docs/22.03_LTS_SP3/docs/StratoVirt/%E8%99%9A%E6%8B%9F%E6%9C%BA%E9%85%8D%E7%BD%AE.html>https://docs.openeuler.org/zh/docs/22.03_LTS_SP3/docs/StratoVirt/%E8%99%9A%E6%8B%9F%E6%9C%BA%E9%85%8D%E7%BD%AE.html</a></p></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2024-03-22</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/k8s/>K8S</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2023/10/%E9%85%8D%E7%BD%AEssh%E6%96%B9%E5%BC%8F%E8%BF%9E%E6%8E%A5git/ class=prev rel=prev title=配置ssh方式连接git><i class="fas fa-angle-left fa-fw"></i>配置ssh方式连接git</a></div></div><div id=comments><div id=utterances></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://utteranc.es/>Utterances</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2024</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
+<script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i></a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css><script type=text/javascript src=https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script><script type=text/javascript>window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{"utterances":{"darkTheme":"github-dark","issueTerm":"pathname","label":"","lightTheme":"github-light","repo":"bingerambo/myblog-comments"}},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type=text/javascript src=/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-81425808-1',{'anonymize_ip':true});</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script><script src=https://libs.baidu.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js></script><script type=text/javascript src=/js/custom.js></script><script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script></body></html>
