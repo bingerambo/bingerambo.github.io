@@ -1,0 +1,109 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>nsenter调试docker-k8s - 斌哥的小站|Binge Blog</title><meta name=Description content="斌哥的小站 | 这里是 @BingeRambo斌哥兰博的个人博客"><meta property="og:title" content="nsenter调试docker-k8s"><meta property="og:description" content="本文介绍了如何使用nsenter工具在k8s中调试容器"><meta property="og:type" content="article"><meta property="og:url" content="http://bingerambo.com/posts/2024/04/nsenter%E8%B0%83%E8%AF%95docker-k8s/"><meta property="og:image" content="http://bingerambo.com/logo.png"><meta property="article:published_time" content="2024-04-01T08:43:17+08:00"><meta property="article:modified_time" content="2024-04-01T08:43:17+08:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://bingerambo.com/logo.png"><meta name=twitter:title content="nsenter调试docker-k8s"><meta name=twitter:description content="本文介绍了如何使用nsenter工具在k8s中调试容器"><meta name=application-name content="Binge Blog"><meta name=apple-mobile-web-app-title content="Binge Blog"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=canonical href=http://bingerambo.com/posts/2024/04/nsenter%E8%B0%83%E8%AF%95docker-k8s/><link rel=prev href=http://bingerambo.com/posts/2024/03/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/css/custom.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"nsenter调试docker-k8s","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/bingerambo.com\/posts\/2024\/04\/nsenter%E8%B0%83%E8%AF%95docker-k8s\/"},"image":["http:\/\/bingerambo.com\/images\/Apple-Devices-Preview.png"],"genre":"posts","keywords":"K8S, Docker","wordcount":807,"url":"http:\/\/bingerambo.com\/posts\/2024\/04\/nsenter%E8%B0%83%E8%AF%95docker-k8s\/","datePublished":"2024-04-01T08:43:17+08:00","dateModified":"2024-04-01T08:43:17+08:00","license":"This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.","publisher":{"@type":"Organization","name":"xxxx","logo":"http:\/\/bingerambo.com\/images\/avatar.png"},"author":{"@type":"Person","name":"Binge"},"description":""}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':('auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark'))&&document.body.setAttribute('theme','dark');</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu><div class=menu-inner><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章 </a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签 </a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类 </a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记 </a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于 </a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索 </a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链 </a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><span class="menu-item delimiter"></span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="斌哥的小站|Binge Blog"><span class=header-title-pre><i class="fas fa-biking fa-fw"></i></span>Binge Blog</a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><a class=menu-item href=/posts/><i class="fas fa-fw fa-archive"></i>文章</a><a class=menu-item href=/tags/><i class="fas fa-fw fa-tag"></i>标签</a><a class=menu-item href=/categories/><i class="fas fa-fw fa-th"></i>分类</a><a class=menu-item href=/timeline/><i class="fas fa-cog fa-spin"></i>随记</a><a class=menu-item href=/about/><i class="fas fa-fw fa-at"></i>关于</a><a class=menu-item href=/search/><i class="fas fa-fw fa-search"></i>搜索</a><a class=menu-item href=/friend/ title=Friend><i class="fas fa fa-user"></i>友链</a><a class=menu-item href=https://github.com/bingerambo title=GitHub rel="noopener noreffer" target=_blank><i class="fab fa-github fa-fw"></i></a><a class=menu-item href=/><i class="fas fa fa-eye"></i><span id=busuanzi_value_site_uv></span></a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">nsenter调试docker-k8s</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=http://bingerambo.com title=Author target=_blank rel="noopener noreffer author" class=author><i class="fas fa-user-circle fa-fw"></i>Binge</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/k8s/><i class="far fa-folder fa-fw"></i>K8S</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2024-04-01>2024-04-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 807 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 2 分钟&nbsp;
+<i class="fa fa-eye fa-fw"></i>&nbsp;本文总阅读量 <span id=busuanzi_value_page_pv></span>次&nbsp;</div></div><div class="details toc" id=toc-static kept><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents></nav></div></div><div class=content id=content><p>本文介绍了如何使用nsenter工具在k8s中调试容器</p><p>需求：</p><blockquote><p>我想进入容器中执行 curl 命令探测某个地址的连通性，但是容器镜像里默认没有 curl 命令。我这里是一个内网环境不太方便使用 yum 或者 apt 安装，怎么办？
+这个需求比较典型，这里教大家一个简单的方法，使用 nsenter 进入容器的 net namespace，即可使用宿主机的 curl、ip、ifconfig 等命令，其效果，就跟进入容器中执行是一样的。</p></blockquote><p>原理：</p><blockquote><p>容器像是一个轻量级虚拟机，有自己的 IP，宿主机如果已经监听了 8080 端口，容器里的进程仍然可以重复监听 8080 端口。核心就是因为容器有自己的 namespace，和宿主机的 net namespace 互不影响。</p></blockquote><p><img class=lazyload src=/svg/loading.min.svg data-src=https://pic4.zhimg.com/80/v2-caf72a3ceee97d3d899223f54b037943_1440w.webp data-srcset="https://pic4.zhimg.com/80/v2-caf72a3ceee97d3d899223f54b037943_1440w.webp, https://pic4.zhimg.com/80/v2-caf72a3ceee97d3d899223f54b037943_1440w.webp 1.5x, https://pic4.zhimg.com/80/v2-caf72a3ceee97d3d899223f54b037943_1440w.webp 2x" data-sizes=auto alt=https://pic4.zhimg.com/80/v2-caf72a3ceee97d3d899223f54b037943_1440w.webp title=img></p><blockquote><p>通过 nsenter -t <pid>-n bash 即可进入 pid 指向的进程的 net namespace，并在这个 namespace 执行 bash 命令，之后，在这个 bash session 里执行 curl、ip、ifconfig 等命令，看到的网络信息就都是容器内部的网络信息。</p></blockquote><p>找到容器的pid</p><p>然后使用 nsenter 进入容器</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>crictl ps <span class=p>|</span>grep console
+
+crictl inspect <span class=si>${</span><span class=nv>containerid</span><span class=si>}</span> <span class=p>|</span>grep pid
+
+nsenter -t <span class=si>${</span><span class=nv>pid</span><span class=si>}</span> -n bash
+
+<span class=c1># nsenter -t 62298 -n bash</span>
+</code></pre></td></tr></table></div></div><p>例如查看console容器，能够看到已经进入容器空间，ip是pod容器的ip地址：10.230.96.236</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=o>[</span>root@arm-master1 ~<span class=o>]</span><span class=c1># crictl ps |grep console</span>
+f7f790ca4093a       9c910f17dc73b       <span class=m>3</span> weeks ago         Running             ks-console                      <span class=m>0</span>                   887ac0301a553       ks-console-6c45c8578b-7hqnd
+<span class=o>[</span>root@arm-master1 ~<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@arm-master1 ~<span class=o>]</span><span class=c1>#</span>
+<span class=o>[</span>root@arm-master1 ~<span class=o>]</span><span class=c1># crictl inspect f7f790ca4093a |grep pid</span>
+    <span class=s2>&#34;pid&#34;</span>: 62298,
+            <span class=s2>&#34;pid&#34;</span>: <span class=m>1</span>
+            <span class=s2>&#34;type&#34;</span>: <span class=s2>&#34;pid&#34;</span>
+<span class=o>[</span>root@arm-master1 ~<span class=o>]</span><span class=c1>#</span>
+
+<span class=o>[</span>root@arm-master1 ~<span class=o>]</span><span class=c1># nsenter -t 62298 -n bash</span>
+
+
+Welcome to 5.10.0-136.12.0.86.ctl3.aarch64
+
+System information as of time:  Tue Mar <span class=m>12</span> 09:19:31 AM CST <span class=m>2024</span>
+
+System load:    3.01
+Processes:      <span class=m>462</span>
+Memory used:    65.3%
+Swap used:      0.0%
+Usage On:       83%
+IP address:     10.230.96.236
+Users online:   <span class=m>3</span>
+
+<span class=o>[</span>root@arm-master1 ~<span class=o>]</span><span class=c1># ip a</span>
+1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu <span class=m>65536</span> qdisc noqueue state UNKNOWN group default qlen <span class=m>1000</span>
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: tunl0@NONE: &lt;NOARP&gt; mtu <span class=m>1480</span> qdisc noop state DOWN group default qlen <span class=m>1000</span>
+    link/ipip 0.0.0.0 brd 0.0.0.0
+4: eth0@if980: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span class=m>1480</span> qdisc noqueue state UP group default qlen <span class=m>1000</span>
+    link/ether 36:da:f3:ec:b6:24 brd ff:ff:ff:ff:ff:ff link-netnsid <span class=m>0</span>
+    inet 10.230.96.236/32 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::34da:f3ff:feec:b624/64 scope link
+       valid_lft forever preferred_lft forever
+<span class=o>[</span>root@arm-master1 ~<span class=o>]</span><span class=c1>#</span>
+
+
+
+</code></pre></td></tr></table></div></div><p><img class=lazyload src=/svg/loading.min.svg data-src=https://pic3.zhimg.com/80/v2-68932a5e97ac590c2abbf0138393c616_1440w.webp data-srcset="https://pic3.zhimg.com/80/v2-68932a5e97ac590c2abbf0138393c616_1440w.webp, https://pic3.zhimg.com/80/v2-68932a5e97ac590c2abbf0138393c616_1440w.webp 1.5x, https://pic3.zhimg.com/80/v2-68932a5e97ac590c2abbf0138393c616_1440w.webp 2x" data-sizes=auto alt=https://pic3.zhimg.com/80/v2-68932a5e97ac590c2abbf0138393c616_1440w.webp title=img></p><p>如上，使用 bash 命令进入 net namespace，然后执行 ifconfig，看到 IP：172.22.0.6，显然这就是容器的 IP，说明 nsenter 达成所愿，之后在这个 bash session 内执行 curl、telnet 之类的，就相当于在容器里执行一样的效果。完事执行 exit 命令可以退出这个 net namespace。</p></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2024-04-01</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md></div><div class=post-info-share><span></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/k8s/>K8S</a>,&nbsp;<a href=/tags/docker/>Docker</a></section><section><span><a href=javascript:void(0); onclick=window.history.back();>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/posts/2024/03/k8s%E7%AE%A1%E7%90%86%E5%A4%A7%E9%A1%B5hugepages%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/ class=prev rel=prev title=k8s管理大页HugePages配置说明><i class="fas fa-angle-left fa-fw"></i>k8s管理大页HugePages配置说明</a></div></div><div id=comments><div id=utterances></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://utteranc.es/>Utterances</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2016 - 2024</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=bingerambo.com target=_blank>Binge</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=http://bingerambo.com/ target=_blank>bingerambo.com</a></span></div><div class=footer-line><i class="fa fa-eye"></i>本站总访问量<span id=busuanzi_value_site_pv></span>次
+<script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i></a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/css/lightgallery.min.css><script type=text/javascript src=https://cdn.jsdelivr.net/npm/smooth-scroll@16.1.3/dist/smooth-scroll.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lazysizes@5.2.2/lazysizes.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lightgallery.js@1.2.0/dist/js/lightgallery.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-thumbnail.js@1.2.0/dist/lg-thumbnail.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/lg-zoom.js@1.2.0/dist/lg-zoom.min.js></script><script type=text/javascript src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script><script type=text/javascript>window.config={"code":{"copyTitle":"复制到剪贴板","maxShownLines":10},"comment":{"utterances":{"darkTheme":"github-dark","issueTerm":"pathname","label":"","lightTheme":"github-light","repo":"bingerambo/myblog-comments"}},"lightGallery":{"actualSize":false,"exThumbImage":"data-thumbnail","hideBarsDelay":2000,"selector":".lightgallery","speed":400,"thumbContHeight":80,"thumbWidth":80,"thumbnail":true}};</script><script type=text/javascript src=/js/theme.min.js></script><script type=text/javascript>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-81425808-1',{'anonymize_ip':true});</script><script type=text/javascript src="https://www.googletagmanager.com/gtag/js?id=UA-81425808-1" async></script><script src=https://libs.baidu.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.bootcdn.net/ajax/libs/jquery-backstretch/2.1.18/jquery.backstretch.min.js></script><script type=text/javascript src=/js/custom.js></script><script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?c0176279eee823ce422da4e8d06708f9";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();</script></body></html>
