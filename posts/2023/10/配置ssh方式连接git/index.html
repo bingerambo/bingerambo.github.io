@@ -149,8 +149,8 @@ origin  git@xxxxx.git (push)
 </span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1>#git config --global user.name &#34;姓名&#34;</span>
 <span class=c1>#git config --global user.email &#34;邮箱地址&#34;</span>
 
-git config --global user.name <span class=s2>&#34;wangb072&#34;</span>
-git config --global user.email <span class=s2>&#34;wangb072@chinatelecom.cn&#34;</span>
+git config --global user.name <span class=s2>&#34;dragon&#34;</span>
+git config --global user.email <span class=s2>&#34;dragon@qq.com&#34;</span>
 
 
 </code></pre></td></tr></table></div></div><p>如果<strong>不是首次使用git</strong>,那么可以先查看自己的用户名以及邮箱：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
@@ -168,10 +168,10 @@ git config user.email
 </span><span class=lnt>7
 </span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell><span class=c1>#ssh-keygen -t rsa -C &#34;你的邮箱地址&#34;</span>
 
-<span class=c1>#ssh-keygen -t rsa -C &#34;wangb072@chinatelecom.cn&#34;</span>
+<span class=c1>#ssh-keygen -t rsa -C &#34;dragon@qq.com&#34;</span>
 
 
-ssh-keygen -m PEM -t rsa -C wangb072@chinatelecom.cn -b <span class=m>4096</span>
+ssh-keygen -m PEM -t rsa -C dragon@qq.com -b <span class=m>4096</span>
     
 </code></pre></td></tr></table></div></div><p>生成密钥前</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
 </span><span class=lnt> 2
@@ -232,7 +232,7 @@ dragon@LAPTOP-UB9FPVOU MINGW64 /
 </span><span class=lnt>37
 </span><span class=lnt>38
 </span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>dragon@LAPTOP-UB9FPVOU MINGW64 /
-$ ssh-keygen -t rsa -C <span class=s2>&#34;wangb072@chinatelecom.cn&#34;</span>
+$ ssh-keygen -t rsa -C <span class=s2>&#34;dragon@qq.com&#34;</span>
 Generating public/private rsa key pair.
 Enter file in which to save the key <span class=o>(</span>/c/Users/dragon/.ssh/id_rsa<span class=o>)</span>:
 Enter passphrase <span class=o>(</span>empty <span class=k>for</span> no passphrase<span class=o>)</span>:
@@ -240,7 +240,7 @@ Enter same passphrase again:
 Your identification has been saved in /c/Users/dragon/.ssh/id_rsa
 Your public key has been saved in /c/Users/dragon/.ssh/id_rsa.pub
 The key fingerprint is:
-SHA256:1rZkqeSa5bVCJVQM4kz7xBkXRy+8xUkJe68P31t61vw wangb072@chinatelecom.cn
+SHA256:1rZkqeSa5bVCJVQM4kz7xBkXRy+8xUkJe68P31t61vw dragon@qq.com
 The key<span class=err>&#39;</span>s randomart image is:
 +---<span class=o>[</span>RSA 3072<span class=o>]</span>----+
 <span class=p>|</span>      o o++o+... <span class=p>|</span>
@@ -285,7 +285,7 @@ drwxr-xr-x <span class=m>1</span> dragon <span class=m>197121</span>    <span cl
 
 dragon@LAPTOP-UB9FPVOU MINGW64 /
 $ cat ~/.ssh/id_rsa.pub
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDiBgZlQ/Q5MGHyf1nv1s82SS+yWLHa6YzIc/jkH441iHywOqIpTkynT2VcHL+9ut27W2soArOKzy2fNOu3cmQbPR4Rf+40lAczZZ7dDmeZA4Dyg1Rhzbyovnb2yUY6jtASBn3RDMvC1QAOcfoYb+8HiHFX88I+hab7RuuSVgcgFhOAV4KIGIhyIBi/KL5ar9Y+0L7LgIoQ2IP8FaqcJd58up2tQdidST6UtIu9pLxgd2e1H+SaTR7M1a30nHQeOCpi5dBp59V0oPvJs7b6sKLPufWFANzJlokBP4iSqiX27OFQx9ZcBSBpLbVNXsn6pEfEni66R31pi/kRBePP6oIsaX2FpQcvEHqQe3RxyNmGe1lvCJ25CeSOhIOljSyKMUFulKJ2CmKNrQyufD/dizHYrkclBJGccIk+WJlRbHc8YZPXp6HfXWhIDF5iLw6Zzy2gnYJvJpWHFWsULDMg6lVYhPncRHQK92W5Vjg0Bk0Fjy8RfFyZi5WEWZJUUwufSRU<span class=o>=</span> wangb072@chinatelecom.cn
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDiBgZlQ/Q5MGHyf1nv1s82SS+yWLHa6YzIc/jkH441iHywOqIpTkynT2VcHL+9ut27W2soArOKzy2fNOu3cmQbPR4Rf+40lAczZZ7dDmeZA4Dyg1Rhzbyovnb2yUY6jtASBn3RDMvC1QAOcfoYb+8HiHFX88I+hab7RuuSVgcgFhOAV4KIGIhyIBi/KL5ar9Y+0L7LgIoQ2IP8FaqcJd58up2tQdidST6UtIu9pLxgd2e1H+SaTR7M1a30nHQeOCpi5dBp59V0oPvJs7b6sKLPufWFANzJlokBP4iSqiX27OFQx9ZcBSBpLbVNXsn6pEfEni66R31pi/kRBePP6oIsaX2FpQcvEHqQe3RxyNmGe1lvCJ25CeSOhIOljSyKMUFulKJ2CmKNrQyufD/dizHYrkclBJGccIk+WJlRbHc8YZPXp6HfXWhIDF5iLw6Zzy2gnYJvJpWHFWsULDMg6lVYhPncRHQK92W5Vjg0Bk0Fjy8RfFyZi5WEWZJUUwufSRU<span class=o>=</span> dragon@qq.com
 
 dragon@LAPTOP-UB9FPVOU MINGW64 /
 $
@@ -303,7 +303,7 @@ $
 </span><span class=lnt>10
 </span><span class=lnt>11
 </span></code></pre></td><td class=lntd><pre class=chroma><code class=language-shell data-lang=shell>dragon@LAPTOP-UB9FPVOU MINGW64 /d/GoProject
-$ git clone ssh://wangb072@code.srdcloud.cn:29418/CTDICaaS/ctdi-caas-kubesphere <span class=o>&amp;&amp;</span> scp -p -P <span class=m>29418</span> wangb072@code.srdcloud.cn:hooks/commit-msg ctdi-caas-kubesphere/.git/hooks/
+$ git clone ssh://dragon@code.srdcloud.cn:29418/CTDICaaS/ctdi-caas-kubesphere <span class=o>&amp;&amp;</span> scp -p -P <span class=m>29418</span> dragon@code.srdcloud.cn:hooks/commit-msg ctdi-caas-kubesphere/.git/hooks/
 Cloning into <span class=s1>&#39;ctdi-caas-kubesphere&#39;</span>...
 Unable to negotiate with 10.158.231.11 port 29418: no matching host key <span class=nb>type</span> found. Their offer: ssh-rsa,ssh-dss
 fatal: Could not <span class=nb>read</span> from remote repository.
